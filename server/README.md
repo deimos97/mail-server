@@ -25,5 +25,7 @@ Si añades al servidor un fichero con un secreto de un tipo nuevo, **añade su p
 
 ## Qué hay
 
+- `bin/`: scripts **escritos aquí** y copiados al servidor (`scp server/bin/X root@…:/usr/local/sbin/X`). Aquí la fuente es el repo, no el servidor.
+
 - `config/etc/…`, `config/usr/…`: solo ficheros propios o modificados respecto al paquete (los conffiles intactos se omiten).
 - `config/_effective/`: `postconf -n`, `doveconf -n`, esquema de la BD `mailserver` (sin datos) y versiones de los paquetes.

@@ -117,7 +117,9 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 | Monitorización | `/usr/local/sbin/mail-monitor`, timer `mail-monitor.timer` (cada 10 min). Comprueba servicios, cola de Postfix (> 50), disco (> 85 %), caducidad de certificados por puerto (< 14 días), antigüedad del backup (> 26 h) y blacklists de la IP y del dominio. Los umbrales están al principio del script. |
 | Alertas | `/usr/local/sbin/mail-alert` → Telegram (`/etc/mail-monitor/telegram.env`). Avisa una vez por problema, lo repite cada 6 h mientras siga y avisa cuando se resuelve. |
 | Vigilante externo | Healthchecks.io (`/etc/mail-monitor/healthchecks.env`). Recibe un ping en cada pasada del monitor y avisa por Telegram si deja de recibirlos. |
-| Logs útiles | `/var/log/mail.log`, `/var/log/roundcube/`, `journalctl -t mail-alert`, `fail2ban-client status <jail>` |
+| Web (`portal/`) | `https://unagrandeylibre.es`. Releases en `/var/www/portal/releases`, la activa en `current`; `.env` y `storage/` en `/var/www/portal/shared`. Usuario y pool FPM `portal`. Certificado propio (`--cert-name unagrandeylibre.es`), independiente del del correo. |
+| Desplegar la web | `portal/deploy.sh` desde tu máquina, con todo ya subido a GitHub (el servidor clona el repo público). `portal/deploy.sh --rollback` vuelve a la release anterior. El script del servidor es `server/bin/portal-deploy` → `/usr/local/sbin/portal-deploy`. |
+| Logs útiles | `/var/log/mail.log`, `/var/log/roundcube/`, `journalctl -t mail-alert`, `fail2ban-client status <jail>`, `/var/www/portal/shared/storage/logs/` |
 
 ## TODO back-end
 

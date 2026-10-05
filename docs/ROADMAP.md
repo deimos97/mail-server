@@ -8,7 +8,7 @@ Estado: **Fase 0 — EN CURSO** (planificación; todavía sin código).
 
 | # | Decisión | Fecha |
 |---|---|---|
-| D-001 | Stack: **Laravel 12 + Cashier (Stripe) + Filament**, para simplificar el despliegue. | 2026-10-05 |
+| D-001 | Stack: **Laravel 13 + Cashier (Stripe) + Filament**, para simplificar el despliegue. Se eligió la 13 frente a la 12 (que solo tiene parches de seguridad hasta 02/2027); la 13 pide PHP 8.3, el del servidor. | 2026-10-05 |
 | D-002 | La web va en el **mismo VPS** que el correo, aislada (usuario, pool FPM y usuario de BD propios). Lo de separarla se estudiará en el futuro. | 2026-10-05 |
 | D-003 | **Monorepo**: `portal/`, `server/` (configuración versionada del servidor **sin secretos**), `docs/`. | 2026-10-05 |
 | D-004 | **PostHog Cloud EU** mientras sea gratis; el objetivo a largo plazo es autoalojarlo. | 2026-10-05 |
@@ -34,15 +34,17 @@ Objetivo: poder desplegar un "hola mundo" en `https://unagrandeylibre.es` con to
 - [x] Cerrar todas las decisiones de partida (D-001 a D-013)
 - [x] Limpiar restos de Sapphira (servicio `whatsapp-statics`, `nginx/conf.d/wordpress.inc`, preferencias apt de Node/N|Solid)
 - [x] Actualizar a Ubuntu 24.04 (2026-10-05). Roundcube 1.6.6, PHP 8.3, Rspamd `noble`; detalles y trampas en el README
-- [ ] Prueba real después del upgrade: login en el webmail, envío a Gmail y respuesta desde Gmail
+- [x] Prueba real después del upgrade: login en el webmail, envío a Gmail y respuesta desde Gmail
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político antes de invertir en diseño
 - [x] Carpeta `server/` con copias versionadas de la configuración (Postfix, Dovecot, Rspamd, nginx, Roundcube, fail2ban, iptables, scripts `mail-*`, timers). **Sin secretos**: `.gitignore` y lista de exclusiones (`des_key`, contraseñas de BD, `*.env`, `restic.pass`, claves DKIM/TLS, hashes); los valores sensibles se sustituyen por `__REDACTED__`. Revisar con `gitleaks` antes de cada commit (hook pre-commit). Script `server/pull-config.sh` que las actualiza desde el servidor.
-- [ ] Verificar que Dovecot acepta hashes bcrypt `$2y$` de PHP (`doveadm pw -t`)
-- [ ] Pool FPM `portal` (PHP 8.3 de serie en 24.04) y usuario de sistema `portal`
-- [ ] BD `portal` y usuario MariaDB `portal` con permisos mínimos sobre `mailserver`
-- [ ] nginx + certificado ampliado (`unagrandeylibre.es`, `www`, `autoconfig`, `autodiscover`)
-- [ ] Esqueleto Laravel en `portal/`, script de despliegue, `.env` fuera del repo
-- [ ] Añadir BD `portal` al backup y la web al `mail-monitor`
+- [x] Verificar que Dovecot acepta hashes bcrypt `$2y$` de PHP (`doveadm pw -t`): sí, coste 10 y 12, con prefijo `{BLF-CRYPT}`; también `{ARGON2ID}`
+- [x] Pool FPM `portal` (PHP 8.3) y usuario de sistema `portal`
+- [x] BD `portal` y usuario MariaDB `portal` con permisos mínimos sobre `mailserver` (comprobado: no puede borrar buzones, tocar dominios ni leer `roundcube`)
+- [x] nginx + certificado propio de la web (`unagrandeylibre.es`), separado del del correo
+- [ ] Registros DNS de `www`, `autoconfig` y `autodiscover` en Cloudflare → ampliar el certificado (`certbot … --cert-name unagrandeylibre.es --expand`) y redirigir `www` al apex
+- [x] Esqueleto Laravel 13 en `portal/`, despliegue (`portal/deploy.sh` → `portal-deploy` en el servidor), `.env` solo en el servidor
+- [x] Añadir BD `portal` y `/var/www/portal/shared` al backup, y la web (certificado + `/up`) al `mail-monitor`
+- [ ] Worker de colas (systemd) y scheduler de Laravel (timer), cuando haga falta el primero
 - [ ] Cuentas: Stripe (modo test), PostHog EU, Cloudflare Turnstile
 - [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría
 

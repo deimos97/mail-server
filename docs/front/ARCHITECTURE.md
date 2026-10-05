@@ -22,7 +22,7 @@ Diseño técnico. Las decisiones que lo sostienen están en "Decisiones tomadas"
 
 | Pieza | Elección | Por qué |
 |---|---|---|
-| Framework | **Laravel 12** (PHP 8.3) | El README ya dice "front PHP". Trae auth, colas, correo, rate limiting, validación y migraciones; la landing se renderiza en servidor (bueno para SEO y LCP). |
+| Framework | **Laravel 13** (PHP 8.3) | El README ya dice "front PHP". Trae auth, colas, correo, rate limiting, validación y migraciones; la landing se renderiza en servidor (bueno para SEO y LCP). |
 | Pagos | **Laravel Cashier (Stripe)** + Stripe Checkout + Customer Portal | Suscripciones, webhooks, tarjetas y facturas sin construir formularios de pago. Nada de datos de tarjeta pasa por nuestro servidor (PCI SAQ A). |
 | Admin | **Filament** | CRUD de planes, ofertas, dominios, nombres reservados y usuarios en horas, no semanas. |
 | Interactividad | Blade + Alpine.js (o Livewire) | Comprobación de disponibilidad y pasos del onboarding sin montar una SPA. |

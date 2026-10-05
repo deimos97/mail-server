@@ -1,6 +1,7 @@
 # Secretos: nunca en el repo (es público)
 *.env
 .env*
+!.env.example
 *.pem
 *.key
 restic.pass

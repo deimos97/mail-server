@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Despliega portal/ desde GitHub en /var/www/portal. Se ejecuta en el servidor como root
+# (lo llama portal/deploy.sh); todo lo que toca el código corre como el usuario `portal`.
+#
+#   /var/www/portal/repo        clon del repo (público, por https)
+#   /var/www/portal/releases/X  una carpeta por despliegue
+#   /var/www/portal/shared      .env y storage/ (persisten entre despliegues)
+#   /var/www/portal/current  -> releases/X (lo que sirve nginx)
+#
+# Uso: portal-deploy [ref]      (por defecto origin/main)
+#      portal-deploy --rollback (vuelve a la release anterior)
+set -euo pipefail
+
+BASE=/var/www/portal
+REPO_URL=https://github.com/deimos97/mail-server.git
+KEEP=5
+as_portal() { sudo -u portal -H env HOME="$BASE" COMPOSER_HOME="$BASE/.composer" "$@"; }
+
+if [ "${1:-}" = "--rollback" ]; then
+    prev=$(ls -1d "$BASE"/releases/*/ | sort | tail -2 | head -1)
+    [ "$prev" != "$(readlink -f "$BASE/current")/" ] || { echo "No hay release anterior." >&2; exit 1; }
+    ln -sfn "${prev%/}" "$BASE/current.new" && mv -T "$BASE/current.new" "$BASE/current"
+    systemctl reload php8.3-fpm
+    echo "Rollback a $(basename "$prev")"; exit 0
+fi
+
+REF="${1:-origin/main}"
+[ -d "$BASE/repo/.git" ] || as_portal git clone --quiet "$REPO_URL" "$BASE/repo"
+as_portal git -C "$BASE/repo" fetch --quiet --prune origin
+as_portal git -C "$BASE/repo" checkout --quiet --detach "$REF"
+SHA=$(as_portal git -C "$BASE/repo" rev-parse --short HEAD)
+
+R="$BASE/releases/$(date +%Y%m%d-%H%M%S)-$SHA"
+as_portal mkdir -p "$R"
+as_portal git -C "$BASE/repo" archive HEAD portal | as_portal tar -x -C "$R" --strip-components=1
+
+# Lo persistente viene de shared/
+as_portal rm -rf "$R/storage" "$R/.env"
+as_portal ln -s "$BASE/shared/storage" "$R/storage"
+as_portal ln -s "$BASE/shared/.env" "$R/.env"
+
+cd "$R"
+as_portal composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --quiet
+as_portal php8.3 artisan migrate --force
+as_portal php8.3 artisan optimize
+
+ln -sfn "$R" "$BASE/current.new" && mv -T "$BASE/current.new" "$BASE/current"
+systemctl reload php8.3-fpm   # vacía opcache
+
+# Limpieza de releases viejas
+ls -1d "$BASE"/releases/*/ | sort | head -n -"$KEEP" | xargs -r rm -rf
+echo "Desplegado $SHA en $R"
