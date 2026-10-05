@@ -31,6 +31,7 @@ Servicio de hosting de correo con un front PHP + Stripe (pendiente) para el alta
 - SPF `v=spf1 mx -all`, DKIM firmado por Rspamd y DMARC `p=quarantine`.
 - El PTR de la IP apuntado.
 - `reject_sender_login_mismatch` impide enviar con un remitente distinto del usuario autenticado.
+- Tamaño máximo por mensaje: **35 MB** (`message_size_limit`), en los dos sentidos. Los adjuntos crecen ~37 % al codificarse en base64, así que caben unos 25 MB de adjuntos, como en Gmail. Los límites de PHP del webmail (25 MB por adjunto) van a juego; si se cambia uno, revisa el otro.
 - Probado con mail-tester (10/10) y con envíos reales a Gmail y Outlook, que llegan a la bandeja de entrada.
 
 ### Spam
@@ -52,7 +53,8 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 
 - El pool `webmail` corre como el usuario `webmail` (uid 5001), no como `www-data`. Para depurar, usa `sudo -u webmail php8.3 ...`, porque con `www-data` el resultado no es fiable.
 - `webmail` está en el grupo `www-data` para poder leer `/etc/roundcube`.
-- `/var/lib/roundcube/temp` pertenece a `webmail`. Si no puede escribir ahí, los adjuntos fallan.
+- `/var/lib/roundcube/temp` pertenece a `webmail`. Si no puede escribir ahí, los adjuntos fallan ("unable to create a temporary file" en `/var/log/nginx/error.log`). **El paquete de Roundcube la devuelve a `www-data` al actualizarse**; `/etc/tmpfiles.d/roundcube-webmail.conf` la corrige en cada arranque. Si se actualiza Roundcube sin reiniciar: `systemd-tmpfiles --create /etc/tmpfiles.d/roundcube-webmail.conf`.
+- Los límites de subida (25 MB por adjunto, 32 MB por envío, 256 MB de memoria) están en el **pool**, no en `php.ini`: al pasar de PHP 8.1 a 8.3 el `php.ini` nuevo volvió a los 2 MB por defecto.
 - El pool tiene `open_basedir` limitado a las rutas de Roundcube.
 - El pool vive en `/etc/php/8.3/fpm/pool.d/webmail.conf`. El pool `www` por defecto está retirado. El socket (`/run/php/webmail.sock`) no lleva la versión en el nombre: al cambiar de PHP basta con mover el fichero del pool.
 
