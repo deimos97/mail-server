@@ -44,7 +44,7 @@ Objetivo: poder desplegar un "hola mundo" en `https://unagrandeylibre.es` con to
 - [x] Esqueleto Laravel 13 en `portal/`, despliegue (`portal/deploy.sh` → `portal-deploy` en el servidor), `.env` solo en el servidor
 - [x] Añadir BD `portal` y `/var/www/portal/shared` al backup, y la web (certificado + `/up`) al `mail-monitor`
 - [x] Worker de colas (`portal-queue.service`) y scheduler de Laravel (`portal-schedule.timer`, cada minuto); el deploy reinicia el worker y el monitor vigila ambos
-- [ ] Cuentas: Stripe (modo test), PostHog EU, Cloudflare Turnstile — las crea el usuario y pega las claves en `/var/www/portal/shared/.env` (ya están las variables, vacías; qué es cada una en `portal/.env.example`)
+- [x] Cuentas: Stripe (modo test, clave comprobada contra la API), PostHog EU (clave de proyecto `phc_`, la única que puede ir al navegador), Cloudflare Turnstile. Claves solo en `/var/www/portal/shared/.env`; qué es cada una en `portal/.env.example`. Tras editar el `.env`: `sudo -u portal php8.3 artisan optimize` en `current`
 
 ## Fase 1 · Landing + planes desde BD
 
@@ -107,6 +107,7 @@ Objetivo: alguien llega por un anuncio y sale con un buzón funcionando en el m�
 - [ ] Sincronización planes/ofertas ↔ Stripe desde el admin (Product, Price, Coupon); cada cambio de precio crea un `Price` nuevo y los clientes existentes conservan el suyo
 - [ ] Sobrecoste de nombre corto como línea periódica extra en la suscripción (solo planes de pago)
 - [ ] Stripe Checkout en el onboarding y al cambiar de plan; desistimiento de 14 días
+- [ ] Crear el webhook con `php artisan cashier:webhook` (URL `https://unagrandeylibre.es/stripe/webhook` y eventos de Cashier) y pegar el `whsec_` en `STRIPE_WEBHOOK_SECRET`; no crearlo a mano antes de tener Cashier desplegado
 - [ ] Webhooks idempotentes (`checkout.session.completed`, `invoice.*`, `customer.subscription.*`)
 - [ ] Stripe Customer Portal: tarjetas, facturas, cancelación
 - [ ] Ciclo de vida según D-009: impago → aviso → suspensión → borrado → cuarentena del nombre → nombre libre (timer que ejecuta `mail-provision`)
