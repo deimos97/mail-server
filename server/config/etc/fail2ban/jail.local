@@ -1,0 +1,31 @@
+# Mail server jails. Own IP is ignored: Roundcube authenticates to
+# Dovecot/Postfix via 128.140.5.221, so its failures must never ban it.
+[DEFAULT]
+ignoreip = 127.0.0.1/8 ::1 128.140.5.221
+# ufw does not own the IPv4 INPUT chain here; ban directly with iptables
+banaction = iptables-multiport
+banaction_allports = iptables-allports
+backend = auto
+findtime = 10m
+maxretry = 5
+bantime = 1h
+bantime.increment = true
+bantime.maxtime = 1w
+
+[sshd]
+enabled = true
+
+[postfix-sasl]
+enabled = true
+port = smtp,465,submission
+logpath = /var/log/mail.log
+
+[dovecot]
+enabled = true
+port = imaps,submission,465
+logpath = /var/log/mail.log
+
+[roundcube-auth]
+enabled = true
+port = http,https
+logpath = /var/log/roundcube/errors.log

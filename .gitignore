@@ -1,0 +1,13 @@
+# Secretos: nunca en el repo (es público)
+*.env
+.env*
+*.pem
+*.key
+restic.pass
+# Laravel (portal/)
+portal/vendor/
+portal/node_modules/
+portal/storage/*.key
+portal/public/hot
+portal/public/storage
+.DS_Store

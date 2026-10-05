@@ -1,0 +1,9 @@
+[Unit]
+Description=Mail server backup (restic)
+After=mariadb.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mail-backup
+Nice=10
+IOSchedulingClass=idle

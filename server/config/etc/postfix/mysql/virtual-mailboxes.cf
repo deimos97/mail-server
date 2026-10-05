@@ -1,0 +1,5 @@
+user = mailuser
+password = __REDACTED__
+hosts = 127.0.0.1
+dbname = mailserver
+query = SELECT 1 FROM mailboxes m JOIN domains d ON d.id=m.domain_id WHERE m.email='%s' AND m.active=1 AND d.active=1

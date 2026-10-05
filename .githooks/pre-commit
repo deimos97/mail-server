@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Bloquea el commit si lo que se va a subir contiene secretos. El repo es PÚBLICO.
+# Activar una vez por clon: git config core.hooksPath .githooks
+set -euo pipefail
+if ! command -v gitleaks >/dev/null; then
+  echo "pre-commit: instala gitleaks (brew install gitleaks) — el repo es público." >&2
+  exit 1
+fi
+gitleaks protect --staged --no-banner --redact

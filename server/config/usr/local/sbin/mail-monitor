@@ -1,0 +1,86 @@
+#!/bin/bash
+# Periodic health checks. Alerts once per problem, repeats every REALERT seconds
+# while it persists, and sends a recovery message when it clears.
+set -uo pipefail
+STATE=/var/lib/mail-monitor
+REALERT=$((6*3600))
+IP=128.140.5.221
+DOMAIN=unagrandeylibre.es
+CERT_HOST=mail.unagrandeylibre.es
+QUEUE_MAX=50
+DISK_MAX=85
+CERT_MIN_DAYS=14
+BACKUP_MAX_AGE=$((26*3600))
+SERVICES="postfix@- dovecot rspamd redis-server mariadb nginx php8.1-fpm fail2ban unbound"
+IP_DNSBLS="zen.spamhaus.org bl.spamcop.net psbl.surriel.com dnsbl-1.uceprotect.net"
+DOMAIN_DNSBLS="dbl.spamhaus.org multi.surbl.org"
+
+now=$(date +%s)
+
+# report <check-id> <problem text or empty when healthy>
+report() {
+    local id=$1 problem=$2 f="$STATE/$1"
+    if [ -n "$problem" ]; then
+        if [ ! -f "$f" ] || [ $((now - $(cat "$f"))) -ge $REALERT ]; then
+            /usr/local/sbin/mail-alert "PROBLEMA: $problem" && echo "$now" > "$f"
+        fi
+    elif [ -f "$f" ]; then
+        /usr/local/sbin/mail-alert "RESUELTO: $id" && rm -f "$f"
+    fi
+}
+
+for s in $SERVICES; do
+    systemctl is-active --quiet "$s" && p="" || p="servicio $s no está activo"
+    report "service-$s" "$p"
+done
+
+q=$(postqueue -j 2>/dev/null | wc -l)
+[ "$q" -gt $QUEUE_MAX ] && p="cola de Postfix con $q mensajes (> $QUEUE_MAX)" || p=""
+report queue "$p"
+
+for m in / /var; do
+    u=$(df --output=pcent "$m" | tail -1 | tr -dc 0-9)
+    [ "$u" -gt $DISK_MAX ] && p="disco $m al $u% (> $DISK_MAX%)" || p=""
+    report "disk-${m//\//_}" "$p"
+done
+
+# Check what each port actually serves, so a missed reload after renewal is caught too
+for port in 443 465 587 993; do
+    opt=""; [ $port = 587 ] && opt="-starttls smtp"
+    if pem=$(echo | timeout 10 openssl s_client -connect 127.0.0.1:$port -servername $CERT_HOST $opt 2>/dev/null | openssl x509 2>/dev/null); then
+        echo "$pem" | openssl x509 -noout -checkend $((CERT_MIN_DAYS*86400)) >/dev/null \
+            && p="" || p="certificado en puerto $port caduca en menos de $CERT_MIN_DAYS días ($(echo "$pem" | openssl x509 -noout -enddate | cut -d= -f2))"
+    else
+        p="no se pudo leer el certificado TLS del puerto $port"
+    fi
+    report "cert-$port" "$p"
+done
+
+if [ -f /var/lib/mail-backup/last-success ]; then
+    age=$((now - $(cat /var/lib/mail-backup/last-success)))
+    [ $age -gt $BACKUP_MAX_AGE ] && p="último backup correcto hace $((age/3600)) h" || p=""
+else
+    p="no hay ningún backup correcto registrado"
+fi
+report backup "$p"
+
+# DNSBLs via local unbound; 127.255.255.x means the query itself was refused, not a listing
+rev=$(echo $IP | awk -F. '{print $4"."$3"."$2"."$1}')
+check_bl() {
+    local name=$1 bl=$2 ans
+    ans=$(dig +short +time=5 +tries=2 @127.0.0.1 "$name.$bl" A 2>/dev/null | grep -E '^127\.' | tr '\n' ' ')
+    case "$ans" in
+        "") p="" ;;
+        127.255.255.*) p="consulta a $bl rechazada ($ans) — revisar resolver" ;;
+        *) p="$3 listado en $bl ($ans)" ;;
+    esac
+    report "bl-$bl" "$p"
+}
+for bl in $IP_DNSBLS; do check_bl "$rev" "$bl" "IP $IP"; done
+for bl in $DOMAIN_DNSBLS; do check_bl "$DOMAIN" "$bl" "dominio $DOMAIN"; done
+
+date +%s > "$STATE/last-run"
+
+# Dead-man's switch: an external service alerts if these pings stop arriving
+. /etc/mail-monitor/healthchecks.env
+[ -n "${HC_PING_URL:-}" ] && curl -fsS --max-time 10 --retry 3 -o /dev/null "$HC_PING_URL" || true

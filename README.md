@@ -2,7 +2,7 @@
 
 Servicio de hosting de correo con un front PHP + Stripe (pendiente) para el alta y gestión de cuentas.
 
-- **Servidor:** Hetzner VPS, Ubuntu 22.04 LTS
+- **Servidor:** Hetzner VPS, Ubuntu 24.04 LTS (actualizado desde 22.04 el 2026-10-05)
 - **DNS:** Cloudflare (MX, SPF, DKIM y DMARC publicados ahí)
 
 ## Stack
@@ -14,7 +14,7 @@ Servicio de hosting de correo con un front PHP + Stripe (pendiente) para el alta
 | **MariaDB** | BD `mailserver` (`domains`, `mailboxes`, `aliases`), leída por Dovecot y Postfix. BD `roundcube` para el webmail. |
 | **Rspamd + Redis** | Antispam, firma DKIM (selector `mail`) y límite de envío por usuario. |
 | **unbound** | Resolver DNS local para Rspamd y las comprobaciones de blacklists. |
-| **Roundcube 1.5** | Webmail sobre nginx + PHP-FPM 8.1 (pool `webmail`). |
+| **Roundcube 1.6** | Webmail sobre nginx + PHP-FPM 8.3 (pool `webmail`). |
 | **Let's Encrypt** | Un certificado con SAN  |
 | **fail2ban** | Jails para SSH, Postfix SASL, Dovecot y Roundcube. |
 | **iptables** | Firewall (iptables-persistent). |
@@ -40,9 +40,9 @@ Servicio de hosting de correo con un front PHP + Stripe (pendiente) para el alta
 
 ## *Monkey noises* y cosas a tener en cuenta
 
-### Roundcube 1.5: nombres de opciones
+### Roundcube: nombres de opciones según la versión
 
-El paquete de Ubuntu es **Roundcube 1.5.0**, que usa `default_host`, `smtp_server` y `smtp_port`. Las opciones `imap_host` y `smtp_host` son de la **1.6** y la 1.5 las **ignora sin avisar**: se conecta a `localhost` sin TLS y el envío falla con "Ha fallado la autenticación". La configuración está en `/etc/roundcube/config.inc.php`. Si se actualiza a 1.6, hay que renombrar las opciones.
+Ahora es **Roundcube 1.6**, que usa `imap_host` y `smtp_host` (con el puerto dentro: `tls://127.0.0.1:587`). La 1.5 usaba `default_host`, `smtp_server` y `smtp_port`, e **ignoraba sin avisar** las de la 1.6: se conectaba a `localhost` sin TLS y el envío fallaba con "Ha fallado la autenticación". Al cambiar de versión, revisa siempre estas opciones en `/etc/roundcube/config.inc.php`.
 
 ### IMAP `ssl://` frente a SMTP `tls://`
 
@@ -50,10 +50,11 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 
 ### PHP-FPM del webmail
 
-- El pool `webmail` corre como el usuario `webmail` (uid 5001), no como `www-data`. Para depurar, usa `sudo -u webmail php ...`, porque con `www-data` el resultado no es fiable.
+- El pool `webmail` corre como el usuario `webmail` (uid 5001), no como `www-data`. Para depurar, usa `sudo -u webmail php8.3 ...`, porque con `www-data` el resultado no es fiable.
 - `webmail` está en el grupo `www-data` para poder leer `/etc/roundcube`.
 - `/var/lib/roundcube/temp` pertenece a `webmail`. Si no puede escribir ahí, los adjuntos fallan.
 - El pool tiene `open_basedir` limitado a las rutas de Roundcube.
+- El pool vive en `/etc/php/8.3/fpm/pool.d/webmail.conf`. El pool `www` por defecto está retirado. El socket (`/run/php/webmail.sock`) no lleva la versión en el nombre: al cambiar de PHP basta con mover el fichero del pool.
 
 ### Dovecot: orden de configuración
 
@@ -64,6 +65,7 @@ La configuración global está en `/etc/dovecot/local.conf`, que se carga **desp
 - ufw está **desactivado**. Mostraba reglas "ALLOW" que no estaban cargadas en el kernel. Comprueba siempre con `iptables -S INPUT`.
 - Las reglas se editan a mano en `/etc/iptables/rules.v4` y `rules.v6`, y se aplican con `iptables-restore`.
 - **No ejecutar nunca `netfilter-persistent save`**: guardaría también las cadenas temporales `f2b-*` de fail2ban.
+- **Al actualizar `iptables-persistent`** (por ejemplo en un `do-release-upgrade`), el paquete vuelve a guardar las reglas cargadas en ese momento y machaca los ficheros escritos a mano. En el upgrade a 24.04 pasó y no se colaron cadenas `f2b-*`, pero se perdieron los comentarios. Después de cualquier upgrade, revisa `rules.v4|v6` (con `server/pull-config.sh` se ve en el diff).
 
 ### fail2ban ignora la IP del propio servidor
 
@@ -81,11 +83,28 @@ Un `return 301` suelto en un bloque `server {}` se ejecuta antes que cualquier `
 
 El hook `/etc/letsencrypt/renewal-hooks/deploy/reload-mail.sh` recarga nginx, Dovecot y Postfix tras cada renovación. La monitorización comprueba el certificado que **sirve** cada puerto, no el del disco, así que también detecta si algún servicio no se recargó.
 
+### Rspamd viene de su propio repositorio, compilado para cada versión de Ubuntu
+
+El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-release-upgrade` lo desactiva (lo renombra a `rspamd.list.distUpgrade`) y deja instalado el paquete de la versión anterior, que **no arranca**. Postfix tiene `milter_default_action = tempfail`, así que mientras Rspamd está caído todo el correo entrante recibe un `451` (los remitentes reintentan; no se pierde nada, pero tampoco entra). Tras un upgrade: reactivar el repositorio con el nombre nuevo, `apt install rspamd`, `rspamadm configtest` y `systemctl enable --now rspamd`.
+
+### apache2 instalado pero enmascarado
+
+`roundcube-core` arrastra `apache2` como dependencia. Si arranca, choca con nginx por el puerto 80 y queda en estado fallido. Está **enmascarado** (`systemctl mask apache2`), no desinstalado, porque quitarlo se llevaría Roundcube por delante.
+
+### Actualizar Ubuntu (`do-release-upgrade`)
+
+- Hetzner usa su propio mirror (`mirror.hetzner.com`). El asistente pregunta si reescribir `sources.list`: hay que contestar **sí**.
+- Ficheros de configuración modificados: contestar siempre **mantener la versión actual** y ajustar después.
+- La BD de Roundcube se migra sola con dbconfig-common, que deja una copia en `/var/cache/dbconfig-common/backups`.
+- Durante el upgrade, SSH rechaza conexiones nuevas un rato (se actualiza `openssh-server`). No cierres la sesión abierta hasta comprobar que una conexión nueva entra.
+- Después: Rspamd, el pool PHP, las opciones de Roundcube, las reglas de iptables (ver arriba) y `server/pull-config.sh` para ver el diff.
+- Hazlo siempre con un **snapshot de Hetzner** recién hecho.
+
 ### Paquetes eliminados a propósito
 
 - snapd está desinstalado y bloqueado en `/etc/apt/preferences.d/no-snapd`.
 - El journal de systemd está limitado a 200 MB (`/etc/systemd/journald.conf.d/size.conf`).
-- El servidor solo ejecuta el correo. La aplicación antigua que también vivía aquí (Sapphira) se movió a otro servidor.
+- El servidor solo ejecuta el correo. La aplicación antigua que también vivía aquí (Sapphira) se movió a otro servidor. Sus últimos restos (servicio `whatsapp-statics`, `nginx/conf.d/wordpress.inc`, preferencias apt de Node/N|Solid) se retiraron el 2026-10-05 y están guardados en `/root/sapphira-leftovers` por si acaso.
 
 ## Operación
 
@@ -102,8 +121,17 @@ El hook `/etc/letsencrypt/renewal-hooks/deploy/reload-mail.sh` recarga nginx, Do
 
 - [ ] **Backups fuera del servidor.** Ahora el repositorio restic está en el mismo disco: protege contra borrados y errores, pero no si se pierde el servidor. Cuando haya usuarios, añadir un destino externo (por ejemplo, un Hetzner Storage Box) con `restic copy`. No hay que cambiar nada más.
 - [ ] **Claves DKIM por dominio** cuando se admitan dominios propios de clientes: generar la clave en `/var/lib/rspamd/dkim/<dominio>.mail.key` y publicar el registro DNS.
-- [ ] *(Opcional)* Valorar actualizar Roundcube de 1.5 a 1.6 (ver [Roundcube 1.5: nombres de opciones](#roundcube-15-nombres-de-opciones)).
+- [x] **Actualizar a Ubuntu 24.04** (Roundcube 1.6, PHP 8.3, Postfix 3.8, Dovecot 2.3.21, MariaDB 10.11). Hecho el 2026-10-05.
+- [ ] *(Opcional)* Purgar los restos de configuración de paquetes ya desinstalados (`dpkg -l | grep ^rc`: PHP 8.1, MariaDB 10.6, kernels 5.15, ufw).
 
 ## TODO front-end
 
-<!-- Pendiente de rellenar -->
+Web en `unagrandeylibre.es` para darse de alta, elegir plan (gratis o de pago con Stripe) y gestionar los buzones. Visión en [docs/front/PRODUCT.md](docs/front/PRODUCT.md), diseño técnico en [docs/front/ARCHITECTURE.md](docs/front/ARCHITECTURE.md), decisiones pendientes en [docs/DECISIONS.md](docs/DECISIONS.md) y el detalle por tareas en [docs/ROADMAP.md](docs/ROADMAP.md).
+
+- [ ] **Fase 0 · Cimientos:** actualizar el sistema operativo, anuncio de prueba, copia versionada y sin secretos de la configuración en `server/`, BD y usuario `portal`, nginx y certificado para el apex. Stack decidido: Laravel + Cashier + Filament en el mismo VPS; analítica con PostHog.
+- [ ] **Fase 1 · Landing:** hero con bandera e input de nombre, disponibilidad en vivo, planes desde BD (gratis/pago, programables, ofertas), admin de planes, analítica con consentimiento, SEO.
+- [ ] **Fase 2 · Alta gratis:** email de recuperación verificado, provisión del buzón, antiabuso, autoconfiguración de clientes de correo y tutoriales.
+- [ ] **Fase 3 · Área de cliente:** varios buzones por usuario, cuota, contraseñas de aplicación, login único con el webmail.
+- [ ] **Fase 4 · Pago:** Stripe Checkout, webhooks, Customer Portal, impagos, IVA y facturas.
+- [ ] **Fase 5 · Optimización:** A/B, mapas de calor, contenido, WebMCP, 2FA.
+- [ ] **Futuro:** más dominios, store de nombres/dominios, dominios propios.

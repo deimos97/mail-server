@@ -1,0 +1,27 @@
+#!/bin/bash
+# Daily backup of mailboxes, databases, DKIM keys and service config into the local restic repo.
+set -euo pipefail
+set -a; . /etc/mail-backup/env; set +a
+DUMPS=/var/backups/mail-dumps
+
+fail() {
+    echo "mail-backup FAILED: $1" >&2
+    [ -x /usr/local/sbin/mail-alert ] && /usr/local/sbin/mail-alert "Backup FAILED on $(hostname): $1"
+    exit 1
+}
+trap 'fail "line $LINENO"' ERR
+
+for db in mailserver roundcube; do
+    mysqldump --single-transaction --routines --triggers --events "$db" > "$DUMPS/$db.sql.tmp"
+    mv "$DUMPS/$db.sql.tmp" "$DUMPS/$db.sql"
+done
+
+restic backup --quiet --tag mail \
+    /var/vmail "$DUMPS" /var/lib/rspamd/dkim \
+    /etc/postfix /etc/dovecot /etc/rspamd /etc/roundcube /etc/letsencrypt \
+    /etc/nginx /etc/fail2ban /etc/iptables /etc/php
+
+restic forget --quiet --tag mail --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+restic check --quiet
+
+date +%s > /var/lib/mail-backup/last-success

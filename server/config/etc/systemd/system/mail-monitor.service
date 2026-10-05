@@ -1,0 +1,6 @@
+[Unit]
+Description=Mail server health checks
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mail-monitor

@@ -1,0 +1,81 @@
+# 2.3.21 (47349e2482): /etc/dovecot/dovecot.conf
+# Pigeonhole version 0.5.21 (f6cd4b8e)
+# OS: Linux 6.8.0-146-generic x86_64 Ubuntu 24.04.5 LTS 
+# Hostname: mail.unagrandeylibre.es
+auth_mechanisms = plain login
+first_valid_uid = 5000
+last_valid_uid = 5000
+mail_gid = vmail
+mail_location = maildir:~/Maildir
+mail_plugins = " quota"
+mail_privileged_group = mail
+mail_uid = vmail
+namespace inbox {
+  inbox = yes
+  location = 
+  mailbox Drafts {
+    special_use = \Drafts
+  }
+  mailbox Junk {
+    special_use = \Junk
+  }
+  mailbox Sent {
+    special_use = \Sent
+  }
+  mailbox "Sent Messages" {
+    special_use = \Sent
+  }
+  mailbox Trash {
+    special_use = \Trash
+  }
+  prefix = 
+}
+passdb {
+  args = /etc/dovecot/dovecot-sql.conf.ext
+  driver = sql
+}
+plugin {
+  quota = maildir:User quota
+  sieve = file:~/sieve;active=~/.dovecot.sieve
+  sieve_before = /etc/dovecot/sieve/spam-to-junk.sieve
+}
+postmaster_address = postmaster@unagrandeylibre.es
+protocols = imap lmtp
+service auth {
+  unix_listener /var/spool/postfix/private/auth {
+    group = postfix
+    mode = 0660
+    user = postfix
+  }
+}
+service imap-login {
+  inet_listener imap {
+    port = 0
+  }
+  inet_listener imaps {
+    port = 993
+    ssl = yes
+  }
+}
+service lmtp {
+  unix_listener /var/spool/postfix/private/dovecot-lmtp {
+    group = postfix
+    mode = 0600
+    user = postfix
+  }
+}
+ssl = required
+ssl_cert = </etc/letsencrypt/live/mail.unagrandeylibre.es/fullchain.pem
+ssl_client_ca_dir = /etc/ssl/certs
+ssl_dh = # hidden, use -P to show it
+ssl_key = # hidden, use -P to show it
+userdb {
+  args = /etc/dovecot/dovecot-sql.conf.ext
+  driver = sql
+}
+protocol lmtp {
+  mail_plugins = " quota sieve"
+}
+protocol imap {
+  mail_plugins = " quota imap_quota"
+}
