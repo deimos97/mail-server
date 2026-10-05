@@ -7,11 +7,13 @@ REALERT=$((6*3600))
 IP=128.140.5.221
 DOMAIN=unagrandeylibre.es
 CERT_HOST=mail.unagrandeylibre.es
+WEB_HOST=unagrandeylibre.es
+WEB_HEALTH=https://$WEB_HOST/up
 QUEUE_MAX=50
 DISK_MAX=85
 CERT_MIN_DAYS=14
 BACKUP_MAX_AGE=$((26*3600))
-SERVICES="postfix@- dovecot rspamd redis-server mariadb nginx php8.1-fpm fail2ban unbound"
+SERVICES="postfix@- dovecot rspamd redis-server mariadb nginx php8.3-fpm fail2ban unbound"
 IP_DNSBLS="zen.spamhaus.org bl.spamcop.net psbl.surriel.com dnsbl-1.uceprotect.net"
 DOMAIN_DNSBLS="dbl.spamhaus.org multi.surbl.org"
 
@@ -55,6 +57,20 @@ for port in 443 465 587 993; do
     fi
     report "cert-$port" "$p"
 done
+
+# La web tiene su propio certificado (unagrandeylibre.es) en el 443
+if pem=$(echo | timeout 10 openssl s_client -connect 127.0.0.1:443 -servername $WEB_HOST 2>/dev/null | openssl x509 2>/dev/null); then
+    echo "$pem" | openssl x509 -noout -checkend $((CERT_MIN_DAYS*86400)) >/dev/null \
+        && p="" || p="certificado de $WEB_HOST caduca en menos de $CERT_MIN_DAYS días ($(echo "$pem" | openssl x509 -noout -enddate | cut -d= -f2))"
+else
+    p="no se pudo leer el certificado TLS de $WEB_HOST"
+fi
+report "cert-web" "$p"
+
+# La web responde (ruta de salud de Laravel)
+code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 --resolve "$WEB_HOST:443:127.0.0.1" "$WEB_HEALTH")
+[ "$code" = 200 ] && p="" || p="la web $WEB_HEALTH responde $code"
+report web "$p"
 
 if [ -f /var/lib/mail-backup/last-success ]; then
     age=$((now - $(cat /var/lib/mail-backup/last-success)))
