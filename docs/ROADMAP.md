@@ -35,7 +35,6 @@ Objetivo: poder desplegar un "hola mundo" en `https://unagrandeylibre.es` con to
 - [x] Limpiar restos de Sapphira (servicio `whatsapp-statics`, `nginx/conf.d/wordpress.inc`, preferencias apt de Node/N|Solid)
 - [x] Actualizar a Ubuntu 24.04 (2026-10-05). Roundcube 1.6.6, PHP 8.3, Rspamd `noble`; detalles y trampas en el README
 - [x] Prueba real después del upgrade: login en el webmail, envío a Gmail y respuesta desde Gmail
-- [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político antes de invertir en diseño
 - [x] Carpeta `server/` con copias versionadas de la configuración (Postfix, Dovecot, Rspamd, nginx, Roundcube, fail2ban, iptables, scripts `mail-*`, timers). **Sin secretos**: `.gitignore` y lista de exclusiones (`des_key`, contraseñas de BD, `*.env`, `restic.pass`, claves DKIM/TLS, hashes); los valores sensibles se sustituyen por `__REDACTED__`. Revisar con `gitleaks` antes de cada commit (hook pre-commit). Script `server/pull-config.sh` que las actualiza desde el servidor.
 - [x] Verificar que Dovecot acepta hashes bcrypt `$2y$` de PHP (`doveadm pw -t`): sí, coste 10 y 12, con prefijo `{BLF-CRYPT}`; también `{ARGON2ID}`
 - [x] Pool FPM `portal` (PHP 8.3) y usuario de sistema `portal`
@@ -44,9 +43,8 @@ Objetivo: poder desplegar un "hola mundo" en `https://unagrandeylibre.es` con to
 - [x] Registros DNS de `www`, `autoconfig` y `autodiscover` (solo DNS, sin proxy), certificado ampliado, `www` → apex
 - [x] Esqueleto Laravel 13 en `portal/`, despliegue (`portal/deploy.sh` → `portal-deploy` en el servidor), `.env` solo en el servidor
 - [x] Añadir BD `portal` y `/var/www/portal/shared` al backup, y la web (certificado + `/up`) al `mail-monitor`
-- [ ] Worker de colas (systemd) y scheduler de Laravel (timer), cuando haga falta el primero
-- [ ] Cuentas: Stripe (modo test), PostHog EU, Cloudflare Turnstile
-- [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría
+- [x] Worker de colas (`portal-queue.service`) y scheduler de Laravel (`portal-schedule.timer`, cada minuto); el deploy reinicia el worker y el monitor vigila ambos
+- [ ] Cuentas: Stripe (modo test), PostHog EU, Cloudflare Turnstile — las crea el usuario y pega las claves en `/var/www/portal/shared/.env` (ya están las variables, vacías; qué es cada una en `portal/.env.example`)
 
 ## Fase 1 · Landing + planes desde BD
 
@@ -120,6 +118,8 @@ Objetivo: alguien llega por un anuncio y sale con un buzón funcionando en el m�
 
 ## Fase 5 · Optimización y crecimiento
 
+- [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría. **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies; tenerlos listos antes de abrir altas al público.
+- [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político antes de lanzar campañas. Si hay problemas, valorar una comunicación más neutra
 - [ ] Dashboard de embudo en PostHog; revisar mapas de calor y grabaciones de las primeras campañas
 - [ ] Primeros A/B: texto del hero, orden/precio de planes, CTA
 - [ ] Contenido de los bloques informativos y FAQ (SEO)

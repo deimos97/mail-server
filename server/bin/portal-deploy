@@ -48,6 +48,8 @@ as_portal php8.3 artisan optimize
 ln -sfn "$R" "$BASE/current.new" && mv -T "$BASE/current.new" "$BASE/current"
 trap - ERR
 systemctl reload php8.3-fpm   # vacía opcache
+# El worker termina el job en curso, sale, y systemd lo arranca de nuevo desde la release nueva
+systemctl is-enabled --quiet portal-queue.service 2>/dev/null && as_portal php8.3 "$R/artisan" queue:restart --quiet
 
 # Limpieza de releases viejas
 ls -1d "$BASE"/releases/*/ | sort | head -n -"$KEEP" | xargs -r rm -rf

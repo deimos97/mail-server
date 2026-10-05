@@ -13,7 +13,7 @@ QUEUE_MAX=50
 DISK_MAX=85
 CERT_MIN_DAYS=14
 BACKUP_MAX_AGE=$((26*3600))
-SERVICES="postfix@- dovecot rspamd redis-server mariadb nginx php8.3-fpm fail2ban unbound"
+SERVICES="postfix@- dovecot rspamd redis-server mariadb nginx php8.3-fpm fail2ban unbound portal-queue portal-schedule.timer"
 IP_DNSBLS="zen.spamhaus.org bl.spamcop.net psbl.surriel.com dnsbl-1.uceprotect.net"
 DOMAIN_DNSBLS="dbl.spamhaus.org multi.surbl.org"
 

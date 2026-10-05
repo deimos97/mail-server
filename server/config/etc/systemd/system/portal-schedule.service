@@ -1,0 +1,13 @@
+[Unit]
+Description=Laravel scheduler (portal)
+After=network.target mariadb.service
+
+[Service]
+Type=oneshot
+User=portal
+Group=portal
+WorkingDirectory=/var/www/portal/current
+ExecStart=/usr/bin/php8.3 artisan schedule:run --no-interaction
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
