@@ -52,6 +52,17 @@ Objetivo: poder desplegar un "hola mundo" en `https://unagrandeylibre.es` con to
 
 Objetivo: la página pública, medida, lista para recibir tráfico (aunque el alta aún no esté).
 
+### Calentamiento del dominio (empieza ya, en paralelo)
+
+Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando los correos a spam el 2026-10-05: el dominio y la IP no tienen reputación todavía. **No se lanza publicidad ni se abren altas hasta que Gmail entregue en la bandeja de entrada**: si los primeros usuarios ven sus correos en spam, se van.
+
+- [ ] Alta en **Google Postmaster Tools** (dominio `unagrandeylibre.es`) y **Microsoft SNDS** (IP `128.140.5.221`); revisar la reputación cada semana
+- [ ] Buzón real para el calentamiento (no `test@`), con nombre visible en la identidad de Roundcube
+- [ ] `postmaster@` y `abuse@` operativos (el DMARC ya manda informes a `postmaster@`)
+- [ ] 2–4 semanas de uso real: correos normales (varias frases, sin enlaces al principio) a Gmail, Outlook y otros proveedores, **con respuestas** de vuelta; marcar "No es spam" y añadir a contactos cuando caiga en spam
+- [ ] Subir el volumen poco a poco; nada de envíos masivos
+- [ ] Criterio de salida: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención
+
 - [ ] Migraciones: `plans`, `plan_offers`, `reserved_names`, `name_rules`, `name_price_tiers`; columnas nuevas en `mailserver.domains`
 - [ ] Admin Filament: planes (gratis/pago, activación absoluta o programada, destacado, orden), ofertas programables, dominios, nombres reservados, reglas de nombre y tramos de precio por longitud
 - [ ] Hero con la bandera de España ondeando (WebGL + póster + `prefers-reduced-motion`), mensaje "producto nacional", e input `nombre @dominio`
@@ -80,7 +91,7 @@ Objetivo: alguien llega por un anuncio y sale con un buzón funcionando en el m�
 - [ ] Pantalla "¡Listo!" con acceso al webmail y "Configura tu móvil" (genera la contraseña del dispositivo o el perfil `.mobileconfig` que la lleva dentro)
 - [ ] Autoconfiguración: `autoconfig` XML, Autodiscover, registros SRV, perfil `.mobileconfig`
 - [ ] Tutoriales con capturas: iPhone, Android/Gmail, Outlook, Thunderbird
-- [ ] `abuse@` y `postmaster@` operativos; alta en Google Postmaster Tools y Microsoft SNDS
+- [ ] Confirmar que el calentamiento del dominio (Fase 1) ha cumplido su criterio de salida antes de abrir altas
 - [ ] Eventos de servidor `signup_completed` a PostHog y conversiones a Meta/Google Ads
 
 ## Fase 3 · Área de cliente + login único
