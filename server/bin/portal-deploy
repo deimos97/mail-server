@@ -32,6 +32,7 @@ SHA=$(as_portal git -C "$BASE/repo" rev-parse --short HEAD)
 
 R="$BASE/releases/$(date +%Y%m%d-%H%M%S)-$SHA"
 as_portal mkdir -p "$R"
+trap 'echo "Despliegue FALLIDO; se borra $R y current sigue como estaba." >&2; rm -rf "$R"' ERR
 as_portal git -C "$BASE/repo" archive HEAD portal | as_portal tar -x -C "$R" --strip-components=1
 
 # Lo persistente viene de shared/
@@ -45,6 +46,7 @@ as_portal php8.3 artisan migrate --force
 as_portal php8.3 artisan optimize
 
 ln -sfn "$R" "$BASE/current.new" && mv -T "$BASE/current.new" "$BASE/current"
+trap - ERR
 systemctl reload php8.3-fpm   # vacía opcache
 
 # Limpieza de releases viejas
