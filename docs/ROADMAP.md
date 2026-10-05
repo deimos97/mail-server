@@ -41,7 +41,7 @@ Objetivo: poder desplegar un "hola mundo" en `https://unagrandeylibre.es` con to
 - [x] Pool FPM `portal` (PHP 8.3) y usuario de sistema `portal`
 - [x] BD `portal` y usuario MariaDB `portal` con permisos mínimos sobre `mailserver` (comprobado: no puede borrar buzones, tocar dominios ni leer `roundcube`)
 - [x] nginx + certificado propio de la web (`unagrandeylibre.es`), separado del del correo
-- [ ] Registros DNS de `www`, `autoconfig` y `autodiscover` en Cloudflare → ampliar el certificado (`certbot … --cert-name unagrandeylibre.es --expand`) y redirigir `www` al apex
+- [x] Registros DNS de `www`, `autoconfig` y `autodiscover` (solo DNS, sin proxy), certificado ampliado, `www` → apex
 - [x] Esqueleto Laravel 13 en `portal/`, despliegue (`portal/deploy.sh` → `portal-deploy` en el servidor), `.env` solo en el servidor
 - [x] Añadir BD `portal` y `/var/www/portal/shared` al backup, y la web (certificado + `/up`) al `mail-monitor`
 - [ ] Worker de colas (systemd) y scheduler de Laravel (timer), cuando haga falta el primero

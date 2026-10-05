@@ -36,7 +36,7 @@ PATHS=(
   /etc/systemd/system/mail-backup.service /etc/systemd/system/mail-backup.timer
   /etc/systemd/system/mail-monitor.service /etc/systemd/system/mail-monitor.timer
   /etc/systemd/journald.conf.d /etc/tmpfiles.d/roundcube-webmail.conf
-  /etc/apt/preferences.d/no-snapd
+  /etc/apt/preferences.d/no-snapd /etc/logrotate.d/roundcube-core
   /usr/local/sbin/mail-alert /usr/local/sbin/mail-backup /usr/local/sbin/mail-monitor
 )
 

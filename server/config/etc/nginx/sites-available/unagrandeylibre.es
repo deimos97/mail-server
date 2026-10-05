@@ -48,3 +48,23 @@ server {
     location ~ \.php$ { return 404; }
     location ~ /\.(?!well-known) { deny all; }
 }
+
+# www -> apex
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name www.unagrandeylibre.es;
+    ssl_certificate     /etc/letsencrypt/live/unagrandeylibre.es/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/unagrandeylibre.es/privkey.pem;
+    return 301 https://unagrandeylibre.es$request_uri;
+}
+
+# Autoconfiguración de clientes de correo (contenido en la Fase 2 del roadmap)
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name autoconfig.unagrandeylibre.es autodiscover.unagrandeylibre.es;
+    ssl_certificate     /etc/letsencrypt/live/unagrandeylibre.es/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/unagrandeylibre.es/privkey.pem;
+    return 404;
+}
