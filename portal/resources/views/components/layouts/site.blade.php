@@ -11,10 +11,14 @@
     @endunless
     <meta name="theme-color" content="#AA151B">
     <link rel="canonical" href="{{ url()->current() }}">
+    @if ($posthogKey = config('services.posthog.key'))
+        <script>window.UGL = { posthog: { key: @js($posthogKey) } };</script>
+    @endif
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-papel font-sans text-tinta antialiased">
     {{ $slot }}
+    <x-consent-banner />
 </body>
 </html>

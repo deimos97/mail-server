@@ -32,6 +32,8 @@ CREATE TABLE `domains` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT 1,
+  `public_signup` tinyint(1) NOT NULL DEFAULT 0,
+  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)

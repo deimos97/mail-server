@@ -35,8 +35,14 @@
     "file": "assets/inter-800-normal-D1mf63XC.woff",
     "src": "_inter-800-normal-D1mf63XC.woff"
   },
+  "node_modules/posthog-js/dist/module.mjs": {
+    "file": "assets/module-B2nODzFw.js",
+    "name": "module",
+    "src": "node_modules/posthog-js/dist/module.mjs",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
-    "file": "assets/app-BwD0Wihj.css",
+    "file": "assets/app-CdbL9VwH.css",
     "name": "app",
     "names": [
       "app.css"
@@ -45,9 +51,12 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-lusskPWS.js",
+    "file": "assets/app-B7b-Me_z.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/posthog-js/dist/module.mjs"
+    ]
   }
 }

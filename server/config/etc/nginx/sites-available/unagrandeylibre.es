@@ -31,6 +31,29 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
+    # PostHog (analítica) a través de nuestro dominio: los adblockers no lo bloquean y no hay
+    # peticiones del navegador a terceros. Resolución con unbound para seguir sus cambios de IP.
+    location ^~ /ingest/static/ {
+        resolver 127.0.0.1 valid=300s;
+        set $posthog_assets eu-assets.i.posthog.com;
+        rewrite ^/ingest/(.*)$ /$1 break;
+        proxy_pass https://$posthog_assets;
+        proxy_set_header Host eu-assets.i.posthog.com;
+        proxy_ssl_server_name on;
+        proxy_set_header Cookie "";
+    }
+    location ^~ /ingest/ {
+        resolver 127.0.0.1 valid=300s;
+        set $posthog_api eu.i.posthog.com;
+        rewrite ^/ingest/(.*)$ /$1 break;
+        proxy_pass https://$posthog_api;
+        proxy_set_header Host eu.i.posthog.com;
+        proxy_ssl_server_name on;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Cookie "";
+        client_max_body_size 10M;
+    }
+
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }

@@ -55,7 +55,7 @@
                 </div>
 
                 {{-- Estado de la comprobación (lo leen también los lectores de pantalla) --}}
-                <div id="nombre-estado" aria-live="polite" class="mt-4 min-h-[3.5rem] text-base">
+                <div id="nombre-estado" aria-live="polite" data-ph-mask class="mt-4 min-h-[3.5rem] text-base">
                     <p x-cloak x-show="state === 'checking'" class="text-white/80">Comprobando…</p>
                     <p x-cloak x-show="state === 'limited'" class="text-amarillo-claro">Demasiadas comprobaciones seguidas. Espera un minuto.</p>
                     <p x-cloak x-show="state === 'error'" class="text-amarillo-claro">No hemos podido comprobarlo. Inténtalo de nuevo.</p>
@@ -93,7 +93,7 @@
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ config('landing.plans.title') }}</h2>
                 <p class="mt-3 text-lg text-stone-600">{{ config('landing.plans.subtitle') }}</p>
-                <p x-cloak x-show="$store.signup.email" class="mt-6 inline-flex items-center gap-2 rounded-full bg-amarillo/25 px-4 py-2 font-medium">
+                <p x-cloak x-show="$store.signup.email" data-ph-mask class="mt-6 inline-flex items-center gap-2 rounded-full bg-amarillo/25 px-4 py-2 font-medium">
                     <x-icon.check class="size-5 text-rojo" />
                     Tu dirección: <strong x-text="$store.signup.email"></strong>
                 </p>
@@ -163,6 +163,7 @@
                                     <p x-cloak x-show="$store.signup.needsPaidPlan" class="mb-3 text-sm text-stone-500">Los nombres cortos necesitan un plan de pago.</p>
                                 @endif
                                 <a href="{{ route('signup', ['plan' => $plan['slug']]) }}"
+                                   data-plan="{{ $plan['slug'] }}" data-free="{{ $plan['is_free'] ? 1 : 0 }}" data-offer="{{ $hasOffer ? 1 : 0 }}"
                                    :href="'{{ route('signup') }}?' + new URLSearchParams({ plan: @js($plan['slug']), ...($store.signup.email ? { nombre: $store.signup.check.local_part, dominio: $store.signup.check.domain } : {}) })"
                                    @if ($plan['is_free']) :class="$store.signup.needsPaidPlan && 'pointer-events-none opacity-40'" :aria-disabled="$store.signup.needsPaidPlan" @endif
                                    @class([

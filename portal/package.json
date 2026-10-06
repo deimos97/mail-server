@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@alpinejs/intersect": "^3.17.4",
-        "alpinejs": "^3.17.4"
+        "alpinejs": "^3.17.4",
+        "posthog-js": "^1.438.1"
     }
 }

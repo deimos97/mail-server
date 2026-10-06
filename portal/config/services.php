@@ -18,6 +18,11 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    // Analítica. La clave de proyecto (phc_) es pública por diseño; va al navegador.
+    'posthog' => [
+        'key' => env('POSTHOG_KEY'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_API_KEY'),
     ],

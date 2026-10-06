@@ -69,8 +69,9 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [x] Sección de planes renderizada desde BD (precio con IVA, tachado si hay oferta, duración de la oferta, destacado; el plan gratis se desactiva si el nombre es corto)
 - [x] Bloques informativos y FAQ (textos en `portal/config/landing.php`, **provisionales**) + footer con enlaces legales (páginas "en preparación" hasta la Fase 5)
 - [ ] Textos definitivos de la landing (hero, bloques, FAQ) — los pone el usuario
-- [ ] Banner de consentimiento + PostHog (eventos del embudo, mapas de calor, grabaciones con inputs enmascarados)
-- [ ] Captura de UTM / click IDs en sesión
+- [x] Banner de consentimiento (Aceptar/Rechazar con la misma relevancia; reabrible desde el footer) + PostHog solo tras aceptar, por `/ingest` (proxy nginx): autocaptura, páginas vistas, mapas de calor, grabaciones con campos y direcciones enmascarados, y eventos `name_checked`, `name_suggestion_used`, `name_chosen`, `plan_selected`
+- [x] Captura de UTM y click IDs (`gclid`, `fbclid`, `msclkid`, `ttclid`…) y referrer externo en sesión, primer contacto (`CaptureAttribution`); se guardará con el alta en la Fase 2
+- [ ] Crear en PostHog el embudo `$pageview → name_checked → name_chosen → plan_selected` (y, en la Fase 2, hasta `signup_completed`)
 - [ ] SEO: metadatos, Open Graph, JSON-LD (`Organization`, `Product`/`Offer`, `FAQPage`), `sitemap.xml`, `robots.txt`, `llms.txt`
 - [ ] Lighthouse móvil ≥ 90 en rendimiento, SEO y accesibilidad
 
