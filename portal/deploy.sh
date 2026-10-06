@@ -9,6 +9,12 @@ set -euo pipefail
 HOST="${MAIL_HOST:-root@128.140.5.221}"
 
 if [ "${1:-}" != "--rollback" ]; then
+    # El servidor no tiene Node: el CSS/JS se compila aquí y public/build va en el repo.
+    # Se recompila y, si cambia algo, es que falta hacer commit de la compilación.
+    (cd "$(dirname "$0")" && npm run build --silent >/dev/null)
+    if [ -n "$(git status --porcelain -- portal/public/build)" ]; then
+        echo "public/build no está al día: haz commit de la compilación (npm run build) y vuelve a desplegar." >&2; exit 1
+    fi
     git fetch --quiet origin
     if [ -n "$(git status --porcelain -- portal)" ]; then
         echo "Hay cambios sin commit en portal/. Súbelos antes de desplegar." >&2; exit 1

@@ -80,6 +80,12 @@ return [
 
     'locale' => env('APP_LOCALE', 'es'),
 
+    /*
+     * Si la web se puede indexar. Mientras el alta no funcione (Fase 2), noindex: la web está
+     * pública pero no queremos que Google la indexe a medias.
+     */
+    'indexable' => (bool) env('APP_INDEXABLE', false),
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

@@ -4,6 +4,56 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Colores oficiales de la bandera (RD 441/1981) y neutros cálidos */
+    --color-rojo: #AA151B;
+    --color-rojo-oscuro: #7d0f14;
+    --color-amarillo: #F1BF00;
+    --color-amarillo-claro: #fde68a;
+    --color-tinta: #1c1917;
+    --color-papel: #faf7f2;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+    }
+
+    [x-cloak] { display: none !important; }
+}
+
+@layer components {
+    /* Fondo del hero sin WebGL (y mientras arranca): la bandera estática en CSS */
+    .hero-fallback {
+        background: linear-gradient(
+            180deg,
+            var(--color-rojo) 0 25%,
+            var(--color-amarillo) 25% 75%,
+            var(--color-rojo) 75% 100%
+        );
+    }
+
+    .flag-canvas {
+        opacity: 0;
+        transition: opacity 900ms ease;
+    }
+    .flag-canvas.is-ready { opacity: 1; }
+
+    /* Velo: oscurece solo detrás del texto para que se lea; los bordes conservan los colores reales */
+    .hero-veil {
+        background:
+            radial-gradient(ellipse 55% 42% at 50% 50%, rgb(20 8 0 / 0.62), rgb(20 8 0 / 0.38) 55%, rgb(20 8 0 / 0) 100%),
+            linear-gradient(180deg, rgb(0 0 0 / 0.30), rgb(0 0 0 / 0) 18%, rgb(0 0 0 / 0) 82%, rgb(0 0 0 / 0.30));
+    }
+
+    .hero-text-shadow {
+        text-shadow: 0 2px 24px rgb(0 0 0 / 0.45);
+    }
 }

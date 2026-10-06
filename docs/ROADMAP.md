@@ -63,10 +63,12 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 
 - [x] Migraciones: `plans`, `plan_offers`, `reserved_names`, `name_rules`, `name_price_tiers`; columnas `public_signup` y `sort_order` en `mailserver.domains` (`server/sql/2026-10-06-domains-public-signup.sql`, aplicada como root)
 - [x] Admin Filament 5 en `/admin` (2FA obligatoria; solo `is_admin`): planes (gratis/pago, activación absoluta o programada, destacado, orden), ofertas programables, dominios, nombres reservados, reglas de nombre y tramos de precio por longitud. Alta del admin: `portal:make-admin`
-- [ ] Hero con la bandera de España ondeando (WebGL + póster + `prefers-reduced-motion`), mensaje "producto nacional", e input `nombre @dominio`
+- [x] Hero con la bandera de España ondeando (WebGL propio en `resources/js/flag.js`, fondo CSS de respaldo, pausa fuera de pantalla, `prefers-reduced-motion`), mensaje "producto nacional", e input `nombre @dominio` con comprobación en vivo y sugerencias
+- [ ] Escudo en la bandera: falta la imagen `public/img/escudo-espana.svg` (el código ya lo dibuja si existe)
 - [x] Endpoint de disponibilidad `GET /api/availability?local=&domain=` (`App\Services\NameAvailability`): reglas configurables, reservados, buzones y alias, sobrecoste por longitud, sugerencias (incluida la versión sin tildes), 30/min y 500/día por IP
-- [ ] Sección de planes renderizada desde BD (precio con IVA, tachado si hay oferta)
-- [ ] Bloques informativos (estructura; contenido lo pone el usuario) + footer legal
+- [x] Sección de planes renderizada desde BD (precio con IVA, tachado si hay oferta, duración de la oferta, destacado; el plan gratis se desactiva si el nombre es corto)
+- [x] Bloques informativos y FAQ (textos en `portal/config/landing.php`, **provisionales**) + footer con enlaces legales (páginas "en preparación" hasta la Fase 5)
+- [ ] Textos definitivos de la landing (hero, bloques, FAQ) — los pone el usuario
 - [ ] Banner de consentimiento + PostHog (eventos del embudo, mapas de calor, grabaciones con inputs enmascarados)
 - [ ] Captura de UTM / click IDs en sesión
 - [ ] SEO: metadatos, Open Graph, JSON-LD (`Organization`, `Product`/`Offer`, `FAQPage`), `sitemap.xml`, `robots.txt`, `llms.txt`
@@ -89,6 +91,7 @@ Objetivo: alguien llega por un anuncio y sale con un buzón funcionando en el m�
 - [ ] Autoconfiguración: `autoconfig` XML, Autodiscover, registros SRV, perfil `.mobileconfig`
 - [ ] Tutoriales con capturas: iPhone, Android/Gmail, Outlook, Thunderbird
 - [ ] Confirmar que el calentamiento del dominio (Fase 1) ha cumplido su criterio de salida antes de abrir altas
+- [ ] Al abrir altas: `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces la web lleva `noindex`) y quitar la página provisional de `/alta`
 - [ ] Eventos de servidor `signup_completed` a PostHog y conversiones a Meta/Google Ads
 
 ## Fase 3 · Área de cliente + login único
