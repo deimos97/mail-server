@@ -37,7 +37,7 @@ PHP 8.3 viene de serie con Ubuntu 24.04 (el servidor se actualiza en la Fase 0, 
 - Mismo servidor que el correo (hay recursos de sobra), aislado. Directorio `/var/www/portal`, usuario de sistema `portal`, pool FPM propio con `open_basedir`, igual que se hizo con `webmail`.
 - **Usuario de MariaDB `portal`** con:
   - todos los permisos sobre su BD `portal`;
-  - en `mailserver`: `SELECT` en `domains`, `SELECT, INSERT, UPDATE` en `mailboxes` y `aliases`. Sin `DELETE` ni `DROP`.
+  - en `mailserver`: `SELECT` y `UPDATE (public_signup, sort_order)` en `domains`, `SELECT, INSERT, UPDATE` en `mailboxes` y `aliases`. Sin `DELETE` ni `DROP`.
 - Lo que necesita root (borrar Maildirs, `doveadm`) **no** lo hace la web: lo hace un script privilegiado acotado (`/usr/local/sbin/mail-provision`) llamado por sudo con argumentos validados, o un timer que procesa una tabla de tareas pendientes.
 - nginx: nuevo `server` para `unagrandeylibre.es` y `www` (redirige al apex). Ampliar el certificado con `unagrandeylibre.es`, `www`, `autoconfig`, `autodiscover`. Recordar el *monkey noise* del reto ACME (README).
 - Cloudflare: el apex/`www` pueden ir con proxy (naranja). `mail.` **nunca** con proxy.

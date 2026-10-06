@@ -61,8 +61,8 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [ ] Subir el volumen poco a poco; nada de envíos masivos
 - [ ] Criterio de salida: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención
 
-- [ ] Migraciones: `plans`, `plan_offers`, `reserved_names`, `name_rules`, `name_price_tiers`; columnas nuevas en `mailserver.domains`
-- [ ] Admin Filament: planes (gratis/pago, activación absoluta o programada, destacado, orden), ofertas programables, dominios, nombres reservados, reglas de nombre y tramos de precio por longitud
+- [x] Migraciones: `plans`, `plan_offers`, `reserved_names`, `name_rules`, `name_price_tiers`; columnas `public_signup` y `sort_order` en `mailserver.domains` (`server/sql/2026-10-06-domains-public-signup.sql`, aplicada como root)
+- [x] Admin Filament 5 en `/admin` (2FA obligatoria; solo `is_admin`): planes (gratis/pago, activación absoluta o programada, destacado, orden), ofertas programables, dominios, nombres reservados, reglas de nombre y tramos de precio por longitud. Alta del admin: `portal:make-admin`
 - [ ] Hero con la bandera de España ondeando (WebGL + póster + `prefers-reduced-motion`), mensaje "producto nacional", e input `nombre @dominio`
 - [ ] Endpoint de disponibilidad: reglas configurables, sobrecoste por longitud ("+X €"), sugerencias, rate limit
 - [ ] Sección de planes renderizada desde BD (precio con IVA, tachado si hay oferta)
@@ -71,7 +71,6 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [ ] Captura de UTM / click IDs en sesión
 - [ ] SEO: metadatos, Open Graph, JSON-LD (`Organization`, `Product`/`Offer`, `FAQPage`), `sitemap.xml`, `robots.txt`, `llms.txt`
 - [ ] Lighthouse móvil ≥ 90 en rendimiento, SEO y accesibilidad
-- [ ] Mientras no haya alta: el CTA puede apuntar a una lista de espera (mide demanda desde ya)
 
 ## Fase 2 · Alta gratuita de punta a punta
 

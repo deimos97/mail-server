@@ -2,24 +2,20 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Datos de partida. En producción solo lo que es seguro (idempotente y sin datos de ejemplo):
+     *   php artisan db:seed --force
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([ReservedNamesSeeder::class, NameRulesSeeder::class]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (! app()->isProduction()) {
+            $this->call([LocalMailserverSeeder::class, DemoPlansSeeder::class]);
+        }
     }
 }

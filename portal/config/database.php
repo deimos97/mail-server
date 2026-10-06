@@ -114,6 +114,32 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        /*
+         * BD del servidor de correo (la leen Postfix y Dovecot). En producción, MariaDB con el
+         * mismo usuario `portal` y permisos mínimos. En local, un SQLite aparte creado con
+         * database/migrations-mailserver-local (DB_MAILSERVER_DRIVER=sqlite).
+         */
+        'mailserver' => env('DB_MAILSERVER_DRIVER', 'mariadb') === 'sqlite'
+            ? [
+                'driver' => 'sqlite',
+                'database' => database_path('mailserver.sqlite'),
+                'prefix' => '',
+                'foreign_key_constraints' => true,
+            ]
+            : [
+                'driver' => 'mariadb',
+                'host' => env('DB_HOST', '127.0.0.1'),
+                'port' => env('DB_PORT', '3306'),
+                'database' => env('DB_MAILSERVER_DATABASE', 'mailserver'),
+                'username' => env('DB_USERNAME', 'root'),
+                'password' => env('DB_PASSWORD', ''),
+                'charset' => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix' => '',
+                'strict' => true,
+                'engine' => null,
+            ],
+
     ],
 
     /*
