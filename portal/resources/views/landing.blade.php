@@ -4,7 +4,7 @@
     $mainDomain = $domains[0] ?? 'unagrandeylibre.es';
 @endphp
 
-<x-layouts.site>
+<x-layouts.site :structured-data="$structuredData">
 
     {{-- HERO: la bandera ondeando detrás y el nombre por delante --}}
     <section class="hero-fallback relative isolate flex min-h-[100svh] flex-col overflow-hidden text-white">

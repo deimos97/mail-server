@@ -1,2 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /api/
+Disallow: /ingest/
+
+Sitemap: https://unagrandeylibre.es/sitemap.xml
