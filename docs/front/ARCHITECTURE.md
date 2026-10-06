@@ -118,7 +118,7 @@ Notas:
 
 ### Comprobar disponibilidad
 
-`GET /api/availability?local=…&domain=…` → `{available, reason, suggestions}`.
+`GET /api/availability?local=…&domain=…` → `{status, available, email, message, surcharge_cents, requires_paid_plan, suggestions}`. `status`: `available` · `invalid` · `taken` · `unavailable` (reservado; no se dice el motivo). La lógica vive en `App\Services\NameAvailability` para que el alta (Fase 2) vuelva a comprobar con las mismas reglas justo antes de crear el buzón; ahí falta añadir las reservas temporales y la cuarentena (D-009).
 
 Reglas del nombre (en `name_rules`, editables sin desplegar): minúsculas, `a-z 0-9 . - _`, sin empezar/terminar en punto ni dos puntos seguidos; normalizar antes de comparar; no disponible si existe en `mailboxes`, en `aliases.source`, en `reserved_names`, en `name_quarantine` o en una reserva vigente. Si la longitud cae en un tramo de `name_price_tiers`, la respuesta incluye el sobrecoste (`{available: true, surcharge_cents: …}`) y la UI lo muestra ("+X €"). Rate limit por IP (evita que enumeren buzones).
 

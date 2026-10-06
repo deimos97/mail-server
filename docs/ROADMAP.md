@@ -64,7 +64,7 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [x] Migraciones: `plans`, `plan_offers`, `reserved_names`, `name_rules`, `name_price_tiers`; columnas `public_signup` y `sort_order` en `mailserver.domains` (`server/sql/2026-10-06-domains-public-signup.sql`, aplicada como root)
 - [x] Admin Filament 5 en `/admin` (2FA obligatoria; solo `is_admin`): planes (gratis/pago, activación absoluta o programada, destacado, orden), ofertas programables, dominios, nombres reservados, reglas de nombre y tramos de precio por longitud. Alta del admin: `portal:make-admin`
 - [ ] Hero con la bandera de España ondeando (WebGL + póster + `prefers-reduced-motion`), mensaje "producto nacional", e input `nombre @dominio`
-- [ ] Endpoint de disponibilidad: reglas configurables, sobrecoste por longitud ("+X €"), sugerencias, rate limit
+- [x] Endpoint de disponibilidad `GET /api/availability?local=&domain=` (`App\Services\NameAvailability`): reglas configurables, reservados, buzones y alias, sobrecoste por longitud, sugerencias (incluida la versión sin tildes), 30/min y 500/día por IP
 - [ ] Sección de planes renderizada desde BD (precio con IVA, tachado si hay oferta)
 - [ ] Bloques informativos (estructura; contenido lo pone el usuario) + footer legal
 - [ ] Banner de consentimiento + PostHog (eventos del embudo, mapas de calor, grabaciones con inputs enmascarados)

@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Filament\Support\Facades\FilamentTimezone;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,5 +25,12 @@ class AppServiceProvider extends ServiceProvider
     {
         // La BD guarda UTC; el admin muestra y pide las fechas (ofertas, planes programados) en hora de Madrid.
         FilamentTimezone::set('Europe/Madrid');
+
+        // Comprobar disponibilidad revela si una dirección existe: límite por IP contra barridos.
+        // Ojo: si el apex pasa a ir por el proxy de Cloudflare, hay que confiar en sus IPs (TrustProxies).
+        RateLimiter::for('availability', fn (Request $request) => [
+            Limit::perMinute(30)->by($request->ip()),
+            Limit::perDay(500)->by($request->ip()),
+        ]);
     }
 }

@@ -122,7 +122,7 @@ return [
         'mailserver' => env('DB_MAILSERVER_DRIVER', 'mariadb') === 'sqlite'
             ? [
                 'driver' => 'sqlite',
-                'database' => database_path('mailserver.sqlite'),
+                'database' => env('DB_MAILSERVER_SQLITE', database_path('mailserver.sqlite')),
                 'prefix' => '',
                 'foreign_key_constraints' => true,
             ]
