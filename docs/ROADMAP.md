@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 0 — EN CURSO** (planificación; todavía sin código).
+Estado: **Fase 1 — EN CURSO** (Fase 0 cerrada el 2026-10-05: servidor en 24.04, web desplegada con Laravel 13, colas, backup, monitor y cuentas externas).
 
 ## Decisiones tomadas
 
