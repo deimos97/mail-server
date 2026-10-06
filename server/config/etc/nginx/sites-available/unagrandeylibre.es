@@ -57,6 +57,11 @@ server {
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
+    # CSS/JS/fuentes con hash en el nombre: caché de un año (expires no anula los add_header del server)
+    location ^~ /build/ {
+        expires max;
+        access_log off;
+    }
     location = /favicon.ico { access_log off; log_not_found off; }
     location = /robots.txt  { access_log off; log_not_found off; }
 

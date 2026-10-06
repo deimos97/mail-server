@@ -103,6 +103,11 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 - Después: Rspamd, el pool PHP, las opciones de Roundcube, las reglas de iptables (ver arriba) y `server/pull-config.sh` para ver el diff.
 - Hazlo siempre con un **snapshot de Hetzner** recién hecho.
 
+### nginx: `gzip_types` y caché de la web
+
+- En `/etc/nginx/nginx.conf` había una errata (`application/x-javascriptapplication/xml`, sin espacio) que dejaba el XML sin comprimir. Corregida el 2026-10-06.
+- La web sirve `/build/` (CSS, JS y fuentes con hash en el nombre) con `expires max`. Se usa `expires` y no `add_header Cache-Control` porque un `add_header` dentro de un `location` anula todos los del `server` (HSTS, nosniff…).
+
 ### Paquetes eliminados a propósito
 
 - snapd está desinstalado y bloqueado en `/etc/apt/preferences.d/no-snapd`.
