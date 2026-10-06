@@ -71,7 +71,7 @@ class NameAvailability
         if (! preg_match('/^[a-z0-9'.$symbolClass.']+$/', $localPart)) {
             return $symbols === ''
                 ? 'Solo letras sin tildes y números.'
-                : 'Solo letras sin tildes, números y '.implode(' ', mb_str_split($symbols)).'.';
+                : 'Solo letras sin tildes, números y los símbolos '.implode(' ', mb_str_split($symbols));
         }
         if ($length < $rule->min_length) {
             return "Mínimo {$rule->min_length} caracteres.";
