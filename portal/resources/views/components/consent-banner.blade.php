@@ -8,7 +8,7 @@
         <p class="mt-2 text-sm text-white/80">
             Usamos cookies de análisis para saber cómo se usa la web y mejorarla (visitas, clics y grabaciones anónimas
             con los campos de texto ocultos). Solo se activan si aceptas.
-            <a href="{{ route('legal', 'cookies') }}" class="underline hover:text-white">Más información</a>.
+            <a href="{{ route('legal', 'cookies') }}" class="underline hover:text-white">Más información sobre las cookies</a>.
         </p>
         <div class="mt-4 grid grid-cols-2 gap-3">
             <button type="button" @click="reject()"

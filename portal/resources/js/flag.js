@@ -1,8 +1,12 @@
 // Bandera de España ondeando en WebGL. Sin dependencias.
 //
 // - Rojo #AA151B y amarillo #F1BF00 en franjas 1:2:1 (art. 4 de la Constitución; colores del RD 441/1981).
-// - Si existe /img/escudo-espana.svg, se dibuja en la franja amarilla, a 1/3 del ancho desde el asta.
+// - Escudo opcional: si el canvas lleva data-escudo="/ruta.svg", se dibuja en la franja amarilla, a 1/3
+//   del largo desde el asta. Hoy no se usa (decisión: bandera minimalista).
 // - Se pausa fuera de pantalla y con la pestaña oculta; con prefers-reduced-motion se dibuja quieta.
+// - Sin GPU (WebGL por software: SwiftShader, llvmpipe…) se dibuja una vez y quieta: animarla en CPU
+//   bloquearía la página (y es lo que miden Lighthouse y PageSpeed).
+// - Se pinta a resolución reducida y a 30 fps: la bandera es una imagen suave y así gasta mucho menos.
 // - Si no hay WebGL, no hace nada: el fondo CSS del hero ya tiene los colores de la bandera.
 
 const RED = '#AA151B';
@@ -46,7 +50,7 @@ function compile(gl, type, source) {
     return shader;
 }
 
-async function flagTexture() {
+async function flagTexture(escudoUrl) {
     const width = 1500;
     const height = 1000;
     const canvas = document.createElement('canvas');
@@ -60,9 +64,9 @@ async function flagTexture() {
     ctx.fillRect(0, height / 4, width, height / 2);
 
     // Escudo opcional: centrado a 1/3 del largo desde el asta, 2/5 del alto de la bandera.
-    try {
+    if (escudoUrl) try {
         const image = new Image();
-        image.src = '/img/escudo-espana.svg';
+        image.src = escudoUrl;
         await image.decode();
         const h = height * 0.4;
         const w = h * (image.naturalWidth / image.naturalHeight);
@@ -77,6 +81,10 @@ async function flagTexture() {
 export async function mountFlag(canvas) {
     const gl = canvas.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'low-power' });
     if (!gl) return;
+
+    const debug = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : '';
+    const software = /swiftshader|llvmpipe|software|softpipe|basic render/i.test(renderer);
 
     const program = gl.createProgram();
     gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX));
@@ -94,7 +102,7 @@ export async function mountFlag(canvas) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, await flagTexture());
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, await flagTexture(canvas.dataset.escudo));
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -103,7 +111,8 @@ export async function mountFlag(canvas) {
     const uCover = gl.getUniformLocation(program, 'u_cover');
 
     const resize = () => {
-        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        // Resolución reducida (la bandera es suave y el CSS la escala): 0,75 en pantallas normales, 1 en retina
+        const dpr = Math.max(0.75, Math.min(window.devicePixelRatio || 1, 2) * 0.5);
         canvas.width = Math.round(canvas.clientWidth * dpr);
         canvas.height = Math.round(canvas.clientHeight * dpr);
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -115,22 +124,28 @@ export async function mountFlag(canvas) {
     };
     resize();
 
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const isStill = () => software || reduced.matches;
     let visible = true;
     let frame = null;
+    let last = 0;
     const start = performance.now();
 
     const draw = (now) => {
-        gl.uniform1f(uTime, still.matches ? 0.8 : (now - start) / 1000);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        frame = !still.matches && visible && !document.hidden ? requestAnimationFrame(draw) : null;
+        // 30 fps como mucho
+        if (isStill() || now - last >= 33) {
+            last = now;
+            gl.uniform1f(uTime, isStill() ? 0.8 : (now - start) / 1000);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+        frame = !isStill() && visible && !document.hidden ? requestAnimationFrame(draw) : null;
     };
     const play = () => { if (frame === null) frame = requestAnimationFrame(draw); };
 
     new ResizeObserver(() => { resize(); play(); }).observe(canvas);
     new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) play(); }).observe(canvas);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) play(); });
-    still.addEventListener('change', play);
+    reduced.addEventListener('change', play);
 
     play();
     canvas.classList.add('is-ready');

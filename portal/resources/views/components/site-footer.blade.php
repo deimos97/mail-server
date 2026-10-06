@@ -16,5 +16,5 @@
             </ul>
         </nav>
     </div>
-    <p class="mx-auto mt-10 max-w-6xl text-xs text-stone-400">© {{ now()->year }} unagrandeylibre.es</p>
+    <p class="mx-auto mt-10 max-w-6xl text-xs text-stone-500">© {{ now()->year }} unagrandeylibre.es</p>
 </footer>
