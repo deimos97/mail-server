@@ -55,8 +55,9 @@ Objetivo: la página pública, medida, lista para recibir tráfico (aunque el al
 Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando los correos a spam el 2026-10-05: el dominio y la IP no tienen reputación todavía. **No se lanza publicidad ni se abren altas hasta que Gmail entregue en la bandeja de entrada**: si los primeros usuarios ven sus correos en spam, se van.
 
 - [x] Alta en **Google Postmaster Tools** (dominio `unagrandeylibre.es`) y **Microsoft SNDS** (IP `128.140.5.221`); revisar la reputación cada semana
-- [ ] Buzón real para el calentamiento (no `test@`), con nombre visible en la identidad de Roundcube. Se creará como cuenta gratis con el propio front al probar la Fase 2. Al hacerlo, **redirigir `postmaster@` y `abuse@`** (hoy son alias de `test@`) antes de retirar `test@`
-- [x] `postmaster@` y `abuse@` operativos, como alias de `test@` (el DMARC ya manda informes a `postmaster@`)
+- [x] Buzón real para el calentamiento: **`javier@unagrandeylibre.es`**, creado con el propio alta (2026-10-07). `postmaster@` y `abuse@` redirigidos a él (reciben los informes DMARC)
+- [ ] Poner nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
+- [x] `postmaster@` y `abuse@` operativos (alias de `javier@` desde el 2026-10-07; antes de `test@`)
 - [ ] 2–4 semanas de uso real: correos normales (varias frases, sin enlaces al principio) a Gmail, Outlook y otros proveedores, **con respuestas** de vuelta; marcar "No es spam" y añadir a contactos cuando caiga en spam
 - [ ] Subir el volumen poco a poco; nada de envíos masivos
 - [ ] Criterio de salida: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención
