@@ -27,6 +27,7 @@ return [
     // Analítica. La clave de proyecto (phc_) es pública por diseño; va al navegador.
     'posthog' => [
         'key' => env('POSTHOG_KEY'),
+        'host' => env('POSTHOG_HOST', 'https://eu.i.posthog.com'),
     ],
 
     'resend' => [

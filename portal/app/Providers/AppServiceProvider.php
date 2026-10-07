@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\ServerAnalytics;
 use Filament\Support\Facades\FilamentTimezone;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // La BD guarda UTC; el admin muestra y pide las fechas (ofertas, planes programados) en hora de Madrid.
         FilamentTimezone::set('Europe/Madrid');
+
+        // Cookies que escribe el JS (consentimiento y PostHog): Laravel no debe intentar descifrarlas
+        EncryptCookies::except(array_filter([ServerAnalytics::CONSENT_COOKIE, ServerAnalytics::posthogCookie()]));
 
         // Comprobar disponibilidad revela si una dirección existe: límite por IP contra barridos.
         // Ojo: si el apex pasa a ir por el proxy de Cloudflare, hay que confiar en sus IPs (TrustProxies).

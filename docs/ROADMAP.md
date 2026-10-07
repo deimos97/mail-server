@@ -115,7 +115,8 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [ ] Capturas de pantalla reales en las guías (necesitan los dispositivos; las pone el usuario)
 
 ### F · Medición y lanzamiento
-- [ ] Evento de servidor `signup_completed` a PostHog (para todos; las conversiones a Meta/Google, solo con consentimiento)
+- [x] Evento de servidor `signup_completed` a PostHog al crearse el buzón (`App\Services\ServerAnalytics`, por la cola). Con consentimiento lleva el `distinct_id` del navegador (cierra el embudo del front) y la atribución completa; sin consentimiento, anónimo (id aleatorio, sin perfil, sin click IDs ni referrer completo). Nunca la dirección, el email ni la IP
+- [ ] Textos legales publicados (aviso legal, privacidad, cookies, condiciones; tarea de la Fase 5): la ley los exige antes de recoger datos de usuarios
 - [ ] Confirmar que el calentamiento del dominio (Fase 1) ha cumplido su criterio de salida antes de abrir altas
 - [ ] Al abrir altas: `SIGNUP_OPEN=true` y `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces el alta está cerrada y la web lleva `noindex`)
 - [ ] **Último paso: la web está en marcha.** Quitar de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales" e indicar que el servicio está **en producción con usuarios reales desde el <fecha>**: desde entonces, los cortes importan (cambios con copia, en horas de poco uso y probados al momento)
@@ -148,6 +149,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 ## Fase 5 · Optimización y crecimiento
 
 - [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría. **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies; tenerlos listos antes de abrir altas al público.
+- [ ] Conversiones a Meta (Conversions API) y Google Ads desde el servidor al completarse el alta, **solo con consentimiento** y con el click ID de `users.attribution`; se hace cuando existan las cuentas de anuncios
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político antes de lanzar campañas. Si hay problemas, valorar una comunicación más neutra
 - [ ] PostHog: activar Session replay y Heatmaps en el proyecto, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel). Pendiente de hacer juntos
 - [ ] Dashboard de embudo en PostHog; revisar mapas de calor y grabaciones de las primeras campañas

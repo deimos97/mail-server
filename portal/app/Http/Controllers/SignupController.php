@@ -10,6 +10,7 @@ use App\Models\Plan;
 use App\Models\User;
 use App\Services\EmailVerification;
 use App\Services\NameAvailability;
+use App\Services\ServerAnalytics;
 use App\Services\Signup;
 use App\Services\Turnstile;
 use Illuminate\Http\RedirectResponse;
@@ -144,7 +145,7 @@ class SignupController extends Controller
         ]);
     }
 
-    public function storePlan(Request $request): RedirectResponse
+    public function storePlan(Request $request, ServerAnalytics $analytics): RedirectResponse
     {
         $data = $request->validate(['plan' => ['required', 'string', Rule::exists('plans', 'slug')]]);
         $reservation = $this->signup->currentReservation($this->token($request));
@@ -152,12 +153,14 @@ class SignupController extends Controller
             return redirect()->route('signup')->with('status', 'Tu reserva ha caducado. Vuelve a elegir tu nombre.');
         }
 
+        $plan = Plan::where('slug', $data['plan'])->firstOrFail();
         try {
-            $this->signup->provision($request->user(), $reservation, Plan::where('slug', $data['plan'])->firstOrFail(),
-                $this->token($request));
+            $mailbox = $this->signup->provision($request->user(), $reservation, $plan, $this->token($request));
         } catch (RuntimeException $e) {
             return back()->withErrors(['plan' => $e->getMessage()]);
         }
+
+        $analytics->signupCompleted($request, $mailbox, $plan);
 
         $request->session()->forget('signup.plan');
 

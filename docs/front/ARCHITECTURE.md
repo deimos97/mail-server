@@ -198,7 +198,7 @@ Un proveedor de correo gratuito atrae a spammers el primer día. Si una cuenta m
 
 ## Analítica y consentimiento
 
-- **PostHog Cloud EU** (autoalojarlo más adelante): eventos del embudo (frontend + backend para los que importan: `signup_completed`, `subscription_started` se envían desde el servidor, así no se pierden con bloqueadores), mapas de calor, grabaciones, experimentos A/B, feature flags.
+- **PostHog Cloud EU** (autoalojarlo más adelante): eventos del embudo (frontend + backend para los que importan: `signup_completed`, `subscription_started` se envían desde el servidor, así no se pierden con bloqueadores). Los de servidor (`App\Services\ServerAnalytics` → job `CapturePostHogEvent` → `POST {POSTHOG_HOST}/i/v0/e/`) leen las cookies `ugl_consent` y `ph_<clave>_posthog` (excluidas del cifrado de Laravel en `AppServiceProvider`): con consentimiento usan el `distinct_id` del navegador; sin él, van anónimos y sin perfil, mapas de calor, grabaciones, experimentos A/B, feature flags.
 - **RGPD/LSSI (España):** mapas de calor, grabaciones y píxeles de anuncios necesitan **consentimiento previo**. Banner de cookies con "Rechazar" igual de visible que "Aceptar". **Sin consentimiento, PostHog no se carga** (ni se descarga el script); la elección va en la cookie técnica `ugl_consent` (12 meses). Lo que no se ve en PostHog por los que rechazan lo cubren los eventos de servidor (altas y pagos).
 - Las grabaciones enmascaran todos los inputs (contraseñas y emails nunca se graban).
 - Conversiones para campañas: Meta Conversions API y Google Ads Enhanced Conversions enviadas **desde el servidor** al completarse el alta/pago, con el click ID guardado en `users`.
