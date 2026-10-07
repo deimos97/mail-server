@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/salir', [LoginController::class, 'destroy'])->name('logout');
     Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
     Route::post('/cuenta/dispositivos', [AccountController::class, 'storeDevice'])->middleware('throttle:10,1')->name('account.devices.store');
+    Route::post('/cuenta/dispositivos/{device}/revocar', [AccountController::class, 'revokeDevice'])->name('account.devices.revoke');
     Route::get('/cuenta/webmail/{mailbox}', [AccountController::class, 'openWebmail'])->name('account.webmail');
 
     // Login único con el webmail (D-010): Roundcube manda aquí al usuario

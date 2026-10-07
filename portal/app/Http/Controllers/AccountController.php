@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppPassword;
 use App\Models\Mailbox;
 use App\Services\AppPasswords;
 use Illuminate\Http\RedirectResponse;
@@ -39,6 +40,20 @@ class AccountController extends Controller
         return view('account.show', $this->data($request) + [
             'newDevice' => ['mailbox' => $mailbox, 'device' => $device, 'password' => $password],
         ]);
+    }
+
+    /**
+     * Revoca la contraseña de un dispositivo. Dovecot deja de aceptarla al momento (no cachea); una
+     * conexión ya abierta (IMAP IDLE) puede seguir viva hasta que el dispositivo reconecte.
+     */
+    public function revokeDevice(Request $request, int $device): RedirectResponse
+    {
+        $appPassword = AppPassword::whereNull('revoked_at')
+            ->whereIn('mailbox_id', Mailbox::where('user_id', $request->user()->id)->pluck('id'))
+            ->findOrFail($device);
+        $appPassword->update(['revoked_at' => now()]);
+
+        return redirect()->route('account')->with('status', "Hemos desconectado «{$appPassword->name}». Ya no puede entrar en tu correo.");
     }
 
     /** "Abrir mi correo": recuerda qué buzón y manda a Roundcube, que arranca el login único. */

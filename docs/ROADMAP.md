@@ -97,6 +97,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 ### C · Cuenta mínima
 - [x] Login en la web (`/entrar`, con el email de recuperación o cualquiera de sus direcciones; mismo error exista o no la cuenta; 5 intentos por cuenta e IP), recuperar contraseña (`/recuperar`, el enlace va siempre al email de recuperación; cierra las demás sesiones), cerrar sesión. Los admins no pueden entrar por aquí (saltarían su 2FA)
 - [x] "Mi cuenta" mínimo (`/cuenta`): sus buzones y su estado, dispositivos conectados y "Conectar un dispositivo" (16 caracteres sin ambigüedades; se muestra una vez en la propia respuesta, sin pasar por la sesión; máx. 20 por buzón)
+- [x] "Revocar" un dispositivo (traído de la Fase 3, 2026-10-07): Dovecot deja de aceptar su contraseña al momento; una conexión ya abierta (IMAP IDLE) puede durar hasta que el móvil reconecte (~30 min)
 
 ### D · Login único con el webmail
 - [x] *Spike* de OAuth2: Roundcube 1.6.6 (opciones `oauth_*`, refresco de token, XOAUTH2 en IMAP y SMTP) y Dovecot 2.3.21 (`passdb oauth2` con introspección) lo soportan. Passport descartado (D-010 revisado)
@@ -116,7 +117,8 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 ## Fase 3 · Área de cliente completa
 
 - [ ] "Mis buzones": plan, uso de cuota (dict de cuota de Dovecot en MariaDB), estado
-- [ ] Gestión de dispositivos conectados: listar, renombrar, revocar, último uso
+- [ ] Dispositivos: renombrar y "último uso" (listar y revocar ya están, Fase 2)
+- [ ] Al revocar, cerrar también las conexiones abiertas de ese dispositivo (`doveadm kick` desde el script privilegiado `mail-provision`)
 - [ ] Añadir otro buzón (varios por usuario)
 - [ ] Plugin/skin de Roundcube: logo, enlace "Mi cuenta"; desactivar cambio de contraseña en Roundcube
 - [ ] Cambiar email de recuperación, exportar correo, borrar cuenta (vía script privilegiado `mail-provision`)

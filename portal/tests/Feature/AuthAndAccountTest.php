@@ -6,6 +6,7 @@ use App\Mail\ResetPasswordEmail;
 use App\Models\AppPassword;
 use App\Models\Mailbox;
 use App\Models\User;
+use App\Services\AppPasswords;
 use Database\Seeders\DemoPlansSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -130,5 +131,22 @@ class AuthAndAccountTest extends TestCase
         $other = User::factory()->create();
         $this->actingAs($other)->post('/cuenta/dispositivos', ['mailbox' => $this->mailbox->id, 'name' => 'Intruso'])->assertNotFound();
         $this->assertSame(0, AppPassword::count());
+    }
+
+    public function test_revoking_a_device(): void
+    {
+        [$device] = app(AppPasswords::class)->create($this->mailbox, 'Móvil perdido');
+
+        $this->actingAs($this->user)->post("/cuenta/dispositivos/{$device->id}/revocar")
+            ->assertRedirect('/cuenta')->assertSessionHas('status');
+        $this->assertNotNull($device->fresh()->revoked_at);
+        $this->get('/cuenta')->assertSee('Hemos desconectado «Móvil perdido»');   // el aviso, una vez
+        $this->get('/cuenta')->assertDontSee('Móvil perdido');                      // y ya no está en la lista
+
+        // Ni dos veces ni el de otro
+        $this->post("/cuenta/dispositivos/{$device->id}/revocar")->assertNotFound();
+        [$other] = app(AppPasswords::class)->create($this->mailbox, 'Portátil');
+        $this->actingAs(User::factory()->create())->post("/cuenta/dispositivos/{$other->id}/revocar")->assertNotFound();
+        $this->assertNull($other->fresh()->revoked_at);
     }
 }

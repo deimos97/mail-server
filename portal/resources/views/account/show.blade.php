@@ -61,9 +61,16 @@
                 @else
                     <ul class="mt-3 divide-y divide-stone-100">
                         @foreach ($mailbox->appPasswords as $device)
-                            <li class="flex justify-between gap-3 py-2 text-sm">
-                                <span class="font-medium">{{ $device->name }}</span>
-                                <span class="text-stone-500">desde el {{ $device->created_at->timezone('Europe/Madrid')->format('d/m/Y') }}</span>
+                            <li class="flex items-center justify-between gap-3 py-2 text-sm">
+                                <span class="min-w-0">
+                                    <span class="block font-medium">{{ $device->name }}</span>
+                                    <span class="text-stone-500">desde el {{ $device->created_at->timezone('Europe/Madrid')->format('d/m/Y') }}</span>
+                                </span>
+                                <form method="POST" action="{{ route('account.devices.revoke', $device->id) }}"
+                                      x-data @submit="if (! confirm(@js('¿Desconectar «'.$device->name.'»? Dejará de poder entrar en tu correo.'))) $event.preventDefault()">
+                                    @csrf
+                                    <button class="rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Revocar</button>
+                                </form>
                             </li>
                         @endforeach
                     </ul>
