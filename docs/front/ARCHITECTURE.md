@@ -157,8 +157,7 @@ Para mostrar "usados 120 MB de 1 GB" sin root, configurar en Dovecot el **dict d
 
 Hay dos "logins": el de la web (persona) y el del buzón (IMAP/SMTP, lo que usa el webmail y el móvil). Objetivo: loguearse una vez en la web y entrar al webmail sin contraseña.
 
-**Decidido: OAuth2/OIDC.** La web actúa de proveedor de identidad (Laravel Passport). Roundcube 1.6 soporta login OAuth2 de serie (`oauth_provider`, `oauth_auth_uri`…) y Dovecot 2.3 tiene `passdb oauth2` (valida el token por introspección contra la web). Postfix autentica vía Dovecot SASL, así que el envío desde el webmail también funciona con el token. Es el camino estándar (lo usan Gmail/Outlook con IMAP) y escala a varios buzones: la web emite un token para el buzón concreto que el usuario elige.
-- Hacer un *spike* antes de construir el resto, ya sobre Roundcube 1.6.
+**Decidido e implementado (D-010, revisado): OAuth2 con un proveedor propio en la web**, no Passport: el token pertenece a un **buzón** (Roundcube y Dovecot entran como `buzón@dominio`), mientras que Passport ata los tokens al usuario de la web. Flujo *authorization code* para un único cliente (Roundcube), con secreto y PKCE opcional; códigos de un uso (60 s), tokens aleatorios guardados como SHA-256 (1 h) y refresh rotativo (30 días). Dovecot valida con `passdb oauth2` contra `/api/oauth/introspect`. Detalle operativo en el README.
 
 **Plan B, si OAuth2 se atasca — token de un solo uso + plugin de Roundcube.** La web genera un token aleatorio de 60 s guardado en BD; redirige a `webmail.…/?_sso=TOKEN`; un plugin propio de Roundcube lo valida y hace login contra Dovecot usando un **master user** de Dovecot (`buzon*master`). Más simple, pero el master user es una llave maestra (si se filtra, acceso a todos los buzones) y hay que comprobar que `reject_sender_login_mismatch` sigue funcionando con él.
 

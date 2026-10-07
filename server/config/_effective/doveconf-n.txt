@@ -2,7 +2,7 @@
 # Pigeonhole version 0.5.21 (f6cd4b8e)
 # OS: Linux 6.8.0-146-generic x86_64 Ubuntu 24.04.5 LTS 
 # Hostname: mail.unagrandeylibre.es
-auth_mechanisms = plain login
+auth_mechanisms = plain login xoauth2 oauthbearer
 first_valid_uid = 5000
 last_valid_uid = 5000
 mail_gid = vmail
@@ -29,6 +29,13 @@ namespace inbox {
     special_use = \Trash
   }
   prefix = 
+}
+passdb {
+  args = /etc/dovecot/dovecot-oauth2-portal.conf.ext
+  driver = oauth2
+  mechanisms = xoauth2 oauthbearer
+  result_failure = return-fail
+  result_internalfail = return-fail
 }
 passdb {
   args = /etc/dovecot/dovecot-sql.conf.ext

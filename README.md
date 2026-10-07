@@ -70,6 +70,18 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 - Las dos exigen `mailboxes.status = 'active'`. Un buzón `suspended` no entra ni envía, pero **sigue recibiendo** (el `user_query` solo mira `active`).
 - `can_send = 0` (falta verificar el email de recuperación): Postfix rechaza el envío en el 587 y el 465 con `check_sasl_access mysql:/etc/postfix/mysql/sasl-can-send.cf` (`submission_sender_restrictions` en `main.cf`).
 
+### Login único con el webmail (OAuth2)
+
+- La web es el proveedor OAuth2 (`portal/app/Services/OAuthServer.php`). Roundcube (`oauth_*` al final de `/etc/roundcube/config.inc.php`) manda al usuario a `https://unagrandeylibre.es/oauth/authorize`, canjea el código en `/api/oauth/token` y entra en IMAP y SMTP con **XOAUTH2**. El secreto del cliente está en ese fichero y en `OAUTH_WEBMAIL_CLIENT_SECRET` del `.env` de la web: si se cambia, en los dos.
+- Dovecot valida el token en `/api/oauth/introspect` (`/etc/dovecot/dovecot-oauth2-portal.conf.ext`), que la web solo acepta desde las IPs del servidor (`OAUTH_INTROSPECTION_IPS`).
+- La `passdb oauth2` va **antes** que las de contraseña (`conf.d/auth-oauth2-portal.conf.ext`, incluido en `10-auth.conf` delante de `auth-sql.conf.ext`), solo para `xoauth2 oauthbearer` y con `result_failure = return-fail`. Roundcube se autentica en cada clic: si fuera la última, cada clic gastaría dos bcrypt para nada.
+- **Roundcube vuelve a `/index.php/login/oauth` y saca la tarea y la acción de `PATH_INFO`.** El nginx del webmail tiene un `location ~ ^/index\.php(/.*)$` con `fastcgi_split_path_info` para eso. Sin él, la vuelta muestra el formulario de login normal (200) y el login único no arranca, sin ningún error.
+- Un buzón `suspended` o un cambio de contraseña en la web cortan el webmail al momento (los tokens se revocan o dejan de validar).
+
+### Probar con `artisan tinker` como el usuario `portal`
+
+`sudo -E -u portal php8.3 artisan tinker` falla en silencio: con `-E` se queda el `HOME` de root y Tinker no arranca (solo deja un aviso de psysh). Para pasar variables: `sudo -u portal -H env VAR=valor php8.3 artisan tinker --execute='…getenv("VAR")…'`.
+
 ### Correo de la web (`noreply@`)
 
 La web envía como `noreply@unagrandeylibre.es` por el 587 (la contraseña solo está en `/var/www/portal/shared/.env`, `MAIL_PASSWORD`). Está en `whitelisted_user` de `/etc/rspamd/local.d/ratelimit.conf` para que el límite de 40/h por usuario no frene las verificaciones. Los rebotes llegan a ese buzón.

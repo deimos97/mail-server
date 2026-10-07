@@ -35,6 +35,7 @@ PATHS=(
   /etc/letsencrypt/renewal-hooks
   /etc/systemd/system/mail-backup.service /etc/systemd/system/mail-backup.timer
   /etc/systemd/system/mail-monitor.service /etc/systemd/system/mail-monitor.timer
+  /etc/dovecot/conf.d/auth-oauth2-portal.conf.ext
   /etc/systemd/system/portal-queue.service /etc/systemd/system/portal-schedule.service /etc/systemd/system/portal-schedule.timer
   /etc/systemd/journald.conf.d /etc/tmpfiles.d/roundcube-webmail.conf
   /etc/apt/preferences.d/no-snapd /etc/logrotate.d/roundcube-core

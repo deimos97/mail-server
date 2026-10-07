@@ -100,7 +100,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 
 ### D · Login único con el webmail
 - [x] *Spike* de OAuth2: Roundcube 1.6.6 (opciones `oauth_*`, refresco de token, XOAUTH2 en IMAP y SMTP) y Dovecot 2.3.21 (`passdb oauth2` con introspección) lo soportan. Passport descartado (D-010 revisado)
-- [ ] Implementar el login único: "Abrir mi correo" entra al webmail sin contraseña — proveedor OAuth2 propio en la web (`/oauth/authorize`, `/api/oauth/token|userinfo|introspect`) hecho y con tests; falta configurar Roundcube, Dovecot y nginx del webmail
+- [x] Login único: "Abrir mi correo" entra al webmail sin contraseña. Proveedor OAuth2 propio en la web (`/oauth/authorize`, `/api/oauth/token|userinfo|introspect`), Roundcube con `oauth_*`, Dovecot con `passdb oauth2` (primero y solo para XOAUTH2/OAUTHBEARER) y PATH_INFO en el nginx del webmail. Probado en producción: web → webmail dentro de la bandeja; token válido entra en IMAP y SMTP, token falso no
 
 ### E · Clientes de correo
 - [ ] Pantalla "¡Listo!": "Abrir mi correo" (login único) y "Configura tu móvil" (contraseña del dispositivo o perfil `.mobileconfig` que la lleva dentro)

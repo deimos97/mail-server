@@ -1,0 +1,9 @@
+# Va ANTES de auth-sql.conf.ext: solo para XOAUTH2/OAUTHBEARER (Roundcube con login único) y, si el
+# token no vale, no sigue probando las contraseñas (sería gastar bcrypt en cada clic del webmail).
+passdb {
+  driver = oauth2
+  mechanisms = xoauth2 oauthbearer
+  args = /etc/dovecot/dovecot-oauth2-portal.conf.ext
+  result_failure = return-fail
+  result_internalfail = return-fail
+}

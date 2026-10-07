@@ -1,0 +1,10 @@
+# Login único con el webmail (D-010): Dovecot pregunta a la web si el token es válido y de qué buzón.
+# Endpoint solo accesible desde el propio servidor (OAUTH_INTROSPECTION_IPS en la web).
+introspection_url = https://unagrandeylibre.es/api/oauth/introspect
+introspection_mode = post
+force_introspection = yes
+username_attribute = username
+active_attribute = active
+active_value = true
+tls_ca_cert_dir = /etc/ssl/certs
+timeout_msecs = 5000

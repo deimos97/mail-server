@@ -99,3 +99,16 @@ $config['db_dsnw'] = '__REDACTED__';
 
 // Roundcube 1.5 uses smtp_server/smtp_port (smtp_host is 1.6+ only)
 $config['smtp_host'] = 'tls://127.0.0.1:587';
+
+// Login único con la web (D-010). Proveedor OAuth2 propio en unagrandeylibre.es.
+// El secreto es el mismo que OAUTH_WEBMAIL_CLIENT_SECRET en /var/www/portal/shared/.env
+$config['oauth_provider'] = 'generic';
+$config['oauth_provider_name'] = 'Una Grande y Libre';
+$config['oauth_client_id'] = 'webmail';
+$config['oauth_client_secret'] = '__REDACTED__';
+$config['oauth_auth_uri'] = 'https://unagrandeylibre.es/oauth/authorize';
+$config['oauth_token_uri'] = 'https://unagrandeylibre.es/api/oauth/token';
+$config['oauth_identity_uri'] = 'https://unagrandeylibre.es/api/oauth/userinfo';
+$config['oauth_scope'] = 'email';
+$config['oauth_identity_fields'] = ['email'];
+$config['oauth_login_redirect'] = false;
