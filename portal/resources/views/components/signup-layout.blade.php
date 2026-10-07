@@ -1,14 +1,19 @@
-@props(['step' => null, 'title'])
+@props(['step' => null, 'title', 'wide' => false])
 @php $steps = ['Nombre', 'Cuenta', 'Plan', 'Confirmar']; @endphp
 
 <x-layouts.site :title="$title.' · Una Grande y Libre'">
     <div class="flex h-1.5" aria-hidden="true"><span class="w-1/4 bg-rojo"></span><span class="w-1/2 bg-amarillo"></span><span class="w-1/4 bg-rojo"></span></div>
 
-    <header class="mx-auto flex max-w-xl items-center justify-between px-4 pt-6 sm:px-6">
+    <header @class(['mx-auto flex items-center justify-between px-4 pt-6 sm:px-6', 'max-w-xl' => ! $wide, 'max-w-2xl' => $wide])>
         <a href="{{ route('home') }}" class="text-lg font-extrabold tracking-tight">unagrandeylibre<span class="text-rojo">.es</span></a>
+        @auth
+            <form method="POST" action="{{ route('logout') }}">@csrf
+                <button class="rounded-full px-3 py-1.5 text-sm font-medium text-stone-600 ring-1 ring-stone-300 hover:bg-white">Salir</button>
+            </form>
+        @endauth
     </header>
 
-    <main class="mx-auto max-w-xl px-4 pb-16 pt-6 sm:px-6">
+    <main @class(['mx-auto px-4 pb-16 pt-6 sm:px-6', 'max-w-xl' => ! $wide, 'max-w-2xl' => $wide])>
         @if ($step)
             <ol class="mb-6 grid grid-cols-4 gap-2" aria-label="Pasos del alta">
                 @foreach ($steps as $i => $label)

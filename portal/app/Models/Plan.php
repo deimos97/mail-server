@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\OnPortalDatabase;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Plan extends Model
 {
+    use OnPortalDatabase;
+
     protected $guarded = ['id'];
 
     /** Los mismos valores por defecto que la migración, para modelos aún sin recargar. */

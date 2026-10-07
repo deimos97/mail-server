@@ -15,9 +15,14 @@
             <a href="{{ route('home') }}" class="text-lg font-extrabold tracking-tight">
                 unagrandeylibre<span class="text-amarillo">.es</span>
             </a>
-            <a href="https://webmail.{{ $mainDomain }}" class="rounded-full px-4 py-2 text-sm font-medium text-white/90 ring-1 ring-white/40 transition hover:bg-white/10">
-                Webmail
-            </a>
+            <nav class="flex items-center gap-2">
+                <a href="https://webmail.{{ $mainDomain }}" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/90 transition hover:bg-white/10 sm:inline-block">Webmail</a>
+                @auth
+                    <a href="{{ route('account') }}" class="rounded-full px-4 py-2 text-sm font-medium text-white/90 ring-1 ring-white/40 transition hover:bg-white/10">Mi cuenta</a>
+                @else
+                    <a href="{{ route('login') }}" class="rounded-full px-4 py-2 text-sm font-medium text-white/90 ring-1 ring-white/40 transition hover:bg-white/10">Entrar</a>
+                @endauth
+            </nav>
         </header>
 
         <div class="hero-text-shadow mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-4 pb-24 pt-8 text-center sm:px-6">

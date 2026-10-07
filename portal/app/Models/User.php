@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Mail\ResetPasswordEmail;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\OnPortalDatabase;
 use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
 use SensitiveParameter;
 
 #[Fillable(['name', 'email', 'password'])]
@@ -21,7 +24,7 @@ use SensitiveParameter;
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, OnPortalDatabase;
 
     protected $attributes = ['is_admin' => false];
 
@@ -41,6 +44,14 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'terms_accepted_at' => 'datetime',
             'attribution' => 'array',
         ];
+    }
+
+    /** Recuperar contraseña: nuestro correo en español, por la cola. */
+    public function sendPasswordResetNotification(#[SensitiveParameter] $token): void
+    {
+        Mail::to($this->email)->queue(
+            new ResetPasswordEmail(route('password.reset', ['token' => $token, 'email' => $this->email]))
+        );
     }
 
     /** Buzones del usuario (BD `mailserver`). */

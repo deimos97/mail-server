@@ -94,8 +94,8 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Puerta del alta: cerrada (`SIGNUP_OPEN=false`) salvo con `/alta?acceso=<SIGNUP_PREVIEW_TOKEN>` para probar en producción
 
 ### C · Cuenta mínima
-- [ ] Login en la web (email de recuperación o cualquiera de sus direcciones), recuperar contraseña, cerrar sesión
-- [ ] "Mi cuenta" mínimo: su buzón y "Conectar un dispositivo" (contraseña generada, se muestra una vez)
+- [x] Login en la web (`/entrar`, con el email de recuperación o cualquiera de sus direcciones; mismo error exista o no la cuenta; 5 intentos por cuenta e IP), recuperar contraseña (`/recuperar`, el enlace va siempre al email de recuperación; cierra las demás sesiones), cerrar sesión. Los admins no pueden entrar por aquí (saltarían su 2FA)
+- [x] "Mi cuenta" mínimo (`/cuenta`): sus buzones y su estado, dispositivos conectados y "Conectar un dispositivo" (16 caracteres sin ambigüedades; se muestra una vez en la propia respuesta, sin pasar por la sesión; máx. 20 por buzón)
 
 ### D · Login único con el webmail
 - [ ] *Spike* de OAuth2 (Laravel Passport como proveedor + Roundcube 1.6 + Dovecot `passdb oauth2`)

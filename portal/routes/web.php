@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PlaceholderController;
 use App\Http\Controllers\SeoController;
@@ -14,22 +17,39 @@ Route::prefix('alta')->name('signup')->controller(SignupController::class)->grou
     // El enlace del correo funciona también sin sesión (otro dispositivo): va firmado; fuera de la puerta
     Route::get('/verificar/{user}/{hash}', 'verifyLink')->middleware(['signed', 'throttle:20,1'])->name('.verify.link');
 
+    // La puerta solo cierra la creación de cuentas; quien ya tiene cuenta puede terminar (plan, verificar…)
     Route::middleware(SignupGate::class)->group(function () {
         Route::get('/', 'start');
         Route::post('/nombre', 'storeName')->middleware('throttle:30,1')->name('.name');
         Route::post('/cambiar-nombre', 'changeName')->name('.change-name');
         Route::get('/cuenta', 'account')->name('.account');
         Route::post('/cuenta', 'storeAccount')->middleware('throttle:signup')->name('.account.store');
-
-        Route::middleware('auth')->group(function () {
-            Route::get('/plan', 'plan')->name('.plan');
-            Route::post('/plan', 'storePlan')->name('.plan.store');
-            Route::get('/verificar', 'verify')->name('.verify');
-            Route::post('/verificar', 'storeVerify')->name('.verify.store');
-            Route::post('/verificar/reenviar', 'resend')->name('.verify.resend');
-            Route::get('/listo', 'done')->name('.done');
-        });
     });
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/plan', 'plan')->name('.plan');
+        Route::post('/plan', 'storePlan')->name('.plan.store');
+        Route::get('/verificar', 'verify')->name('.verify');
+        Route::post('/verificar', 'storeVerify')->name('.verify.store');
+        Route::post('/verificar/reenviar', 'resend')->name('.verify.resend');
+        Route::get('/listo', 'done')->name('.done');
+    });
+});
+
+// Clientes: entrar, recuperar contraseña y su cuenta
+Route::middleware('guest')->group(function () {
+    Route::get('/entrar', [LoginController::class, 'create'])->name('login');
+    Route::post('/entrar', [LoginController::class, 'store'])->middleware('throttle:20,1')->name('login.store');
+    Route::get('/recuperar', [PasswordResetController::class, 'create'])->name('password.request');
+    Route::post('/recuperar', [PasswordResetController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/recuperar/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/recuperar/nueva', [PasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/salir', [LoginController::class, 'destroy'])->name('logout');
+    Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
+    Route::post('/cuenta/dispositivos', [AccountController::class, 'storeDevice'])->middleware('throttle:10,1')->name('account.devices.store');
 });
 
 // Provisional: los textos legales llegan en la Fase 5
