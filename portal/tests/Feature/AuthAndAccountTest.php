@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Mail\ResetPasswordEmail;
-use App\Models\AppPassword;
 use App\Models\Mailbox;
 use App\Models\User;
 use App\Services\AppPasswords;
@@ -105,32 +104,7 @@ class AuthAndAccountTest extends TestCase
         $this->get('/cuenta')->assertRedirect('/entrar');
 
         $this->actingAs($this->user)->get('/cuenta')
-            ->assertOk()->assertSee('ana@unagrandeylibre.es')->assertSee('Recibe y envía')->assertSee('Todavía no has conectado ninguno');
-    }
-
-    public function test_connecting_a_device_shows_the_password_once_and_stores_only_a_hash(): void
-    {
-        $response = $this->actingAs($this->user)->post('/cuenta/dispositivos', ['mailbox' => $this->mailbox->id, 'name' => 'iPhone de Ana'])
-            ->assertOk()->assertSee('Contraseña para «iPhone de Ana»')->assertSee('no volveremos a mostrarla');
-
-        preg_match('#writeText\(&quot;([a-z0-9]{16})&quot;\)|writeText\(\'([a-z0-9]{16})\'\)|writeText\("([a-z0-9]{16})"\)#', $response->getContent(), $m);
-        $plain = array_values(array_filter(array_slice($m, 1)))[0] ?? null;
-        $this->assertNotNull($plain, 'la contraseña aparece en la respuesta');
-
-        $device = AppPassword::firstOrFail();
-        $this->assertSame(substr($plain, 0, 6), $device->selector);
-        $this->assertStringStartsWith('{BLF-CRYPT}$2y$', $device->password);
-        $this->assertTrue(Hash::check($plain, substr($device->password, strlen('{BLF-CRYPT}'))));
-
-        // Al volver a la cuenta ya no se ve
-        $this->get('/cuenta')->assertSee('iPhone de Ana')->assertDontSee($plain);
-    }
-
-    public function test_cannot_add_devices_to_someone_elses_mailbox(): void
-    {
-        $other = User::factory()->create();
-        $this->actingAs($other)->post('/cuenta/dispositivos', ['mailbox' => $this->mailbox->id, 'name' => 'Intruso'])->assertNotFound();
-        $this->assertSame(0, AppPassword::count());
+            ->assertOk()->assertSee('ana@unagrandeylibre.es')->assertSee('Recibe y envía')->assertSee('Todavía no has conectado ninguno')->assertSee('Configura un dispositivo')->assertSee('Abrir mi correo');
     }
 
     public function test_revoking_a_device(): void

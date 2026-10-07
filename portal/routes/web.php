@@ -3,6 +3,8 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\DeviceSetupController;
+use App\Http\Controllers\HelpController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\PlaceholderController;
@@ -50,14 +52,20 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/salir', [LoginController::class, 'destroy'])->name('logout');
     Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
-    Route::post('/cuenta/dispositivos', [AccountController::class, 'storeDevice'])->middleware('throttle:10,1')->name('account.devices.store');
     Route::post('/cuenta/dispositivos/{device}/revocar', [AccountController::class, 'revokeDevice'])->name('account.devices.revoke');
     Route::get('/cuenta/webmail/{mailbox}', [AccountController::class, 'openWebmail'])->name('account.webmail');
+    Route::get('/cuenta/configurar/{mailbox}', [DeviceSetupController::class, 'choose'])->name('setup');
+    Route::post('/cuenta/configurar/{mailbox}', [DeviceSetupController::class, 'store'])->middleware('throttle:10,1')->name('setup.store');
+    Route::get('/cuenta/perfil/{token}', [DeviceSetupController::class, 'profile'])->name('setup.profile');
 
     // Login único con el webmail (D-010): Roundcube manda aquí al usuario
     Route::get('/oauth/authorize', [OAuthController::class, 'authorize'])->name('oauth.authorize');
     Route::post('/oauth/authorize', [OAuthController::class, 'choose'])->name('oauth.choose');
 });
+
+// Guías para configurar el correo en cada app
+Route::get('/ayuda/configurar', [HelpController::class, 'index'])->name('help.setup');
+Route::get('/ayuda/configurar/{client}', [HelpController::class, 'show'])->name('help.setup.client');
 
 // Provisional: los textos legales llegan en la Fase 5
 Route::get('/legal/{page}', [PlaceholderController::class, 'legal'])->name('legal');

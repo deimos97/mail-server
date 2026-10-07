@@ -8,25 +8,6 @@
         </div>
     @endunless
 
-    @isset($newDevice)
-        {{-- La contraseña solo existe en esta respuesta: no se guarda en claro en ningún sitio --}}
-        <div class="mt-6 rounded-3xl bg-tinta p-5 text-white sm:p-6" x-data="{ copied: false }" role="status">
-            <p class="text-sm font-semibold uppercase tracking-wider text-amarillo-claro">Contraseña para «{{ $newDevice['device']->name }}»</p>
-            <p class="mt-3 select-all font-mono text-2xl font-bold sm:text-3xl" data-ph-mask x-ref="pw" aria-label="Contraseña: {{ implode(' ', str_split($newDevice['password'], 4)) }}">@foreach (str_split($newDevice['password'], 4) as $group)<span class="mr-3 last:mr-0">{{ $group }}</span>@endforeach</p>
-            <div class="mt-4 flex flex-wrap items-center gap-3">
-                <button type="button" class="rounded-xl bg-white px-4 py-2 font-semibold text-tinta hover:bg-stone-200"
-                        @click="navigator.clipboard.writeText(@js($newDevice['password'])); copied = true; setTimeout(() => copied = false, 2000)"
-                        x-text="copied ? '¡Copiada!' : 'Copiar contraseña'">Copiar contraseña</button>
-                <span class="text-sm text-white/70">Cópiala ahora: <strong>no volveremos a mostrarla</strong>.</span>
-            </div>
-            <dl class="mt-5 grid gap-x-6 gap-y-3 rounded-2xl bg-white/10 p-4 text-sm sm:grid-cols-2 [&>div]:min-w-0 [&_dd]:break-all">
-                <div><dt class="text-white/60">Usuario</dt><dd class="font-mono" data-ph-mask>{{ $newDevice['mailbox']->email }}</dd></div>
-                <div><dt class="text-white/60">Contraseña</dt><dd>la de arriba</dd></div>
-                <div><dt class="text-white/60">Servidor de entrada (IMAP)</dt><dd class="font-mono">mail.{{ $newDevice['mailbox']->domain->name }} · 993 · SSL/TLS</dd></div>
-                <div><dt class="text-white/60">Servidor de salida (SMTP)</dt><dd class="font-mono">mail.{{ $newDevice['mailbox']->domain->name }} · 465 · SSL/TLS</dd></div>
-            </dl>
-        </div>
-    @endisset
 
     @foreach ($mailboxes as $mailbox)
         <article class="mt-6 rounded-2xl ring-1 ring-stone-200">
@@ -76,16 +57,7 @@
                     </ul>
                 @endif
 
-                <form method="POST" action="{{ route('account.devices.store') }}" class="mt-4 flex flex-col gap-2 sm:flex-row">
-                    @csrf
-                    <input type="hidden" name="mailbox" value="{{ $mailbox->id }}">
-                    <label for="name-{{ $mailbox->id }}" class="sr-only">Nombre del dispositivo</label>
-                    <input id="name-{{ $mailbox->id }}" name="name" type="text" maxlength="64" required placeholder="Por ejemplo: iPhone de Ana"
-                           class="min-w-0 flex-1 rounded-2xl bg-stone-100 px-4 py-3 outline-none ring-2 ring-transparent placeholder:text-stone-400 focus:bg-white focus:ring-rojo/60">
-                    <button type="submit" class="rounded-2xl bg-rojo px-5 py-3 font-bold text-white transition hover:bg-rojo-oscuro">Conectar un dispositivo</button>
-                </form>
-                <x-form-error name="name" />
-                @isset($deviceError)<p class="mt-2 text-sm font-medium text-rojo">{{ $deviceError }}</p>@endisset
+                <a href="{{ route('setup', $mailbox->id) }}" class="mt-4 block rounded-2xl px-5 py-3 text-center font-bold ring-2 ring-rojo/60 transition hover:bg-rojo/5">Configura un dispositivo</a>
             </div>
         </article>
     @endforeach
@@ -96,7 +68,7 @@
 
     <x-slot:after>
         <p class="mt-4 text-center text-sm text-stone-500">
-            También puedes entrar al webmail en <a href="https://webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}" class="font-medium underline">webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}</a>
+            ¿Cómo configurarlo en cada app? <a href="{{ route('help.setup') }}" class="font-medium underline">Guías</a>. También puedes entrar al webmail en <a href="https://webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}" class="font-medium underline">webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}</a>
             con tu dirección y la contraseña de un dispositivo.
         </p>
     </x-slot:after>
