@@ -1,0 +1,7 @@
+# Buzones que aún no pueden enviar (can_send = 0: falta verificar el email de recuperación).
+# Clave: el usuario SASL autenticado. Se usa en smtpd_sender_restrictions del 587 y el 465.
+user = mailuser
+password = __REDACTED__
+hosts = 127.0.0.1
+dbname = mailserver
+query = SELECT 'REJECT Para enviar correo, confirma antes tu email de recuperacion' FROM mailboxes WHERE email = '%s' AND can_send = 0

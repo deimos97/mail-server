@@ -37,6 +37,7 @@ smtpd_tls_key_file = /etc/letsencrypt/live/mail.unagrandeylibre.es/privkey.pem
 smtpd_tls_loglevel = 1
 smtpd_tls_protocols = >=TLSv1.2
 smtpd_tls_security_level = may
+submission_sender_restrictions = check_sasl_access mysql:/etc/postfix/mysql/sasl-can-send.cf, reject_sender_login_mismatch
 virtual_alias_maps = mysql:/etc/postfix/mysql/virtual-aliases.cf
 virtual_mailbox_domains = mysql:/etc/postfix/mysql/virtual-domains.cf
 virtual_mailbox_maps = mysql:/etc/postfix/mysql/virtual-mailboxes.cf

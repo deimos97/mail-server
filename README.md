@@ -59,6 +59,17 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 - `/var/log/roundcube` y sus logs pertenecen a `webmail`. La rotación diaria (`/etc/logrotate.d/roundcube-core`) los recreaba como `www-data` y el webmail dejaba de poder escribir en ellos; ahora crea con `webmail adm`, y `tmpfiles.d` corrige el propietario de la carpeta al arrancar.
 - El pool vive en `/etc/php/8.3/fpm/pool.d/webmail.conf`. El pool `www` por defecto está retirado. El socket (`/run/php/webmail.sock`) no lleva la versión en el nombre: al cambiar de PHP basta con mover el fichero del pool.
 
+### Postfix: en `master.cf`, los `-o` no admiten espacios
+
+`-o smtpd_sender_restrictions=check_sasl_access mysql:…` rompe el servicio: Postfix toma lo que va después del espacio como otro argumento y **el proceso del 587/465 no arranca** (`fatal: unexpected command-line argument`), aunque `postfix check` diga que todo está bien. Pasó el 2026-10-07 (3,5 minutos sin envío). La forma correcta es definir el valor en `main.cf` (`submission_sender_restrictions = …`) y en `master.cf` poner `-o smtpd_sender_restrictions=$submission_sender_restrictions`. **Después de tocar `master.cf`, prueba una conexión real** (`openssl s_client -starttls smtp -connect 127.0.0.1:587`) y mira `mail.log`.
+
+### Contraseñas por dispositivo y bloqueo de envío
+
+- Dovecot tiene dos `passdb`: la contraseña del buzón (`dovecot-sql.conf.ext`, interna; nadie la conoce en los buzones creados por la web) y las contraseñas por dispositivo (`dovecot-sql-app-passwords.conf.ext`, tabla `app_passwords`). Si la primera falla, prueba la segunda. El SMTP autentica por Dovecot, así que vale para los dos.
+- Dovecot no puede probar varias filas por usuario: por eso cada contraseña de dispositivo empieza por un **selector** público de 6 caracteres que localiza su fila (`LEFT('%w', 6)`), y luego se compara el hash bcrypt de la contraseña completa.
+- Las dos exigen `mailboxes.status = 'active'`. Un buzón `suspended` no entra ni envía, pero **sigue recibiendo** (el `user_query` solo mira `active`).
+- `can_send = 0` (falta verificar el email de recuperación): Postfix rechaza el envío en el 587 y el 465 con `check_sasl_access mysql:/etc/postfix/mysql/sasl-can-send.cf` (`submission_sender_restrictions` en `main.cf`).
+
 ### Dovecot: orden de configuración
 
 La configuración global está en `/etc/dovecot/local.conf`, que se carga **después** de `conf.d/`. Cualquier bloque `protocol lmtp { mail_plugins = ... }` tiene que ir en `local.conf` detrás de la línea global `mail_plugins = $mail_plugins quota`; si no, LMTP pierde el plugin de cuota sin avisar.

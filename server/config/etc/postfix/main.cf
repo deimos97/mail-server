@@ -65,3 +65,4 @@ smtpd_milters = inet:localhost:11332
 non_smtpd_milters = $smtpd_milters
 milter_mail_macros = i {mail_addr} {client_addr} {client_name} {auth_authen}
 message_size_limit = 36700160
+submission_sender_restrictions = check_sasl_access mysql:/etc/postfix/mysql/sasl-can-send.cf, reject_sender_login_mismatch

@@ -79,9 +79,9 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, webmail sin volver a loguearse y el móvil configurado; y puede volver otro día a conectar más dispositivos. **No se abren altas hasta acabar esta fase.** (Decisión 2026-10-07: se traen aquí el login, un "Mi cuenta" mínimo y el login único, que estaban en la Fase 3; con contraseñas por dispositivo, sin ellos no habría forma de entrar al webmail ni de volver.)
 
 ### A · Cimientos en el servidor de correo
-- [ ] `mailserver.mailboxes`: columnas `user_id`, `plan_id`, `status` y `can_send`; `password_query` de Dovecot exige `status = 'active'` (suspendido = recibe pero no entra)
-- [ ] Contraseñas por dispositivo: tabla `mailserver.app_passwords` + segundo `passdb` en Dovecot (sirve también para el SMTP, que autentica por Dovecot)
-- [ ] Bloqueo de envío hasta verificar el email de recuperación (`can_send`), en Postfix
+- [x] `mailserver.mailboxes`: columnas `user_id`, `plan_id`, `status` y `can_send`; `password_query` de Dovecot exige `status = 'active'` (suspendido = recibe pero no entra) — `server/sql/2026-10-07-mailboxes-portal-y-app-passwords.sql`
+- [x] Contraseñas por dispositivo: tabla `mailserver.app_passwords` (selector de 6 caracteres + hash) + segundo `passdb` en Dovecot; probado en IMAP y SMTP, con revocadas, incorrectas y suspendidos
+- [x] Bloqueo de envío hasta verificar el email de recuperación (`can_send`), en Postfix (`check_sasl_access`, 587 y 465)
 - [ ] Correo transaccional por el propio Postfix con `noreply@`, con excepción en el ratelimit de Rspamd; Laravel enviando por SMTP
 
 ### B · El alta
