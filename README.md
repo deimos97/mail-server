@@ -70,6 +70,10 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 - Las dos exigen `mailboxes.status = 'active'`. Un buzón `suspended` no entra ni envía, pero **sigue recibiendo** (el `user_query` solo mira `active`).
 - `can_send = 0` (falta verificar el email de recuperación): Postfix rechaza el envío en el 587 y el 465 con `check_sasl_access mysql:/etc/postfix/mysql/sasl-can-send.cf` (`submission_sender_restrictions` en `main.cf`).
 
+### Correo de la web (`noreply@`)
+
+La web envía como `noreply@unagrandeylibre.es` por el 587 (la contraseña solo está en `/var/www/portal/shared/.env`, `MAIL_PASSWORD`). Está en `whitelisted_user` de `/etc/rspamd/local.d/ratelimit.conf` para que el límite de 40/h por usuario no frene las verificaciones. Los rebotes llegan a ese buzón.
+
 ### Dovecot: orden de configuración
 
 La configuración global está en `/etc/dovecot/local.conf`, que se carga **después** de `conf.d/`. Cualquier bloque `protocol lmtp { mail_plugins = ... }` tiene que ir en `local.conf` detrás de la línea global `mail_plugins = $mail_plugins quota`; si no, LMTP pierde el plugin de cuota sin avisar.

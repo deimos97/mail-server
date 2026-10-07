@@ -82,7 +82,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] `mailserver.mailboxes`: columnas `user_id`, `plan_id`, `status` y `can_send`; `password_query` de Dovecot exige `status = 'active'` (suspendido = recibe pero no entra) — `server/sql/2026-10-07-mailboxes-portal-y-app-passwords.sql`
 - [x] Contraseñas por dispositivo: tabla `mailserver.app_passwords` (selector de 6 caracteres + hash) + segundo `passdb` en Dovecot; probado en IMAP y SMTP, con revocadas, incorrectas y suspendidos
 - [x] Bloqueo de envío hasta verificar el email de recuperación (`can_send`), en Postfix (`check_sasl_access`, 587 y 465)
-- [ ] Correo transaccional por el propio Postfix con `noreply@`, con excepción en el ratelimit de Rspamd; Laravel enviando por SMTP
+- [x] Correo transaccional por el propio Postfix con `noreply@` (buzón con cuota de 100 MB, `tier=system`; recibe los rebotes), fuera del ratelimit de Rspamd (`whitelisted_user`); Laravel envía por SMTP 587 con DKIM. Contraseña solo en el `.env` del servidor
 
 ### B · El alta
 - [ ] Reserva temporal del nombre durante el onboarding
