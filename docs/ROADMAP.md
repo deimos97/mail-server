@@ -85,12 +85,13 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Correo transaccional por el propio Postfix con `noreply@` (buzón con cuota de 100 MB, `tier=system`; recibe los rebotes), fuera del ratelimit de Rspamd (`whitelisted_user`); Laravel envía por SMTP 587 con DKIM. Contraseña solo en el `.env` del servidor
 
 ### B · El alta
-- [ ] Reserva temporal del nombre durante el onboarding
-- [ ] Paso 1: email de recuperación + contraseña + Turnstile; bloqueo de emails desechables; límites por IP
-- [ ] Verificación del email (enlace + código)
-- [ ] Paso 2: elección de plan (solo gratis habilitado en esta fase)
-- [ ] Provisión del buzón (`INSERT` en `mailserver.mailboxes` con `user_id`, `plan_id`, cuota, `tier`, `can_send=0` y contraseña interna aleatoria)
-- [ ] Guardar con el usuario la atribución de campaña (`CaptureAttribution`)
+- [x] Reserva temporal del nombre durante el alta (15 min, se renueva en cada paso; ligada a un token del alta en la sesión, no al id de sesión). Para otros, el nombre reservado sale como cogido
+- [x] Paso 1: email de recuperación (con DNS válido, no desechable, no de nuestros dominios) + contraseña (mín. 10, comprobada contra filtraciones) + aceptar condiciones + Turnstile; 5 altas/hora y 20/día por IP
+- [x] Verificación del email: un correo con código de 6 cifras y enlace firmado (sirve en otro dispositivo); 1 h de validez, 5 intentos por código, reenvío limitado
+- [x] Paso 2: elección de plan (solo gratis; los de pago, "Muy pronto"); un nombre corto lo explica y ofrece cambiar de nombre
+- [x] Provisión del buzón (`INSERT` en `mailserver.mailboxes` con `user_id`, `plan_id`, cuota, `tier`, `can_send=0` y contraseña interna aleatoria), volviendo a comprobar todo justo antes
+- [x] Guardar con el usuario la atribución de campaña (`users.attribution`)
+- [x] Puerta del alta: cerrada (`SIGNUP_OPEN=false`) salvo con `/alta?acceso=<SIGNUP_PREVIEW_TOKEN>` para probar en producción
 
 ### C · Cuenta mínima
 - [ ] Login en la web (email de recuperación o cualquiera de sus direcciones), recuperar contraseña, cerrar sesión
@@ -108,7 +109,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 ### F · Medición y lanzamiento
 - [ ] Evento de servidor `signup_completed` a PostHog (para todos; las conversiones a Meta/Google, solo con consentimiento)
 - [ ] Confirmar que el calentamiento del dominio (Fase 1) ha cumplido su criterio de salida antes de abrir altas
-- [ ] Al abrir altas: `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces la web lleva `noindex`) y quitar la página provisional de `/alta`
+- [ ] Al abrir altas: `SIGNUP_OPEN=true` y `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces el alta está cerrada y la web lleva `noindex`)
 - [ ] **Último paso: la web está en marcha.** Quitar de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales" e indicar que el servicio está **en producción con usuarios reales desde el <fecha>**: desde entonces, los cortes importan (cambios con copia, en horas de poco uso y probados al momento)
 
 ## Fase 3 · Área de cliente completa

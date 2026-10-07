@@ -44,7 +44,6 @@ class LandingTest extends TestCase
 
     public function test_placeholder_pages(): void
     {
-        $this->get('/alta?plan=basico&nombre=pepe')->assertOk()->assertSee('El alta abre muy pronto');
         $this->get('/legal/privacidad')->assertOk()->assertSee('Política de privacidad');
         $this->get('/legal/no-existe')->assertNotFound();
     }

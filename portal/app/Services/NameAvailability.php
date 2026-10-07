@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Domain;
+use App\Models\MailboxReservation;
 use App\Models\NamePriceTier;
 use App\Models\NameRule;
 use App\Models\ReservedName;
@@ -13,31 +14,33 @@ use Illuminate\Support\Str;
  * ¿Se puede coger este nombre de buzón? Lo usa la comprobación en vivo de la landing y, en la
  * Fase 2, la creación del buzón (que debe volver a comprobar justo antes del INSERT).
  *
- * Orden: normalizar → reglas de formato → reservados → buzones y alias existentes → sobrecoste.
- * Pendiente en la Fase 2: reservas temporales del onboarding y cuarentena de nombres (D-009).
+ * Orden: normalizar → reglas de formato → reservados → buzones, alias y reservas de otros → sobrecoste.
+ * Pendiente (Fase 4): cuarentena de nombres liberados (D-009).
+ *
+ * $reservationOwner: token del alta en curso (signup.token); su propia reserva no cuenta como cogida.
  */
 class NameAvailability
 {
     private const MAX_SUGGESTIONS = 3;
 
-    public function check(string $input, Domain $domain, bool $withSuggestions = true): NameCheck
+    public function check(string $input, Domain $domain, bool $withSuggestions = true, ?string $reservationOwner = null): NameCheck
     {
         $localPart = $this->normalize($input);
         $rule = NameRule::for($domain->id);
 
         if ($error = $this->formatError($localPart, $rule)) {
             return new NameCheck(NameCheck::INVALID, $localPart, $domain->name, $error,
-                suggestions: $withSuggestions ? $this->suggest($localPart, $domain, $rule) : []);
+                suggestions: $withSuggestions ? $this->suggest($localPart, $domain, $rule, $reservationOwner) : []);
         }
 
         if ($this->isReserved($localPart)) {
             return new NameCheck(NameCheck::UNAVAILABLE, $localPart, $domain->name, 'Este nombre no está disponible.',
-                suggestions: $withSuggestions ? $this->suggest($localPart, $domain, $rule) : []);
+                suggestions: $withSuggestions ? $this->suggest($localPart, $domain, $rule, $reservationOwner) : []);
         }
 
-        if ($this->isTaken($localPart, $domain)) {
+        if ($this->isTaken($localPart, $domain, $reservationOwner)) {
             return new NameCheck(NameCheck::TAKEN, $localPart, $domain->name, 'Ya está cogido.',
-                suggestions: $withSuggestions ? $this->suggest($localPart, $domain, $rule) : []);
+                suggestions: $withSuggestions ? $this->suggest($localPart, $domain, $rule, $reservationOwner) : []);
         }
 
         $tier = NamePriceTier::forLength(mb_strlen($localPart));
@@ -94,14 +97,22 @@ class NameAvailability
         return ReservedName::where('local_part', $localPart)->exists();
     }
 
-    /** Existe como buzón o como alias (los alias también reciben correo en esa dirección). */
-    private function isTaken(string $localPart, Domain $domain): bool
+    /**
+     * Existe como buzón o como alias (los alias también reciben correo en esa dirección), o alguien
+     * lo tiene reservado mientras completa el alta.
+     */
+    private function isTaken(string $localPart, Domain $domain, ?string $reservationOwner): bool
     {
         $email = $localPart.'@'.$domain->name;
         $db = DB::connection('mailserver');
 
         return $db->table('mailboxes')->where('email', $email)->exists()
-            || $db->table('aliases')->where('source', $email)->exists();
+            || $db->table('aliases')->where('source', $email)->exists()
+            || MailboxReservation::current()
+                ->where('domain_id', $domain->id)
+                ->where('local_part', $localPart)
+                ->when($reservationOwner, fn ($q) => $q->where('session_id', '!=', $reservationOwner))
+                ->exists();
     }
 
     /**
@@ -110,7 +121,7 @@ class NameAvailability
      *
      * @return list<string>
      */
-    private function suggest(string $localPart, Domain $domain, NameRule $rule): array
+    private function suggest(string $localPart, Domain $domain, NameRule $rule, ?string $reservationOwner = null): array
     {
         $symbols = preg_quote($rule->allowed_symbols ?? '', '/');
         $base = Str::ascii($localPart);
@@ -135,7 +146,7 @@ class NameAvailability
             if ($candidate === $localPart) {
                 continue;
             }
-            $check = $this->check($candidate, $domain, withSuggestions: false);
+            $check = $this->check($candidate, $domain, withSuggestions: false, reservationOwner: $reservationOwner);
             // La versión sin tildes de lo que escribió se propone aunque tenga sobrecoste;
             // el resto de propuestas, solo si son gratis.
             $isTransliteration = $candidate === $base;

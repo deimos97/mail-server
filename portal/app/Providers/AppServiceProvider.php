@@ -28,6 +28,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Comprobar disponibilidad revela si una dirección existe: límite por IP contra barridos.
         // Ojo: si el apex pasa a ir por el proxy de Cloudflare, hay que confiar en sus IPs (TrustProxies).
+        // Altas por IP: frena la creación masiva de cuentas (spam) sin molestar a una familia que comparte IP
+        RateLimiter::for('signup', fn (Request $request) => [
+            Limit::perHour(5)->by($request->ip()),
+            Limit::perDay(20)->by($request->ip()),
+        ]);
+
         RateLimiter::for('availability', fn (Request $request) => [
             Limit::perMinute(30)->by($request->ip()),
             Limit::perDay(500)->by($request->ip()),

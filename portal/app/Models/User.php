@@ -11,6 +11,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use SensitiveParameter;
@@ -37,7 +38,15 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'is_admin' => 'boolean',
             'app_authentication_secret' => 'encrypted',
             'app_authentication_recovery_codes' => 'encrypted:array',
+            'terms_accepted_at' => 'datetime',
+            'attribution' => 'array',
         ];
+    }
+
+    /** Buzones del usuario (BD `mailserver`). */
+    public function mailboxes(): HasMany
+    {
+        return $this->hasMany(Mailbox::class);
     }
 
     /** Solo los administradores entran al panel /admin. is_admin no es asignable en masa. */

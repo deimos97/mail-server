@@ -19,9 +19,12 @@ Alpine.store('signup', {
     },
 });
 
-/** El input del hero: comprueba disponibilidad mientras se escribe. */
-Alpine.data('nameField', (domains) => ({
-    local: '',
+/**
+ * Input nombre@dominio: comprueba disponibilidad mientras se escribe.
+ * En la landing, al enviar baja a los planes; con { native: true } (en el alta) envía el formulario.
+ */
+Alpine.data('nameField', (domains, options = {}) => ({
+    local: options.initial ?? '',
     domain: domains[0] ?? null,
     domains,
     state: 'idle',          // idle · checking · done · error · limited
@@ -32,6 +35,7 @@ Alpine.data('nameField', (domains) => ({
     init() {
         this.$watch('local', () => this.schedule());
         this.$watch('domain', () => this.schedule());
+        if (this.local) this.schedule();
     },
 
     schedule() {
@@ -86,6 +90,10 @@ Alpine.data('nameField', (domains) => ({
     submit() {
         if (this.result?.available) {
             track('name_chosen', { requires_paid_plan: this.result.requires_paid_plan });
+            if (options.native) {
+                this.$root.submit();
+                return;
+            }
             document.getElementById('planes')?.scrollIntoView({ behavior: 'smooth' });
             window.dispatchEvent(new CustomEvent('ugl:name-chosen', { detail: this.result }));
         } else {

@@ -9,6 +9,15 @@ class NameRule extends Model
 {
     protected $guarded = ['id'];
 
+    /** Mismos valores que la migración: si no hay fila en la BD, NameRule::for() devuelve estas reglas. */
+    protected $attributes = [
+        'min_length' => 1,
+        'max_length' => 32,
+        'allowed_symbols' => '._-',
+        'forbid_edge_symbols' => true,
+        'forbid_consecutive_symbols' => true,
+    ];
+
     protected function casts(): array
     {
         return [

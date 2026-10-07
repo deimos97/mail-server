@@ -18,6 +18,12 @@ return [
         'key' => env('POSTMARK_API_KEY'),
     ],
 
+    // Antibots del alta. Sin claves (local/tests) se usan las de prueba de Cloudflare, que siempre aprueban.
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY') ?: '1x00000000000000000000AA',
+        'secret_key' => env('TURNSTILE_SECRET_KEY') ?: '1x0000000000000000000000000000000AA',
+    ],
+
     // Analítica. La clave de proyecto (phc_) es pública por diseño; va al navegador.
     'posthog' => [
         'key' => env('POSTHOG_KEY'),

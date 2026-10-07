@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Sin login (bloque C), quien entra a un paso del alta que pide cuenta vuelve al principio del alta
+        $middleware->redirectGuestsTo(fn () => route('signup'));
+
         $middleware->web(append: [
             CaptureAttribution::class,
         ]);
