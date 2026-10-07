@@ -87,12 +87,20 @@ server {
     return 301 https://unagrandeylibre.es$request_uri;
 }
 
-# Autoconfiguración de clientes de correo (contenido en la Fase 2 del roadmap)
+# Autoconfiguración de apps de correo: solo estas dos rutas, servidas por la web (routes/mail-clients.php)
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
     server_name autoconfig.unagrandeylibre.es autodiscover.unagrandeylibre.es;
     ssl_certificate     /etc/letsencrypt/live/unagrandeylibre.es/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/unagrandeylibre.es/privkey.pem;
-    return 404;
+    root /var/www/portal/current/public;
+
+    location ~* ^/(mail/config-v1\.1\.xml|autodiscover/autodiscover\.xml)$ {
+        fastcgi_pass unix:/run/php/portal.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        include fastcgi_params;
+    }
+    location / { return 404; }
 }

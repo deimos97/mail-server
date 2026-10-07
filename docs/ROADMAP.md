@@ -104,9 +104,15 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Login único: "Abrir mi correo" entra al webmail sin contraseña. Proveedor OAuth2 propio en la web (`/oauth/authorize`, `/api/oauth/token|userinfo|introspect`), Roundcube con `oauth_*`, Dovecot con `passdb oauth2` (primero y solo para XOAUTH2/OAUTHBEARER) y PATH_INFO en el nginx del webmail. Probado en producción: web → webmail dentro de la bandeja; token válido entra en IMAP y SMTP, token falso no
 
 ### E · Clientes de correo
-- [ ] Pantalla "¡Listo!": "Abrir mi correo" (login único) y "Configura tu móvil" (contraseña del dispositivo o perfil `.mobileconfig` que la lleva dentro)
-- [ ] Autoconfiguración: `autoconfig` XML, Autodiscover, registros SRV, perfil `.mobileconfig`
-- [ ] Tutoriales con capturas: iPhone, Android/Gmail, Outlook, Thunderbird
+- [x] Pantalla "¡Listo!": "Abrir mi correo" (login único) y "Configura tu móvil" → "Configura un dispositivo" (`/cuenta/configurar/{buzón}`): se elige la app, se crea su contraseña y se muestran sus pasos
+- [x] Perfil `.mobileconfig` para iPhone/iPad/Mac con la contraseña dentro (cifrado en caché 10 min, una descarga, solo su dueño; validado con `plutil`)
+- [x] `autoconfig` (Thunderbird, apps de Android; en `autoconfig.` y en `/.well-known/autoconfig/`) y Autodiscover POX (Outlook), sin sesión; probados en producción
+- [ ] Registros SRV en Cloudflare (los añade el usuario): `_imaps._tcp` 0 1 993, `_submissions._tcp` 0 1 465 y `_submission._tcp` 0 1 587, todos hacia `mail.unagrandeylibre.es`
+- [ ] Probar el perfil en un iPhone real y el autoconfig en Thunderbird y Outlook reales
+- [ ] Firmar el perfil de Apple (hoy sale "No verificado"): necesita la clave del certificado, que solo puede leer root → script privilegiado o firma en el despliegue
+- [ ] (Opcional) Enviar la configuración a la ISPDB de Thunderbird, para que funcione aunque el dominio no tenga `autoconfig.`
+- [x] Guías públicas en `/ayuda/configurar` (iPhone/iPad, Mac, Android/Gmail, Outlook, Thunderbird, otra app), con los mismos pasos que ve el usuario al configurar
+- [ ] Capturas de pantalla reales en las guías (necesitan los dispositivos; las pone el usuario)
 
 ### F · Medición y lanzamiento
 - [ ] Evento de servidor `signup_completed` a PostHog (para todos; las conversiones a Meta/Google, solo con consentimiento)
