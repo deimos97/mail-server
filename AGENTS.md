@@ -21,5 +21,7 @@ Servicio de correo `@unagrandeylibre.es` (en el futuro, más dominios). El **bac
 1. **Idioma:** documentación, commits y UI en español.
 2. **Mantén los docs vivos.** Al terminar una tarea: marca la casilla en `docs/ROADMAP.md`. Cuando el usuario cierra una decisión, quítala de `docs/DECISIONS.md`, añade una línea en "Decisiones tomadas" del ROADMAP y refleja sus consecuencias en las tareas y en `docs/front/`. Si descubres un *monkey noise* del servidor, añádelo al README.
 3. **Las decisiones abiertas no se toman en silencio.** Si una tarea depende de una decisión que sigue en `DECISIONS.md`, pregunta al usuario o propón y espera.
-4. **Servidor de producción.** Solo hay uno y tiene usuarios reales. Lectura libre; cualquier cambio, con confirmación. Ver la skill de operaciones.
+4. **Servidor de producción.** Solo hay uno. Lectura libre; cualquier cambio, con confirmación. Ver la skill de operaciones.
+   - **Todavía no hay usuarios reales** (solo los buzones de prueba del dueño: `test@` y `noreply@`). Un corte breve del correo o de la web **no afecta a nadie**: no hace falta buscar ventanas de mantenimiento ni preocuparse por el tiempo sin servicio. Sí sigue siendo obligatorio: copia de seguridad antes de cambiar algo, no perder datos ni configuración, y dejar el servicio funcionando y probado al terminar.
+   - Esta nota se quita al abrir altas (último paso del lanzamiento en `docs/ROADMAP.md`). A partir de ahí, cada corte afecta a usuarios reales.
 5. **Nunca** pegues secretos (contraseñas, claves de Stripe, `des_key`, tokens) en docs, commits ni chat.

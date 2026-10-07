@@ -109,6 +109,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [ ] Evento de servidor `signup_completed` a PostHog (para todos; las conversiones a Meta/Google, solo con consentimiento)
 - [ ] Confirmar que el calentamiento del dominio (Fase 1) ha cumplido su criterio de salida antes de abrir altas
 - [ ] Al abrir altas: `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces la web lleva `noindex`) y quitar la página provisional de `/alta`
+- [ ] **Último paso: la web está en marcha.** Quitar de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales" e indicar que el servicio está **en producción con usuarios reales desde el <fecha>**: desde entonces, los cortes importan (cambios con copia, en horas de poco uso y probados al momento)
 
 ## Fase 3 · Área de cliente completa
 
