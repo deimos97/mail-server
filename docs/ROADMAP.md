@@ -16,7 +16,7 @@ Estado: **Fase 2 — EN CURSO**. Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en
 | D-006 | Gratis sin verificar: **recibe y lee, pero no envía**. De pago: todo activo desde que paga. | 2026-10-05 |
 | D-007 | Si cambia el precio de un plan, los clientes existentes **conservan su precio**; las migraciones se hacen a mano y con aviso. | 2026-10-05 |
 | D-008 | Bandera **oficial de España**, sin connotación política: el mensaje es "producto nacional / Made in Spain". La web es 100 % apolítica. Técnica: shader WebGL + imagen de respaldo. Sin escudo de momento (más minimalista; 2026-10-06). | 2026-10-05 |
-| D-010 | Login único por **OAuth2/OIDC**, con la web como proveedor de identidad. | 2026-10-05 |
+| D-010 | Login único por **OAuth2**, con la web como proveedor de identidad. **Revisado el 2026-10-07 tras el spike:** en vez de Passport, un **proveedor propio mínimo** solo para nuestro Roundcube, porque el token tiene que pertenecer a un buzón (Roundcube y Dovecot entran como `buzón@dominio`) y Passport ata los tokens al usuario de la web. | 2026-10-05 |
 | D-009 | Ciclo de vida (plazos configurables). Impago: suspensión el día 10 (sin acceso ni envío, sigue recibiendo), borrado del contenido el día 30 con aviso previo, nombre libre el día 90. Cancelación: activo hasta fin de periodo; después pasa a gratis si cabe en la cuota, si no, como un impago. Gratis inactiva: 6 meses sin entrar → aviso → +30 días: suspensión y borrado → +60 días: nombre libre. Borrado voluntario: inmediato, nombre libre a los 90 días. **Nunca** se entrega un nombre sin borrar antes el contenido y pasar la cuarentena. | 2026-10-05 |
 | D-011 | En la web se entra con el **email de recuperación o con cualquiera de sus direcciones**. Para las apps de correo, **contraseñas de aplicación por dispositivo desde el principio**: el usuario solo recuerda la contraseña de la web. | 2026-10-05 |
 | D-012 | El correo transaccional sale por el **propio Postfix** con `noreply@`. | 2026-10-05 |
@@ -99,8 +99,8 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] "Mi cuenta" mínimo (`/cuenta`): sus buzones y su estado, dispositivos conectados y "Conectar un dispositivo" (16 caracteres sin ambigüedades; se muestra una vez en la propia respuesta, sin pasar por la sesión; máx. 20 por buzón)
 
 ### D · Login único con el webmail
-- [ ] *Spike* de OAuth2 (Laravel Passport como proveedor + Roundcube 1.6 + Dovecot `passdb oauth2`)
-- [ ] Implementar el login único: "Abrir mi correo" entra al webmail sin contraseña
+- [x] *Spike* de OAuth2: Roundcube 1.6.6 (opciones `oauth_*`, refresco de token, XOAUTH2 en IMAP y SMTP) y Dovecot 2.3.21 (`passdb oauth2` con introspección) lo soportan. Passport descartado (D-010 revisado)
+- [ ] Implementar el login único: "Abrir mi correo" entra al webmail sin contraseña — proveedor OAuth2 propio en la web (`/oauth/authorize`, `/api/oauth/token|userinfo|introspect`) hecho y con tests; falta configurar Roundcube, Dovecot y nginx del webmail
 
 ### E · Clientes de correo
 - [ ] Pantalla "¡Listo!": "Abrir mi correo" (login único) y "Configura tu móvil" (contraseña del dispositivo o perfil `.mobileconfig` que la lleva dentro)

@@ -11,3 +11,9 @@ Schedule::call(fn () => MailboxReservation::where('expires_at', '<', now()->subD
 
 // Lista de dominios de email temporales (propaganistas/laravel-disposable-email)
 Schedule::command('disposable:update')->weekly()->sundays()->at('04:15');
+
+// Login único: códigos y tokens caducados (los revocados se guardan 30 días por si hay que investigar algo)
+Schedule::call(function () {
+    \App\Models\OauthCode::where('expires_at', '<', now()->subDay())->delete();
+    \App\Models\OauthToken::where('refresh_expires_at', '<', now())->orWhere('revoked_at', '<', now()->subDays(30))->delete();
+})->daily()->at('04:30')->name('limpiar-oauth');

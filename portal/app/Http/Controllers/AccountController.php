@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Mailbox;
 use App\Services\AppPasswords;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use RuntimeException;
@@ -38,6 +39,15 @@ class AccountController extends Controller
         return view('account.show', $this->data($request) + [
             'newDevice' => ['mailbox' => $mailbox, 'device' => $device, 'password' => $password],
         ]);
+    }
+
+    /** "Abrir mi correo": recuerda qué buzón y manda a Roundcube, que arranca el login único. */
+    public function openWebmail(Request $request, int $mailbox): RedirectResponse
+    {
+        $mailbox = Mailbox::where('user_id', $request->user()->id)->findOrFail($mailbox);
+        $request->session()->put('oauth.mailbox', $mailbox->id);
+
+        return redirect()->away(config('oauth.webmail_start_url'));
     }
 
     private function data(Request $request): array

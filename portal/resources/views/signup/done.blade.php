@@ -11,6 +11,7 @@
         <p class="mt-4 text-stone-600">Ya puedes recibir y enviar correo.</p>
     @endunless
 
-    <a href="{{ route('account') }}" class="mt-6 block w-full rounded-2xl bg-rojo px-6 py-4 text-center text-lg font-bold text-white transition hover:bg-rojo-oscuro">Ir a mi cuenta</a>
-    <p class="mt-3 text-sm text-stone-500">Desde tu cuenta puedes conectar el móvil o el ordenador. Muy pronto podrás abrir tu correo desde aquí sin contraseña.</p>
+    <a href="{{ route('account.webmail', $mailbox->id) }}" class="mt-6 block w-full rounded-2xl bg-rojo px-6 py-4 text-center text-lg font-bold text-white transition hover:bg-rojo-oscuro">Abrir mi correo</a>
+    <a href="{{ route('account') }}" class="mt-3 block w-full rounded-2xl bg-stone-100 px-6 py-4 text-center text-lg font-bold transition hover:bg-stone-200">Ir a mi cuenta</a>
+    <p class="mt-3 text-sm text-stone-500">Desde tu cuenta puedes conectar el móvil o el ordenador.</p>
 </x-signup-layout>

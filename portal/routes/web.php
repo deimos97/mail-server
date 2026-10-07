@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\PlaceholderController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SignupController;
@@ -50,6 +51,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/salir', [LoginController::class, 'destroy'])->name('logout');
     Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
     Route::post('/cuenta/dispositivos', [AccountController::class, 'storeDevice'])->middleware('throttle:10,1')->name('account.devices.store');
+    Route::get('/cuenta/webmail/{mailbox}', [AccountController::class, 'openWebmail'])->name('account.webmail');
+
+    // Login único con el webmail (D-010): Roundcube manda aquí al usuario
+    Route::get('/oauth/authorize', [OAuthController::class, 'authorize'])->name('oauth.authorize');
+    Route::post('/oauth/authorize', [OAuthController::class, 'choose'])->name('oauth.choose');
 });
 
 // Provisional: los textos legales llegan en la Fase 5

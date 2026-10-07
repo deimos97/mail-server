@@ -44,6 +44,14 @@
                 @endif
             </header>
 
+            @if ($mailbox->status === 'active')
+                <div class="border-b border-stone-200 p-4 sm:p-5">
+                    <a href="{{ route('account.webmail', $mailbox->id) }}" class="block rounded-2xl bg-rojo px-6 py-3.5 text-center text-lg font-bold text-white transition hover:bg-rojo-oscuro">
+                        Abrir mi correo
+                    </a>
+                </div>
+            @endif
+
             <div class="p-4 sm:p-5">
                 <h2 class="font-bold">Dispositivos conectados</h2>
                 <p class="text-sm text-stone-500">Cada móvil, ordenador o app de correo tiene su propia contraseña.</p>
@@ -81,8 +89,8 @@
 
     <x-slot:after>
         <p class="mt-4 text-center text-sm text-stone-500">
-            Webmail: <a href="https://webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}" class="font-medium underline">webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}</a>
-            (de momento entra con tu dirección y la contraseña de un dispositivo; pronto, sin contraseña desde aquí)
+            También puedes entrar al webmail en <a href="https://webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}" class="font-medium underline">webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}</a>
+            con tu dirección y la contraseña de un dispositivo.
         </p>
     </x-slot:after>
 </x-signup-layout>

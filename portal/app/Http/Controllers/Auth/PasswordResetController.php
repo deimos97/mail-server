@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\OAuthServer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,8 +55,9 @@ class PasswordResetController extends Controller
             $user->password = $password;
             $user->setRememberToken(null);
             $user->save();
-            // Cierra las sesiones abiertas en otros dispositivos
+            // Cierra las sesiones abiertas en otros dispositivos y las del webmail (login único)
             DB::table('sessions')->where('user_id', $user->id)->delete();
+            app(OAuthServer::class)->revokeForUser($user);
         });
 
         if ($status !== Password::PasswordReset) {
