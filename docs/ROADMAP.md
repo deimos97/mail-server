@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 1 — EN CURSO** (Fase 0 cerrada el 2026-10-05: servidor en 24.04, web desplegada con Laravel 13, colas, backup, monitor y cuentas externas).
+Estado: **Fase 2 — EN CURSO**. Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario).
 
 ## Decisiones tomadas
 
@@ -74,33 +74,47 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [x] SEO: metadatos, Open Graph con imagen propia (`public/img/og.png`), favicon e icono de iPhone, JSON-LD (`Organization`, `WebSite`, `Product`/`Offer` por plan con el precio de la BD, `FAQPage`), `sitemap.xml`, `robots.txt`, `llms.txt` (los dos últimos generados desde la BD)
 - [x] Lighthouse móvil (producción, 2026-10-06): rendimiento 97–98, accesibilidad 100, buenas prácticas 100, SEO 66 **solo por el `noindex`** previo al lanzamiento (pasará a ~100 con `APP_INDEXABLE=true`). LCP 2,2 s, TBT 20–80 ms, CLS 0
 
-## Fase 2 · Alta gratuita de punta a punta
+## Fase 2 · Alta gratuita de punta a punta (incluye cuenta mínima y login único)
 
-Objetivo: alguien llega por un anuncio y sale con un buzón funcionando en el móvil.
+Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, webmail sin volver a loguearse y el móvil configurado; y puede volver otro día a conectar más dispositivos. **No se abren altas hasta acabar esta fase.** (Decisión 2026-10-07: se traen aquí el login, un "Mi cuenta" mínimo y el login único, que estaban en la Fase 3; con contraseñas por dispositivo, sin ellos no habría forma de entrar al webmail ni de volver.)
 
+### A · Cimientos en el servidor de correo
+- [ ] `mailserver.mailboxes`: columnas `user_id`, `plan_id`, `status` y `can_send`; `password_query` de Dovecot exige `status = 'active'` (suspendido = recibe pero no entra)
+- [ ] Contraseñas por dispositivo: tabla `mailserver.app_passwords` + segundo `passdb` en Dovecot (sirve también para el SMTP, que autentica por Dovecot)
+- [ ] Bloqueo de envío hasta verificar el email de recuperación (`can_send`), en Postfix
+- [ ] Correo transaccional por el propio Postfix con `noreply@`, con excepción en el ratelimit de Rspamd; Laravel enviando por SMTP
+
+### B · El alta
 - [ ] Reserva temporal del nombre durante el onboarding
 - [ ] Paso 1: email de recuperación + contraseña + Turnstile; bloqueo de emails desechables; límites por IP
 - [ ] Verificación del email (enlace + código)
 - [ ] Paso 2: elección de plan (solo gratis habilitado en esta fase)
-- [ ] Provisión del buzón (`INSERT` en `mailserver.mailboxes` con `user_id`, `plan_id`, cuota, `tier` y `can_send=0`)
-- [ ] Bloqueo de envío hasta verificar (`can_send`), leído por Postfix (mapa MySQL en `smtpd_sender_restrictions`) o por Rspamd; al verificar → `can_send=1`
-- [ ] Correo transaccional por el propio Postfix con `noreply@`, con excepción en el ratelimit de Rspamd
-- [ ] Límites de envío por plan en Rspamd según `tier`
-- [ ] Contraseñas de aplicación: tabla `app_passwords` + segundo `passdb` en Dovecot (y en la autenticación SMTP)
-- [ ] Pantalla "¡Listo!" con acceso al webmail y "Configura tu móvil" (genera la contraseña del dispositivo o el perfil `.mobileconfig` que la lleva dentro)
+- [ ] Provisión del buzón (`INSERT` en `mailserver.mailboxes` con `user_id`, `plan_id`, cuota, `tier`, `can_send=0` y contraseña interna aleatoria)
+- [ ] Guardar con el usuario la atribución de campaña (`CaptureAttribution`)
+
+### C · Cuenta mínima
+- [ ] Login en la web (email de recuperación o cualquiera de sus direcciones), recuperar contraseña, cerrar sesión
+- [ ] "Mi cuenta" mínimo: su buzón y "Conectar un dispositivo" (contraseña generada, se muestra una vez)
+
+### D · Login único con el webmail
+- [ ] *Spike* de OAuth2 (Laravel Passport como proveedor + Roundcube 1.6 + Dovecot `passdb oauth2`)
+- [ ] Implementar el login único: "Abrir mi correo" entra al webmail sin contraseña
+
+### E · Clientes de correo
+- [ ] Pantalla "¡Listo!": "Abrir mi correo" (login único) y "Configura tu móvil" (contraseña del dispositivo o perfil `.mobileconfig` que la lleva dentro)
 - [ ] Autoconfiguración: `autoconfig` XML, Autodiscover, registros SRV, perfil `.mobileconfig`
 - [ ] Tutoriales con capturas: iPhone, Android/Gmail, Outlook, Thunderbird
+
+### F · Medición y lanzamiento
+- [ ] Evento de servidor `signup_completed` a PostHog (para todos; las conversiones a Meta/Google, solo con consentimiento)
 - [ ] Confirmar que el calentamiento del dominio (Fase 1) ha cumplido su criterio de salida antes de abrir altas
 - [ ] Al abrir altas: `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces la web lleva `noindex`) y quitar la página provisional de `/alta`
-- [ ] Eventos de servidor `signup_completed` a PostHog y conversiones a Meta/Google Ads
 
-## Fase 3 · Área de cliente + login único
+## Fase 3 · Área de cliente completa
 
-- [ ] Login (email de recuperación o dirección), recuperar contraseña, sesiones
 - [ ] "Mis buzones": plan, uso de cuota (dict de cuota de Dovecot en MariaDB), estado
 - [ ] Gestión de dispositivos conectados: listar, renombrar, revocar, último uso
 - [ ] Añadir otro buzón (varios por usuario)
-- [ ] *Spike* de OAuth2 (Laravel Passport como proveedor + Roundcube + Dovecot `passdb oauth2`) → implementar el login único
 - [ ] Plugin/skin de Roundcube: logo, enlace "Mi cuenta"; desactivar cambio de contraseña en Roundcube
 - [ ] Cambiar email de recuperación, exportar correo, borrar cuenta (vía script privilegiado `mail-provision`)
 
@@ -114,6 +128,7 @@ Objetivo: alguien llega por un anuncio y sale con un buzón funcionando en el m�
 - [ ] Stripe Customer Portal: tarjetas, facturas, cancelación
 - [ ] Ciclo de vida según D-009: impago → aviso → suspensión → borrado → cuarentena del nombre → nombre libre (timer que ejecuta `mail-provision`)
 - [ ] Política de inactividad de cuentas gratis (según D-009)
+- [ ] Límites de envío por plan en Rspamd según `tier` (hasta que haya planes de pago, el límite global de 40/h por usuario es el del plan gratis)
 - [ ] Subir/bajar de plan ajusta cuota, `tier` y límites al momento
 - [ ] IVA (Stripe Tax o fijo) y facturas; revisar Verifactu con la gestoría
 - [ ] Evento de servidor `subscription_started` + conversión de pago a las plataformas de anuncios
