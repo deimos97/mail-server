@@ -1,0 +1,27 @@
+# Dict SQL (Fase 3): uso de cuota (quota_clone) y último acceso (last_login). Ver server/sql/2026-10-08-uso-de-buzones.sql
+connect = host=127.0.0.1 dbname=mailserver user=dovecot_dict password=__REDACTED__
+
+map {
+  pattern = priv/quota/storage
+  table = quota_usage
+  username_field = username
+  value_field = bytes
+  value_type = uint
+}
+map {
+  pattern = priv/quota/messages
+  table = quota_usage
+  username_field = username
+  value_field = messages
+  value_type = uint
+}
+map {
+  pattern = shared/last-login/$user/$device
+  table = last_logins
+  value_field = last_login
+  value_type = uint
+  fields {
+    username = $user
+    device = $device
+  }
+}

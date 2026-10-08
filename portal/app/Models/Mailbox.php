@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 /**
  * Buzón (BD `mailserver`, la que leen Postfix y Dovecot).
@@ -48,6 +50,34 @@ class Mailbox extends Model
     public function appPasswords(): HasMany
     {
         return $this->hasMany(AppPassword::class);
+    }
+
+    public function usage(): HasOne
+    {
+        return $this->hasOne(QuotaUsage::class, 'username', 'email');
+    }
+
+    public function lastLogins(): HasMany
+    {
+        return $this->hasMany(LastLogin::class, 'username', 'email');
+    }
+
+    /** Bytes usados. Sin fila todavía (Dovecot la crea con el primer cambio en el buzón) = vacío. */
+    public function usedBytes(): int
+    {
+        return $this->usage?->bytes ?? 0;
+    }
+
+    /** Porcentaje de la cuota usado (0–100), o null si no tiene cuota. */
+    public function usedPercent(): ?int
+    {
+        return $this->quota_bytes > 0 ? (int) min(100, round($this->usedBytes() * 100 / $this->quota_bytes)) : null;
+    }
+
+    /** Último acceso de un dispositivo (id de app_passwords) o del webmail (0). */
+    public function lastLoginOf(int $device): ?Carbon
+    {
+        return $this->lastLogins->firstWhere('device', $device)?->at();
     }
 
     /** El dueño vive en la BD `portal` (otra conexión): se consulta aparte, sin JOIN. */

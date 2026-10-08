@@ -3,11 +3,14 @@
 # OS: Linux 6.8.0-146-generic x86_64 Ubuntu 24.04.5 LTS 
 # Hostname: mail.unagrandeylibre.es
 auth_mechanisms = plain login xoauth2 oauthbearer
+dict {
+  usage = mysql:/etc/dovecot/dovecot-dict-sql.conf.ext
+}
 first_valid_uid = 5000
 last_valid_uid = 5000
 mail_gid = vmail
 mail_location = maildir:~/Maildir
-mail_plugins = " quota"
+mail_plugins = " quota quota_clone"
 mail_privileged_group = mail
 mail_uid = vmail
 namespace inbox {
@@ -46,7 +49,10 @@ passdb {
   driver = sql
 }
 plugin {
+  last_login_dict = proxy::usage
+  last_login_key = # hidden, use -P to show it
   quota = maildir:User quota
+  quota_clone_dict = proxy::usage
   sieve = file:~/sieve;active=~/.dovecot.sieve
   sieve_before = /etc/dovecot/sieve/spam-to-junk.sieve
 }
@@ -57,6 +63,12 @@ service auth {
     group = postfix
     mode = 0660
     user = postfix
+  }
+}
+service dict {
+  unix_listener dict {
+    mode = 0600
+    user = vmail
   }
 }
 service imap-login {
@@ -85,8 +97,8 @@ userdb {
   driver = sql
 }
 protocol lmtp {
-  mail_plugins = " quota sieve"
+  mail_plugins = " quota quota_clone sieve"
 }
 protocol imap {
-  mail_plugins = " quota imap_quota"
+  mail_plugins = " quota quota_clone imap_quota last_login"
 }

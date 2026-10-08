@@ -25,11 +25,30 @@
                 @endif
             </header>
 
+            @php($percent = $mailbox->usedPercent())
+            <div class="border-b border-stone-200 p-4 sm:p-5">
+                <div class="flex items-baseline justify-between gap-3 text-sm">
+                    <span class="font-semibold">Espacio usado</span>
+                    <span class="text-stone-600">{{ \App\Support\Bytes::format($mailbox->usedBytes()) }} de {{ \App\Support\Bytes::format($mailbox->quota_bytes) }}</span>
+                </div>
+                @if ($percent !== null)
+                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-stone-100" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Espacio usado">
+                        <div class="h-full rounded-full {{ $percent >= 90 ? 'bg-rojo' : 'bg-amarillo' }}" style="width: {{ max($percent, 1) }}%"></div>
+                    </div>
+                    @if ($percent >= 90)
+                        <p class="mt-2 text-sm font-semibold text-rojo">Casi no te queda espacio: cuando se llene, dejarás de recibir correo. Borra correos grandes o vacía la papelera.</p>
+                    @endif
+                @endif
+            </div>
+
             @if ($mailbox->status === 'active')
                 <div class="border-b border-stone-200 p-4 sm:p-5">
                     <a href="{{ route('account.webmail', $mailbox->id) }}" class="block rounded-2xl bg-rojo px-6 py-3.5 text-center text-lg font-bold text-white transition hover:bg-rojo-oscuro">
                         Abrir mi correo
                     </a>
+                    @if ($webmailAt = $mailbox->lastLoginOf(0))
+                        <p class="mt-2 text-center text-sm text-stone-500">Último acceso al webmail: {{ $webmailAt->locale(app()->getLocale())->diffForHumans() }}</p>
+                    @endif
                 </div>
             @endif
 
@@ -42,15 +61,32 @@
                 @else
                     <ul class="mt-3 divide-y divide-stone-100">
                         @foreach ($mailbox->appPasswords as $device)
-                            <li class="flex items-center justify-between gap-3 py-2 text-sm">
-                                <span class="min-w-0">
-                                    <span class="block font-medium">{{ $device->name }}</span>
-                                    <span class="text-stone-500">desde el {{ $device->created_at->timezone('Europe/Madrid')->format('d/m/Y') }}</span>
-                                </span>
-                                <form method="POST" action="{{ route('account.devices.revoke', $device->id) }}"
-                                      x-data @submit="if (! confirm(@js('¿Desconectar «'.$device->name.'»? Dejará de poder entrar en tu correo.'))) $event.preventDefault()">
+                            @php($usedAt = $mailbox->lastLoginOf($device->id))
+                            <li class="py-2 text-sm" x-data="{ editing: false }">
+                                <div class="flex items-center justify-between gap-3" x-show="! editing">
+                                    <span class="min-w-0">
+                                        <span class="block font-medium">{{ $device->name }}</span>
+                                        <span class="text-stone-500">
+                                            desde el {{ $device->created_at->timezone('Europe/Madrid')->format('d/m/Y') }} ·
+                                            {{ $usedAt ? 'último uso '.$usedAt->locale(app()->getLocale())->diffForHumans() : 'todavía no se ha usado' }}
+                                        </span>
+                                    </span>
+                                    <span class="flex shrink-0 gap-2">
+                                        <button type="button" @click="editing = true; $nextTick(() => $refs.name.focus())" class="rounded-xl px-3 py-1.5 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Renombrar</button>
+                                        <form method="POST" action="{{ route('account.devices.revoke', $device->id) }}"
+                                              @submit="if (! confirm(@js('¿Desconectar «'.$device->name.'»? Dejará de poder entrar en tu correo.'))) $event.preventDefault()">
+                                            @csrf
+                                            <button class="rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Revocar</button>
+                                        </form>
+                                    </span>
+                                </div>
+                                <form method="POST" action="{{ route('account.devices.rename', $device->id) }}" class="flex gap-2" x-show="editing" x-cloak>
                                     @csrf
-                                    <button class="rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Revocar</button>
+                                    <label class="sr-only" for="device-name-{{ $device->id }}">Nombre del dispositivo</label>
+                                    <input id="device-name-{{ $device->id }}" name="name" x-ref="name" value="{{ $device->name }}" maxlength="64" required
+                                           class="min-w-0 flex-1 rounded-xl border-stone-300 px-3 py-1.5" @keydown.escape="editing = false">
+                                    <button class="rounded-xl bg-rojo px-3 py-1.5 font-semibold text-white hover:bg-rojo-oscuro">Guardar</button>
+                                    <button type="button" @click="editing = false" class="rounded-xl px-3 py-1.5 font-semibold ring-1 ring-stone-300">Cancelar</button>
                                 </form>
                             </li>
                         @endforeach

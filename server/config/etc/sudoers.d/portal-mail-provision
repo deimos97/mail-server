@@ -1,0 +1,2 @@
+# La web (usuario portal) solo puede ejecutar esto como root. Ver server/bin/mail-provision.
+portal ALL=(root) NOPASSWD: /usr/local/sbin/mail-provision

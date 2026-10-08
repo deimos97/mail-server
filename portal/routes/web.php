@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/salir', [LoginController::class, 'destroy'])->name('logout');
     Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
     Route::post('/cuenta/dispositivos/{device}/revocar', [AccountController::class, 'revokeDevice'])->name('account.devices.revoke');
+    Route::post('/cuenta/dispositivos/{device}/nombre', [AccountController::class, 'renameDevice'])->name('account.devices.rename');
     Route::get('/cuenta/webmail/{mailbox}', [AccountController::class, 'openWebmail'])->name('account.webmail');
     Route::get('/cuenta/configurar/{mailbox}', [DeviceSetupController::class, 'choose'])->name('setup');
     Route::post('/cuenta/configurar/{mailbox}', [DeviceSetupController::class, 'store'])->middleware('throttle:10,1')->name('setup.store');

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Operaciones privilegiadas que necesita la web. Corre como root; el usuario `portal` solo puede
+# llamarlo con sudo (regla en /etc/sudoers.d/portal-mail-provision) y sin más privilegios.
+# Todo argumento se valida aquí: la web no es de fiar.
+#
+#   mail-provision sign-profile        firma (CMS/DER) el .mobileconfig que llega por stdin
+#                                      con el certificado de la web; lo devuelve por stdout
+#   mail-provision kick <buzón>        cierra las conexiones abiertas (IMAP) de un buzón
+set -euo pipefail
+
+CERT_DIR=/etc/letsencrypt/live/unagrandeylibre.es
+MAX_PROFILE_BYTES=65536
+
+die() { echo "mail-provision: $*" >&2; exit 2; }
+
+valid_mailbox() {
+    [[ "$1" =~ ^[a-z0-9._-]{1,64}@[a-z0-9.-]{1,253}$ ]] || return 1
+    # Solo buzones que existen (lo valida la BD, no la forma)
+    [ "$(mysql -N -B mailserver -e "SELECT COUNT(*) FROM mailboxes WHERE email = '$1'")" = 1 ]
+}
+
+case "${1:-}" in
+    sign-profile)
+        [ $# -eq 1 ] || die "uso: sign-profile < perfil.mobileconfig"
+        tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+        head -c $((MAX_PROFILE_BYTES + 1)) > "$tmp/in"
+        [ "$(stat -c %s "$tmp/in")" -le $MAX_PROFILE_BYTES ] || die "perfil demasiado grande"
+        grep -q '<string>com.apple.mail.managed</string>' "$tmp/in" || die "no es un perfil de correo"
+        openssl smime -sign -nodetach -binary -outform der \
+            -signer "$CERT_DIR/cert.pem" -inkey "$CERT_DIR/privkey.pem" -certfile "$CERT_DIR/chain.pem" \
+            -in "$tmp/in"
+        ;;
+    kick)
+        [ $# -eq 2 ] || die "uso: kick <buzón>"
+        valid_mailbox "$2" || die "buzón no válido"
+        doveadm kick "$2" >/dev/null || true   # sin conexiones abiertas también es éxito
+        ;;
+    *)
+        die "orden desconocida"
+        ;;
+esac

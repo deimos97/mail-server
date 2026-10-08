@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Mailbox;
 use App\Services\AppPasswords;
+use App\Services\MailProvision;
 use App\Support\MailClients\AppleProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use RuntimeException;
@@ -17,6 +19,8 @@ use Symfony\Component\HttpFoundation\Response;
  * "Configura un dispositivo": elige la app, se crea su contraseña y se muestran sus pasos.
  * En iPhone/iPad/Mac, además, un perfil que la lleva dentro. Como la contraseña no se guarda en
  * claro, el perfil se guarda cifrado 10 minutos y se borra al descargarlo (una sola vez).
+ * Al descargarlo se firma con el certificado de la web (`mail-provision sign-profile`); si la firma
+ * falla, sale sin firmar (iOS lo instala igual, como "No verificado").
  */
 class DeviceSetupController extends Controller
 {
@@ -62,14 +66,23 @@ class DeviceSetupController extends Controller
     }
 
     /** Descarga del perfil de Apple: una sola vez, solo su dueño, como mucho 10 minutos después. */
-    public function profile(Request $request, string $token): Response
+    public function profile(Request $request, string $token, MailProvision $provision): Response
     {
         $stored = Cache::pull("apple-profile:{$token}");
         abort_unless($stored, 404);
         $profile = json_decode(Crypt::decryptString($stored), true);
         abort_unless($profile['user_id'] === $request->user()->id, 404);
 
-        return response($profile['xml'], 200, [
+        $body = $profile['xml'];
+        if ($provision->enabled()) {
+            try {
+                $body = $provision->signProfile($body);
+            } catch (RuntimeException $e) {
+                Log::warning($e->getMessage());
+            }
+        }
+
+        return response($body, 200, [
             'Content-Type' => AppleProfile::CONTENT_TYPE,
             'Content-Disposition' => 'attachment; filename="'.$profile['filename'].'"',
             'Cache-Control' => 'no-store',

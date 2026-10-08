@@ -8,9 +8,11 @@ use App\Models\User;
 use App\Services\AppPasswords;
 use Database\Seeders\DemoPlansSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Process;
 use Tests\Concerns\UsesMailserverDatabase;
 use Tests\TestCase;
 
@@ -109,11 +111,14 @@ class AuthAndAccountTest extends TestCase
 
     public function test_revoking_a_device(): void
     {
+        config(['mail_provision.command' => '/usr/bin/sudo -n /usr/local/sbin/mail-provision']);
+        Process::fake();
         [$device] = app(AppPasswords::class)->create($this->mailbox, 'Móvil perdido');
 
         $this->actingAs($this->user)->post("/cuenta/dispositivos/{$device->id}/revocar")
             ->assertRedirect('/cuenta')->assertSessionHas('status');
         $this->assertNotNull($device->fresh()->revoked_at);
+        Process::assertRan(fn ($process) => $process->command === ['/usr/bin/sudo', '-n', '/usr/local/sbin/mail-provision', 'kick', $this->mailbox->email]);
         $this->get('/cuenta')->assertSee('Hemos desconectado «Móvil perdido»');   // el aviso, una vez
         $this->get('/cuenta')->assertDontSee('Móvil perdido');                      // y ya no está en la lista
 
@@ -122,5 +127,35 @@ class AuthAndAccountTest extends TestCase
         [$other] = app(AppPasswords::class)->create($this->mailbox, 'Portátil');
         $this->actingAs(User::factory()->create())->post("/cuenta/dispositivos/{$other->id}/revocar")->assertNotFound();
         $this->assertNull($other->fresh()->revoked_at);
+    }
+
+    public function test_account_shows_usage_and_last_use_of_each_device(): void
+    {
+        [$device] = app(AppPasswords::class)->create($this->mailbox, 'iPhone');
+        [$unused] = app(AppPasswords::class)->create($this->mailbox, 'Portátil');
+        DB::connection('mailserver')->table('quota_usage')->insert(['username' => $this->mailbox->email, 'bytes' => 1536 * 1024 ** 2, 'messages' => 10]);
+        DB::connection('mailserver')->table('last_logins')->insert([
+            ['username' => $this->mailbox->email, 'device' => $device->id, 'last_login' => now()->subHours(2)->timestamp],
+            ['username' => $this->mailbox->email, 'device' => 0, 'last_login' => now()->subDays(3)->timestamp],
+        ]);
+        $this->mailbox->update(['quota_bytes' => 2 * 1024 ** 3]);
+
+        $this->actingAs($this->user)->get('/cuenta')->assertOk()
+            ->assertSee('1,5 GB de 2 GB')
+            ->assertSee('último uso hace 2 horas')
+            ->assertSee('todavía no se ha usado')
+            ->assertSee('Último acceso al webmail: hace 3 días');
+    }
+
+    public function test_renaming_a_device(): void
+    {
+        [$device] = app(AppPasswords::class)->create($this->mailbox, 'iPhone');
+
+        $this->actingAs($this->user)->post("/cuenta/dispositivos/{$device->id}/nombre", ['name' => '  iPhone de trabajo '])
+            ->assertRedirect('/cuenta');
+        $this->assertSame('iPhone de trabajo', $device->fresh()->name);
+
+        $this->post("/cuenta/dispositivos/{$device->id}/nombre", ['name' => ''])->assertSessionHasErrors('name');
+        $this->actingAs(User::factory()->create())->post("/cuenta/dispositivos/{$device->id}/nombre", ['name' => 'Mío'])->assertNotFound();
     }
 }

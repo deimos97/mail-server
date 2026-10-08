@@ -40,6 +40,7 @@ PATHS=(
   /etc/systemd/journald.conf.d /etc/tmpfiles.d/roundcube-webmail.conf
   /etc/apt/preferences.d/no-snapd /etc/logrotate.d/roundcube-core
   /usr/local/sbin/mail-alert /usr/local/sbin/mail-backup /usr/local/sbin/mail-monitor
+  /etc/sudoers.d/portal-mail-provision
 )
 
 # Nunca se copian (secretos puros o basura).
@@ -107,7 +108,7 @@ if grep -rEn "$FORBIDDEN" "$TMP/x"; then
 fi
 # Líneas con pinta de secreto que no hayan quedado redactadas.
 if grep -rEin '^[[:space:]]*[^#;]*(password|passwd|secret|des_key|token)[^=:]*[=:][[:space:]]*["'"'"']?[^_"'"'"'[:space:]$%{]' "$TMP/x" \
-   | grep -v "__REDACTED__" | grep -vE '%[uwdn]|\$\{?[A-Za-z_]+|_file|_query|_scheme|password_query|passdb|default_pass|smtpd_sasl|smtp_sasl|args *=|driver *=|auth_mechanisms' ; then
+   | grep -v "__REDACTED__" | grep -vE '%[uwdn]|\$\{?[A-Za-z_]+|_file|_query|_scheme|password_query|passdb|default_pass|smtpd_sasl|smtp_sasl|args *=|driver *=|auth_mechanisms|NOPASSWD: /usr/local/sbin/' ; then
   echo "ERROR: líneas sospechosas sin redactar (arriba). Revisa el saneado en pull-config.sh." >&2
   exit 1
 fi

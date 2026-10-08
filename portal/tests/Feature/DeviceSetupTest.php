@@ -8,6 +8,7 @@ use App\Models\User;
 use Database\Seeders\DemoPlansSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Process;
 use Tests\Concerns\UsesMailserverDatabase;
 use Tests\TestCase;
 
@@ -72,6 +73,23 @@ class DeviceSetupTest extends TestCase
         $this->assertSame(1, simplexml_load_string($profile) !== false ? 1 : 0);   // XML válido
 
         $this->get($url)->assertNotFound();                                   // una sola vez
+    }
+
+    public function test_profile_is_signed_by_mail_provision_or_served_unsigned_if_it_fails(): void
+    {
+        config(['mail_provision.command' => '/usr/bin/sudo -n /usr/local/sbin/mail-provision']);
+        Process::fake([
+            '*sign-profile*' => Process::sequence()->push(Process::result('FIRMADO'))->push(Process::result('', 'fallo', 2)),
+        ]);
+
+        foreach (['FIRMADO', '<?xml'] as $expected) {
+            $html = $this->actingAs($this->user)->post("/cuenta/configurar/{$this->mailbox->id}", ['client' => 'iphone'])->getContent();
+            preg_match('#href="([^"]*/cuenta/perfil/[A-Za-z0-9]{40})"#', $html, $m);
+            $this->assertStringStartsWith($expected, $this->get($m[1])->assertOk()->getContent());
+        }
+
+        Process::assertRan(fn ($process) => $process->command === ['/usr/bin/sudo', '-n', '/usr/local/sbin/mail-provision', 'sign-profile']
+            && str_contains($process->input, 'com.apple.mail.managed'));
     }
 
     public function test_profile_is_only_for_its_owner_and_expires(): void
