@@ -1,0 +1,4 @@
+/* Icono del botón "Mi cuenta" (Font Awesome 5 de Elastic: user-circle) */
+#taskmenu a.mi-cuenta:before {
+    content: "\f2bd";
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\DeviceSetupController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\HelpController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\PlaceholderController;
+use App\Http\Controllers\RecoveryEmailController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SignupController;
 use App\Http\Middleware\SignupGate;
@@ -54,6 +56,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
     Route::post('/cuenta/dispositivos/{device}/revocar', [AccountController::class, 'revokeDevice'])->name('account.devices.revoke');
     Route::post('/cuenta/dispositivos/{device}/nombre', [AccountController::class, 'renameDevice'])->name('account.devices.rename');
+    Route::get('/cuenta/email', [RecoveryEmailController::class, 'edit'])->name('account.email');
+    Route::post('/cuenta/email', [RecoveryEmailController::class, 'store'])->middleware('throttle:5,60')->name('account.email.store');
+    Route::post('/cuenta/email/confirmar', [RecoveryEmailController::class, 'confirm'])->name('account.email.confirm');
+    Route::post('/cuenta/email/cancelar', [RecoveryEmailController::class, 'cancel'])->name('account.email.cancel');
+    Route::get('/cuenta/borrar', [AccountDeletionController::class, 'show'])->name('account.delete');
+    Route::post('/cuenta/borrar', [AccountDeletionController::class, 'destroy'])->middleware('throttle:5,60')->name('account.delete.destroy');
     Route::get('/cuenta/webmail/{mailbox}', [AccountController::class, 'openWebmail'])->name('account.webmail');
     Route::get('/cuenta/configurar/{mailbox}', [DeviceSetupController::class, 'choose'])->name('setup');
     Route::post('/cuenta/configurar/{mailbox}', [DeviceSetupController::class, 'store'])->middleware('throttle:10,1')->name('setup.store');

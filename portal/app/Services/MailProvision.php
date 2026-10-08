@@ -25,6 +25,12 @@ class MailProvision
         $this->run(['kick', $email]);
     }
 
+    /** Borra el correo de un buzón ya marcado como borrado (la fila se queda: cuarentena del nombre). */
+    public function deleteContent(string $email): void
+    {
+        $this->run(['delete-content', $email]);
+    }
+
     private function run(array $arguments, ?string $input = null): string
     {
         if (! $this->enabled()) {

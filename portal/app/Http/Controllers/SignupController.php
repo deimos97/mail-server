@@ -13,6 +13,7 @@ use App\Services\NameAvailability;
 use App\Services\ServerAnalytics;
 use App\Services\Signup;
 use App\Services\Turnstile;
+use App\Support\RecoveryEmailRules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -90,20 +91,12 @@ class SignupController extends Controller
             return redirect()->route('signup')->with('status', 'Tu reserva ha caducado. Vuelve a elegir tu nombre.');
         }
 
-        $ownDomains = Domain::query()->pluck('name')->all();
         $data = $request->validate([
-            'email' => ['required', 'string', app()->runningUnitTests() ? 'email:rfc' : 'email:rfc,dns', 'max:255', 'indisposable', 'unique:users,email',
-                function (string $attribute, string $value, $fail) use ($ownDomains) {
-                    if (in_array(mb_strtolower(substr(strrchr($value, '@'), 1)), $ownDomains, true)) {
-                        $fail('El email de recuperación tiene que ser de otro proveedor (Gmail, Outlook…).');
-                    }
-                }],
+            'email' => RecoveryEmailRules::rules(),
             'password' => ['required', 'string', Password::min(10)->uncompromised()],
             'terms' => ['accepted'],
         ], [
-            'email.unique' => 'Ya existe una cuenta con este email.',
-            'email.indisposable' => 'No se admiten emails temporales. Usa tu email habitual.',
-            'email.email' => 'Revisa el email: no parece válido.',
+            ...RecoveryEmailRules::messages(),
             'password.min' => 'La contraseña necesita al menos 10 caracteres.',
             'password.uncompromised' => 'Esa contraseña ha aparecido en filtraciones de datos. Elige otra.',
             'terms.accepted' => 'Tienes que aceptar las condiciones para continuar.',

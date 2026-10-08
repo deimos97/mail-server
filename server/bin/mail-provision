@@ -6,10 +6,18 @@
 #   mail-provision sign-profile        firma (CMS/DER) el .mobileconfig que llega por stdin
 #                                      con el certificado de la web; lo devuelve por stdout
 #   mail-provision kick <buzón>        cierra las conexiones abiertas (IMAP) de un buzón
+#   mail-provision delete-content <buzón>
+#                                      borra el correo de un buzón que la web ya ha marcado como borrado
+#                                      (status='deleted', active=0). La fila se queda: el nombre sigue
+#                                      ocupado durante la cuarentena (D-009)
+#   mail-provision purge-deleted       quita las filas de buzones borrados hace más de QUARANTINE_DAYS:
+#                                      el nombre queda libre. Lo lanza el timer mail-purge (root)
 set -euo pipefail
 
 CERT_DIR=/etc/letsencrypt/live/unagrandeylibre.es
 MAX_PROFILE_BYTES=65536
+QUARANTINE_DAYS=90
+VMAIL=/var/vmail
 
 die() { echo "mail-provision: $*" >&2; exit 2; }
 
@@ -34,6 +42,33 @@ case "${1:-}" in
         [ $# -eq 2 ] || die "uso: kick <buzón>"
         valid_mailbox "$2" || die "buzón no válido"
         doveadm kick "$2" >/dev/null || true   # sin conexiones abiertas también es éxito
+        ;;
+    delete-content)
+        [ $# -eq 2 ] || die "uso: delete-content <buzón>"
+        valid_mailbox "$2" || die "buzón no válido"
+        row=$(mysql -N -B mailserver -e "SELECT m.local_part, d.name, m.tier FROM mailboxes m JOIN domains d ON d.id = m.domain_id
+                                         WHERE m.email = '$2' AND m.status = 'deleted' AND m.active = 0")
+        [ -n "$row" ] || die "el buzón no está marcado como borrado"
+        read -r local domain tier <<< "$row"
+        [ "$tier" != system ] || die "los buzones del sistema no se borran"
+        [[ "$local" =~ ^[a-z0-9._-]{1,64}$ && "$local" != .* && "$domain" =~ ^[a-z0-9.-]{1,253}$ && "$domain" != .* ]] || die "ruta no válida"
+        doveadm kick "$2" >/dev/null 2>&1 || true
+        rm -rf -- "${VMAIL:?}/$domain/$local"
+        mysql mailserver -e "DELETE FROM quota_usage WHERE username = '$2'; DELETE FROM last_logins WHERE username = '$2'"
+        logger -t mail-provision "contenido borrado: $2"
+        ;;
+    purge-deleted)
+        [ $# -eq 1 ] || die "uso: purge-deleted"
+        mysql -N -B mailserver -e "SELECT m.email, m.local_part, d.name FROM mailboxes m JOIN domains d ON d.id = m.domain_id
+                                   WHERE m.status = 'deleted' AND m.active = 0 AND m.deleted_at < NOW() - INTERVAL $QUARANTINE_DAYS DAY" |
+        while read -r email local domain; do
+            # Por si el borrado del contenido falló en su día: nunca se libera un nombre con correo dentro
+            if [ -e "$VMAIL/$domain/$local" ]; then
+                logger -t mail-provision "purge: $email aún tiene correo; no se libera"; continue
+            fi
+            mysql mailserver -e "DELETE FROM mailboxes WHERE email = '$email' AND status = 'deleted'"
+            logger -t mail-provision "nombre liberado: $email"
+        done
         ;;
     *)
         die "orden desconocida"

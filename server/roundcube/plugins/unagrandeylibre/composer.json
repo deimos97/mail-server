@@ -1,0 +1,6 @@
+{
+    "name": "unagrandeylibre/unagrandeylibre",
+    "type": "roundcube-plugin",
+    "description": "Marca de unagrandeylibre.es en Roundcube (botón Mi cuenta).",
+    "license": "proprietary"
+}

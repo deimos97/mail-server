@@ -115,4 +115,10 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    | Adonde se escribe si algo va mal (aviso de cambio de email de recuperación, etc.).
+    */
+
+    'support_address' => env('MAIL_SUPPORT_ADDRESS', 'postmaster@unagrandeylibre.es'),
+
 ];

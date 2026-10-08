@@ -1,5 +1,5 @@
 <x-signup-layout title="Mi cuenta" :wide="true">
-    <p class="mt-1 text-sm text-stone-500">Email de recuperación: <span data-ph-mask>{{ $user->email }}</span></p>
+    <p class="mt-1 text-sm text-stone-500">Email de recuperación: <span data-ph-mask>{{ $user->email }}</span> · <a href="{{ route('account.email') }}" class="font-medium underline">Cambiar</a></p>
 
     @unless ($user->hasVerifiedEmail())
         <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">
@@ -107,5 +107,6 @@
             ¿Cómo configurarlo en cada app? <a href="{{ route('help.setup') }}" class="font-medium underline">Guías</a>. También puedes entrar al webmail en <a href="https://webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}" class="font-medium underline">webmail.{{ $mailboxes->first()?->domain->name ?? 'unagrandeylibre.es' }}</a>
             con tu dirección y la contraseña de un dispositivo.
         </p>
+        <p class="mt-6 text-center text-sm"><a href="{{ route('account.delete') }}" class="text-stone-500 underline hover:text-rojo">Borrar mi cuenta</a></p>
     </x-slot:after>
 </x-signup-layout>

@@ -2,7 +2,24 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 2 — EN CURSO**. Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario). Fase 2 cerrada en lo técnico el 2026-10-08: lo que queda para lanzar es del usuario (calentamiento, textos legales, pruebas en dispositivos reales) salvo firmar el perfil de Apple; mientras tanto se puede avanzar la Fase 3.
+Estado: **Fase 3 — EN CURSO** (desde el 2026-10-08). Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario). Fase 2 cerrada en lo técnico el 2026-10-08: lo que queda para lanzar es del usuario (ver "En manos del usuario"); mientras tanto se avanza la Fase 3.
+
+## En manos del usuario
+
+Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por él: como mucho, lo prepara y se lo recuerda. Se tacha aquí y en su fase.
+
+**Bloquean el lanzamiento (abrir altas):**
+- [ ] Calentamiento del dominio con `javier@` hasta el criterio de salida (Fase 1)
+- [ ] Textos legales: aviso legal, privacidad, cookies y condiciones, revisados con asesoría (la IA puede preparar el borrador)
+- [ ] Probar en dispositivos reales: el perfil en un iPhone (entrando a la web desde Safari en el iPhone) y la autoconfiguración en Thunderbird y Outlook
+- [ ] Textos definitivos de la landing (hero, bloques, FAQ)
+
+**No bloquean:**
+- [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
+- [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar`
+- [ ] Decidir D-014 (varios buzones por usuario) en [DECISIONS.md](DECISIONS.md)
+- [ ] PostHog (grabaciones, mapas de calor, embudo) juntos, en la Fase 5
+- [ ] Cuentas de anuncios en Meta y Google y anuncio de prueba (Fase 5)
 
 ## Decisiones tomadas
 
@@ -69,7 +86,7 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [x] Endpoint de disponibilidad `GET /api/availability?local=&domain=` (`App\Services\NameAvailability`): reglas configurables, reservados, buzones y alias, sobrecoste por longitud, sugerencias (incluida la versión sin tildes), 30/min y 500/día por IP
 - [x] Sección de planes renderizada desde BD (precio con IVA, tachado si hay oferta, duración de la oferta, destacado; el plan gratis se desactiva si el nombre es corto)
 - [x] Bloques informativos y FAQ (textos en `portal/config/landing.php`, **provisionales**) + footer con enlaces legales (páginas "en preparación" hasta la Fase 5)
-- [ ] Textos definitivos de la landing (hero, bloques, FAQ) — los pone el usuario
+- [ ] Textos definitivos de la landing (hero, bloques, FAQ) — los pone el usuario (ver "En manos del usuario")
 - [x] Banner de consentimiento (Aceptar/Rechazar con la misma relevancia; reabrible desde el footer) + PostHog solo tras aceptar, por `/ingest` (proxy nginx): autocaptura, páginas vistas, mapas de calor, grabaciones con campos y direcciones enmascarados, y eventos `name_checked`, `name_suggestion_used`, `name_chosen`, `plan_selected`
 - [x] Captura de UTM y click IDs (`gclid`, `fbclid`, `msclkid`, `ttclid`…) y referrer externo en sesión, primer contacto (`CaptureAttribution`); se guardará con el alta en la Fase 2
 - [x] SEO: metadatos, Open Graph con imagen propia (`public/img/og.png`), favicon e icono de iPhone, JSON-LD (`Organization`, `WebSite`, `Product`/`Offer` por plan con el precio de la BD, `FAQPage`), `sitemap.xml`, `robots.txt`, `llms.txt` (los dos últimos generados desde la BD)
@@ -109,8 +126,8 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] `autoconfig` (Thunderbird, apps de Android; en `autoconfig.` y en `/.well-known/autoconfig/`) y Autodiscover POX (Outlook), sin sesión; probados en producción
 - [x] Registros SRV en Cloudflare (comprobados el 2026-10-08): `_imaps._tcp` 0 1 993, `_submissions._tcp` 0 1 465 y `_submission._tcp` 0 1 587, todos hacia `mail.unagrandeylibre.es`
 - [ ] Probar el perfil en un iPhone real y el autoconfig en Thunderbird y Outlook reales
-- [ ] Firmar el perfil de Apple (hoy sale "No verificado"): necesita la clave del certificado, que solo puede leer root → script privilegiado o firma en el despliegue
-- [ ] (Opcional) Enviar la configuración a la ISPDB de Thunderbird, para que funcione aunque el dominio no tenga `autoconfig.`
+- [x] Perfil de Apple firmado (2026-10-08) con el certificado de la web, al descargarlo, por `mail-provision sign-profile` (sudo solo para ese script). Si la firma falla, sale sin firmar
+- [x] ~~Enviar la configuración a la ISPDB de Thunderbird~~ — descartado (2026-10-08): la ISPDB es para proveedores grandes que no publican su propio autoconfig, y prefieren que cada proveedor lo sirva él mismo, como ya hacemos
 - [x] Guías públicas en `/ayuda/configurar` (iPhone/iPad, Mac, Android/Gmail, Outlook, Thunderbird, otra app), con los mismos pasos que ve el usuario al configurar
 - [ ] Capturas de pantalla reales en las guías (necesitan los dispositivos; las pone el usuario)
 
@@ -123,12 +140,16 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 
 ## Fase 3 · Área de cliente completa
 
-- [ ] "Mis buzones": plan, uso de cuota (dict de cuota de Dovecot en MariaDB), estado
-- [ ] Dispositivos: renombrar y "último uso" (listar y revocar ya están, Fase 2)
-- [ ] Al revocar, cerrar también las conexiones abiertas de ese dispositivo (`doveadm kick` desde el script privilegiado `mail-provision`)
-- [ ] Añadir otro buzón (varios por usuario)
-- [ ] Plugin/skin de Roundcube: logo, enlace "Mi cuenta"; desactivar cambio de contraseña en Roundcube
-- [ ] Cambiar email de recuperación, exportar correo, borrar cuenta (vía script privilegiado `mail-provision`)
+- [x] Script privilegiado `mail-provision` (`server/bin/`, root; la web lo llama con sudo y solo a él): `sign-profile`, `kick`
+- [x] "Mis buzones" en "Mi cuenta": plan, espacio usado (Dovecot `quota_clone` → `mailserver.quota_usage`; la cuota real sigue en maildir) y estado. Un buzón sin fila aún sale vacío hasta su primer cambio (correo nuevo o borrado)
+- [x] Dispositivos: renombrar y "último uso" (Dovecot `last_login` → `mailserver.last_logins`, por id de contraseña de dispositivo; 0 = webmail), más "último acceso al webmail"
+- [x] Al revocar, se cierran las conexiones abiertas del buzón (`mail-provision kick`, tras responder; no por la cola: el worker corre con `NoNewPrivileges`)
+- [ ] Añadir otro buzón (varios por usuario) — **depende de D-014**
+- [x] Plugin de Roundcube `unagrandeylibre` (fuente en `server/roundcube/`): botón "Mi cuenta" en el menú; logo, nombre y enlace de ayuda en `config.inc.php`. Roundcube no tiene activado el plugin de cambio de contraseña (no hace falta desactivar nada)
+- [x] Cambiar el email de recuperación (pide la contraseña; código de 6 cifras al nuevo; aviso al anterior con la dirección medio oculta)
+- [x] Borrar cuenta (D-009; `/cuenta/borrar`, con contraseña y casilla): buzones marcados como borrados (`status=deleted`, `active=0`, `deleted_at`), dispositivos y tokens revocados, correo borrado del disco al momento (`mail-provision delete-content`), usuario de la web borrado y aviso a su email. El nombre sigue ocupado 90 días; después lo libera el timer `mail-purge` (root, diario 05:15, `mail-provision purge-deleted`), que nunca libera un nombre si aún queda correo en disco
+- [ ] Copias de seguridad y borrado: restic guarda el correo de un buzón borrado hasta 6 meses (retención mensual). Decirlo en la política de privacidad o purgarlo de las copias
+- [ ] Exportar el correo (descarga del buzón)
 
 ## Fase 4 · Planes de pago (Stripe)
 

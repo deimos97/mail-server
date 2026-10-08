@@ -39,6 +39,7 @@ class Mailbox extends Model
             'can_send' => 'boolean',
             'quota_bytes' => 'integer',
             'created_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 

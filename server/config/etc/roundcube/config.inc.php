@@ -62,10 +62,10 @@ $config['smtp_debug'] = false;
 
 // provide an URL where a user can get support for this Roundcube installation
 // PLEASE DO NOT LINK TO THE ROUNDCUBE.NET WEBSITE HERE!
-$config['support_url'] = '';
+$config['support_url'] = 'https://unagrandeylibre.es/ayuda/configurar';
 
 // Name your service. This is displayed on the login screen and in the window title
-$config['product_name'] = 'Roundcube Webmail';
+$config['product_name'] = 'unagrandeylibre.es';
 
 // This key is used to encrypt the users imap password which is stored
 // in the session record. For the default cipher method it must be
@@ -78,6 +78,7 @@ $config['des_key'] = '__REDACTED__';
 $config['plugins'] = [
     // 'archive',
     // 'zipdownload',
+    'unagrandeylibre',
 ];
 
 // skin name: folder from skins/
@@ -112,3 +113,6 @@ $config['oauth_identity_uri'] = 'https://unagrandeylibre.es/api/oauth/userinfo';
 $config['oauth_scope'] = 'email';
 $config['oauth_identity_fields'] = ['email'];
 $config['oauth_login_redirect'] = false;
+
+// Marca (Fase 3): logo del plugin unagrandeylibre (fuente en server/roundcube/ del repo)
+$config['skin_logo'] = 'plugins/unagrandeylibre/logo.svg';

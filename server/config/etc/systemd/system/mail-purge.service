@@ -1,0 +1,6 @@
+[Unit]
+Description=Libera los nombres de buzones borrados tras la cuarentena (mail-provision purge-deleted)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mail-provision purge-deleted

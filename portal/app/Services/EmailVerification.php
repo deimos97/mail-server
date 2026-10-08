@@ -68,6 +68,12 @@ class EmailVerification
         Mailbox::where('user_id', $user->id)->update(['can_send' => true]);
     }
 
+    /** Invalida el código pendiente (p. ej. si el email cambia antes de verificarlo). */
+    public function forget(User $user): void
+    {
+        Cache::forget($this->key($user));
+    }
+
     private function key(User $user): string
     {
         return "email-verification:{$user->id}";

@@ -41,6 +41,7 @@ PATHS=(
   /etc/apt/preferences.d/no-snapd /etc/logrotate.d/roundcube-core
   /usr/local/sbin/mail-alert /usr/local/sbin/mail-backup /usr/local/sbin/mail-monitor
   /etc/sudoers.d/portal-mail-provision
+  /etc/systemd/system/mail-purge.service /etc/systemd/system/mail-purge.timer
 )
 
 # Nunca se copian (secretos puros o basura).

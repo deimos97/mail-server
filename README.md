@@ -82,6 +82,21 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 
 `sudo -E -u portal php8.3 artisan tinker` falla en silencio: con `-E` se queda el `HOME` de root y Tinker no arranca (solo deja un aviso de psysh). Para pasar variables: `sudo -u portal -H env VAR=valor php8.3 artisan tinker --execute='…getenv("VAR")…'`.
 
+### Scripts privilegiados para la web (`mail-provision`)
+
+La web no corre como root. Lo que lo necesita (firmar el perfil de Apple con la clave del certificado, `doveadm kick`, borrar el correo de un buzón) va por `/usr/local/sbin/mail-provision` (fuente: `server/bin/`), que `portal` puede ejecutar con `sudo` y nada más (`/etc/sudoers.d/portal-mail-provision`). El script valida todo lo que recibe y comprueba en la BD que el buzón exista (y, para borrar, que la web ya lo haya marcado como borrado; los de `tier=system` nunca).
+
+- El worker de colas (`portal-queue.service`) tiene `NoNewPrivileges=yes`, así que **no puede usar sudo**: estas llamadas se hacen en la propia petición (o con `dispatchAfterResponse`), no en la cola.
+- `openssl smime -verify` dice "unsuitable certificate purpose" con el perfil firmado: los certificados de Let's Encrypt no llevan el uso S/MIME. A iOS le da igual; para comprobarlo, `openssl cms -verify -purpose any`.
+
+### Uso de buzones y último acceso (Dovecot → MariaDB)
+
+`quota_clone` copia el uso de cada buzón a `mailserver.quota_usage` y `last_login` guarda el último acceso IMAP en `mailserver.last_logins`, los dos por el servicio dict (usuario MariaDB `dovecot_dict`, `/etc/dovecot/dovecot-dict-sql.conf.ext`). Trampas:
+
+- `quota_clone` solo escribe cuando cambia el buzón (llega o se borra un correo). `doveadm quota recalc` **no** lo dispara: un buzón sin movimiento no tiene fila (la web lo muestra vacío).
+- Para saber qué dispositivo entra, la passdb de contraseñas de dispositivo devuelve `a.id AS userdb_app_password_id` y la clave es `last-login/%u/%{userdb:app_password_id:0}` (0 = sin contraseña de dispositivo, o sea, el webmail con login único).
+- El socket del dict tiene que ser del usuario `vmail` (`service dict { unix_listener dict { user = vmail } }`); si no, los procesos IMAP no pueden escribir.
+
 ### Correo de la web (`noreply@`)
 
 La web envía como `noreply@unagrandeylibre.es` por el 587 (la contraseña solo está en `/var/www/portal/shared/.env`, `MAIL_PASSWORD`). Está en `whitelisted_user` de `/etc/rspamd/local.d/ratelimit.conf` para que el límite de 40/h por usuario no frene las verificaciones. Los rebotes llegan a ese buzón.
@@ -155,6 +170,7 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 | Colas y tareas de la web | Worker `portal-queue.service` (`queue:work` como `portal`, se recicla cada hora; el deploy lo reinicia con `queue:restart`). Scheduler `portal-schedule.timer` → `schedule:run` cada minuto. Ver: `journalctl -u portal-queue`, `journalctl -u portal-schedule`. Trabajos fallidos: tabla `portal.failed_jobs`. |
 | Autoconfiguración de apps | `autoconfig.` y `autodiscover.unagrandeylibre.es` solo exponen `/mail/config-v1.1.xml` y `/autodiscover/autodiscover.xml` (sin distinguir mayúsculas), servidos por la web sin sesión (`routes/mail-clients.php`); el resto da 404. También `/.well-known/autoconfig/…` en el dominio principal. Datos de conexión en `portal/config/mail_clients.php`. |
 | Desplegar la web | `portal/deploy.sh` desde tu máquina, con todo ya subido a GitHub (el servidor clona el repo público). `portal/deploy.sh --rollback` vuelve a la release anterior. El script del servidor es `server/bin/portal-deploy` → `/usr/local/sbin/portal-deploy`. |
+| Borrado de buzones | La web marca el buzón como borrado y borra su correo (`mail-provision delete-content`); la fila se queda 90 días para que nadie coja el nombre. El timer `mail-purge.timer` (05:15) quita las filas caducadas (`journalctl -t mail-provision`). Nunca libera un nombre si queda correo en `/var/vmail`. |
 | Logs útiles | `/var/log/mail.log`, `/var/log/roundcube/`, `journalctl -t mail-alert`, `fail2ban-client status <jail>`, `/var/www/portal/shared/storage/logs/` |
 
 ## TODO back-end
