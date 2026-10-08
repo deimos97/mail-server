@@ -1,14 +1,21 @@
 @php
     use App\Support\Money;
-    // Fase 2: solo planes gratis. Un nombre corto (con sobrecoste) necesita plan de pago.
-    $selectable = fn ($plan) => $plan->is_free && ! $surcharge;
+    // Fase 2: solo planes gratis. Un nombre corto (con sobrecoste) necesita plan de pago,
+    // y solo hay un buzón gratis por usuario (D-014).
+    $selectable = fn ($plan) => $plan->is_free && ! $surcharge && ! $hasFree;
     $default = $plans->first(fn ($p) => $p->slug === $selected && $selectable($p)) ?? $plans->first($selectable);
 @endphp
 
-<x-signup-layout :step="3" title="Elige tu plan">
+<x-signup-layout :step="$extra ? null : 3" title="Elige tu plan">
     <p class="mt-2 text-stone-600">Para <strong data-ph-mask>{{ $reservation->email() }}</strong>. Precios con IVA incluido.</p>
 
-    @if ($surcharge)
+    @if ($hasFree)
+        <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">
+            <p class="font-semibold">Tu cuenta ya tiene su buzón gratis.</p>
+            <p class="mt-1 text-stone-700">Cada cuenta incluye un buzón gratis; los demás van con un plan de pago. Los planes de pago abren muy pronto.</p>
+            <a href="{{ route('account') }}" class="mt-3 inline-block rounded-xl bg-white px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Volver a mi cuenta</a>
+        </div>
+    @elseif ($surcharge)
         <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">
             <p class="font-semibold">Los nombres cortos necesitan un plan de pago (+{{ Money::format($surcharge->price_cents) }}/mes).</p>
             <p class="mt-1 text-stone-700">Los planes de pago abren muy pronto. Mientras, puedes elegir un nombre de 5 caracteres o más.</p>
@@ -41,6 +48,9 @@
                         @unless ($plan->is_free)
                             <span class="mt-2 inline-block rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-600">Muy pronto</span>
                         @endunless
+                        @if ($plan->is_free && $hasFree)
+                            <span class="mt-2 inline-block rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-600">Ya tienes tu buzón gratis</span>
+                        @endif
                     </span>
                 </label>
             @endforeach

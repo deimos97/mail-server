@@ -1,0 +1,38 @@
+// Reglas propias de la skin, después de las de Elastic (Elastic importa este fichero al final).
+
+// Login: lo normal es entrar desde la web (login único), así que ese botón es el principal
+// y el de usuario/contraseña (contraseña de dispositivo) queda como secundario.
+.task-login {
+    #rcmloginoauth {
+        background-color: @rojo;
+        border-color: @rojo;
+        color: #fff;
+        font-weight: 600;
+
+        &:hover, &:focus {
+            background-color: @rojo-oscuro;
+            border-color: @rojo-oscuro;
+        }
+    }
+
+    #rcmloginsubmit {
+        background-color: transparent;
+        border-color: @rojo;
+        color: @rojo;
+
+        &:hover, &:focus {
+            background-color: fade(@rojo, 8%);
+        }
+    }
+}
+
+// Modo oscuro: el rojo de la bandera no se lee sobre fondo oscuro en enlaces y textos
+html.dark-mode {
+    a, a:hover, .task-login #rcmloginsubmit {
+        color: #f87171;
+    }
+
+    .task-login #rcmloginsubmit {
+        border-color: #f87171;
+    }
+}

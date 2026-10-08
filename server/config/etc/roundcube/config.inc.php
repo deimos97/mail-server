@@ -82,7 +82,9 @@ $config['plugins'] = [
 ];
 
 // skin name: folder from skins/
-$config['skin'] = 'elastic';
+$config['skin'] = 'unagrandeylibre';   // Elastic con nuestros colores (server/roundcube/skins/)
+$config['skins_allowed'] = ['unagrandeylibre'];
+$config['dont_override'] = ['skin'];
 
 // Disable spellchecking
 // Debian: spellchecking needs additional packages to be installed, or calling external APIs
@@ -104,7 +106,7 @@ $config['smtp_host'] = 'tls://127.0.0.1:587';
 // Login único con la web (D-010). Proveedor OAuth2 propio en unagrandeylibre.es.
 // El secreto es el mismo que OAUTH_WEBMAIL_CLIENT_SECRET en /var/www/portal/shared/.env
 $config['oauth_provider'] = 'generic';
-$config['oauth_provider_name'] = 'Una Grande y Libre';
+$config['oauth_provider_name'] = 'unagrandeylibre.es';
 $config['oauth_client_id'] = 'webmail';
 $config['oauth_client_secret'] = '__REDACTED__';
 $config['oauth_auth_uri'] = 'https://unagrandeylibre.es/oauth/authorize';

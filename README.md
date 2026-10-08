@@ -82,6 +82,15 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 
 `sudo -E -u portal php8.3 artisan tinker` falla en silencio: con `-E` se queda el `HOME` de root y Tinker no arranca (solo deja un aviso de psysh). Para pasar variables: `sudo -u portal -H env VAR=valor php8.3 artisan tinker --execute='…getenv("VAR")…'`.
 
+### Roundcube: skin propia sobre Elastic
+
+La skin `unagrandeylibre` (fuente en `server/roundcube/skins/`) es Elastic con nuestros colores: solo cambia variables (`styles/_variables.less`) y se compila en local con `server/roundcube/build-skin.sh`, que la sube a `/var/lib/roundcube/skins/` (el servidor no tiene Node). Trampas:
+
+- Roundcube busca los CSS en la skin donde encuentra `templates/includes/layout.html`. Sin una copia propia de ese fichero, una skin que extiende Elastic **sigue cargando los CSS de Elastic** aunque esté activa. El script la copia del servidor en cada compilación.
+- El firewall corta SSH a partir de 10 conexiones nuevas por minuto desde la misma IP (`-m recent`, 60 s): los scripts que hacen varias llamadas usan una sola conexión (`ControlMaster`).
+- Tras actualizar Roundcube, vuelve a ejecutar `build-skin.sh`: compila contra los `.less` y la plantilla de la versión instalada.
+- `skins_allowed` y `dont_override` fijan la skin para todos (si no, un usuario con la preferencia guardada seguiría en Elastic).
+
 ### Scripts privilegiados para la web (`mail-provision`)
 
 La web no corre como root. Lo que lo necesita (firmar el perfil de Apple con la clave del certificado, `doveadm kick`, borrar el correo de un buzón) va por `/usr/local/sbin/mail-provision` (fuente: `server/bin/`), que `portal` puede ejecutar con `sudo` y nada más (`/etc/sudoers.d/portal-mail-provision`). El script valida todo lo que recibe y comprueba en la BD que el buzón exista (y, para borrar, que la web ya lo haya marcado como borrado; los de `tier=system` nunca).

@@ -98,6 +98,13 @@
         </article>
     @endforeach
 
+    @if ($mailboxes->isNotEmpty())
+        <div class="mt-6 rounded-2xl border-2 border-dashed border-stone-300 p-4 text-center sm:p-5">
+            <a href="{{ route('signup', ['nuevo' => 1]) }}" class="font-bold text-rojo underline">Añadir otro buzón</a>
+            <p class="mt-1 text-sm text-stone-500">Tu cuenta incluye un buzón gratis; los demás van con un plan de pago.</p>
+        </div>
+    @endif
+
     @if ($mailboxes->isEmpty())
         <p class="mt-6 text-stone-600">Todavía no tienes ningún buzón. <a href="{{ route('signup.plan') }}" class="font-semibold text-rojo underline">Termina el alta</a></p>
     @endif

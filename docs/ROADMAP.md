@@ -17,7 +17,6 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 **No bloquean:**
 - [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
 - [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar`
-- [ ] Decidir D-014 (varios buzones por usuario) en [DECISIONS.md](DECISIONS.md)
 - [ ] PostHog (grabaciones, mapas de calor, embudo) juntos, en la Fase 5
 - [ ] Cuentas de anuncios en Meta y Google y anuncio de prueba (Fase 5)
 
@@ -37,6 +36,7 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 | D-009 | Ciclo de vida (plazos configurables). Impago: suspensión el día 10 (sin acceso ni envío, sigue recibiendo), borrado del contenido el día 30 con aviso previo, nombre libre el día 90. Cancelación: activo hasta fin de periodo; después pasa a gratis si cabe en la cuota, si no, como un impago. Gratis inactiva: 6 meses sin entrar → aviso → +30 días: suspensión y borrado → +60 días: nombre libre. Borrado voluntario: inmediato, nombre libre a los 90 días. **Nunca** se entrega un nombre sin borrar antes el contenido y pasar la cuarentena. | 2026-10-05 |
 | D-011 | En la web se entra con el **email de recuperación o con cualquiera de sus direcciones**. Para las apps de correo, **contraseñas de aplicación por dispositivo desde el principio**: el usuario solo recuerda la contraseña de la web. | 2026-10-05 |
 | D-012 | El correo transaccional sale por el **propio Postfix** con `noreply@`. | 2026-10-05 |
+| D-014 | **Un buzón gratis por usuario**; los demás, solo con plan de pago. Tiene que quedar claro en la pantalla de planes para que nadie se atasque sin saber por qué no puede elegir el gratis. | 2026-10-08 |
 | D-013 | **Actualizar ya el servidor a Ubuntu 24.04** (`do-release-upgrade` en el mismo servidor), con lo que llegan Roundcube 1.6 y PHP 8.3 de serie. Se hace antes de construir nada, para empezar sobre una base sólida. | 2026-10-05 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
@@ -144,8 +144,10 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] "Mis buzones" en "Mi cuenta": plan, espacio usado (Dovecot `quota_clone` → `mailserver.quota_usage`; la cuota real sigue en maildir) y estado. Un buzón sin fila aún sale vacío hasta su primer cambio (correo nuevo o borrado)
 - [x] Dispositivos: renombrar y "último uso" (Dovecot `last_login` → `mailserver.last_logins`, por id de contraseña de dispositivo; 0 = webmail), más "último acceso al webmail"
 - [x] Al revocar, se cierran las conexiones abiertas del buzón (`mail-provision kick`, tras responder; no por la cola: el worker corre con `NoNewPrivileges`)
-- [ ] Añadir otro buzón (varios por usuario) — **depende de D-014**
+- [x] Añadir otro buzón (D-014): "Añadir otro buzón" en Mi cuenta → `/alta?nuevo=1` → nombre → plan. El gratis sale bloqueado con el motivo ("Tu cuenta ya tiene su buzón gratis…") y el servidor lo impide. Hasta la Fase 4 no se puede completar (los de pago están "Muy pronto")
+- [ ] Fase 4: completar "Añadir otro buzón" con plan de pago (Checkout por buzón)
 - [x] Plugin de Roundcube `unagrandeylibre` (fuente en `server/roundcube/`): botón "Mi cuenta" en el menú; logo, nombre y enlace de ayuda en `config.inc.php`. Roundcube no tiene activado el plugin de cambio de contraseña (no hace falta desactivar nada)
+- [x] Skin `unagrandeylibre` (Elastic con los colores de la web: rojo, amarillo, tinta y papel; claro y oscuro). En el login, el botón principal es "Iniciar sesión con unagrandeylibre.es" (login único). Fuente en `server/roundcube/skins/`, se compila y sube con `server/roundcube/build-skin.sh`
 - [x] Cambiar el email de recuperación (pide la contraseña; código de 6 cifras al nuevo; aviso al anterior con la dirección medio oculta)
 - [x] Borrar cuenta (D-009; `/cuenta/borrar`, con contraseña y casilla): buzones marcados como borrados (`status=deleted`, `active=0`, `deleted_at`), dispositivos y tokens revocados, correo borrado del disco al momento (`mail-provision delete-content`), usuario de la web borrado y aviso a su email. El nombre sigue ocupado 90 días; después lo libera el timer `mail-purge` (root, diario 05:15, `mail-provision purge-deleted`), que nunca libera un nombre si aún queda correo en disco
 - [ ] Copias de seguridad y borrado: restic guarda el correo de un buzón borrado hasta 6 meses (retención mensual). Decirlo en la política de privacidad o purgarlo de las copias

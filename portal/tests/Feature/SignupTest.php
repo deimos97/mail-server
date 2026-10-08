@@ -163,4 +163,25 @@ class SignupTest extends TestCase
     {
         $this->get('/alta/plan')->assertRedirect('/alta');
     }
+
+    public function test_only_one_free_mailbox_per_user(): void
+    {
+        $this->get('/alta?nombre=primero&plan=gratis');
+        $this->post('/alta/cuenta', $this->account());
+        $this->post('/alta/plan', ['plan' => 'gratis'])->assertRedirect('/alta/verificar');
+
+        // "Añadir otro buzón" desde Mi cuenta: el gratis sale bloqueado y explicado
+        $this->get('/cuenta')->assertSee('Añadir otro buzón');
+        $this->get('/alta?nuevo=1')->assertOk();
+        $this->post('/alta/nombre', ['nombre' => 'segundo', 'dominio' => 'unagrandeylibre.es'])->assertRedirect('/alta/plan');
+        $this->get('/alta/plan')->assertOk()
+            ->assertSee('Tu cuenta ya tiene su buzón gratis')
+            ->assertSee('Ya tienes tu buzón gratis')
+            ->assertDontSee('Crear mi correo');
+
+        // Y el servidor lo impide aunque se fuerce
+        $this->post('/alta/plan', ['plan' => 'gratis'])
+            ->assertSessionHasErrors(['plan' => 'Tu cuenta ya tiene su buzón gratis. Cada buzón extra va con un plan de pago.']);
+        $this->assertSame(1, Mailbox::count());
+    }
 }

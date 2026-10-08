@@ -81,6 +81,9 @@ class Signup
         if (! $plan->isVisible() || ! $plan->is_free) {
             throw new RuntimeException('Ese plan no está disponible ahora mismo.');
         }
+        if ($plan->is_free && $user->hasFreeMailbox()) {
+            throw new RuntimeException('Tu cuenta ya tiene su buzón gratis. Cada buzón extra va con un plan de pago.');
+        }
 
         $domain = $reservation->domain;
         $check = $this->availability->check($reservation->local_part, $domain, withSuggestions: false, reservationOwner: $token);

@@ -101,7 +101,7 @@ portal.name_quarantine             nombres liberados que aún no se pueden coger
 
 Notas:
 
-- **Varios buzones por usuario** desde el día 0 (`mailboxes.user_id`), aunque el 90 % tenga uno.
+- **Varios buzones por usuario** desde el día 0 (`mailboxes.user_id`), aunque el 90 % tenga uno. Solo uno gratis por usuario (D-014; `User::hasFreeMailbox()`, comprobado al provisionar).
 - **Varios dominios** desde el día 0: el alta siempre trabaja con `domain_id`; `domains.public_signup` decide cuáles se ofrecen.
 - `mailboxes.tier` existente se mantiene en sincronía con el plan (Rspamd u otros scripts pueden usarlo para límites por plan).
 - `password_query` de Dovecot debe pasar a filtrar por `status = 'active'` (o seguir con `active`, mantenido por la web). Decidir al implementar; es un cambio en el servidor de correo.

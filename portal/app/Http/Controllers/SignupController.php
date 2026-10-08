@@ -38,6 +38,11 @@ class SignupController extends Controller
     /** Entrada: /alta?nombre=&dominio=&plan= (desde la landing) o elegir nombre aquí. */
     public function start(Request $request): View|RedirectResponse
     {
+        // "Añadir otro buzón" desde Mi cuenta (D-014: los extra, con plan de pago)
+        if ($request->user() && $request->boolean('nuevo')) {
+            $request->session()->put('signup.extra', true);
+        }
+
         if ($redirect = $this->resume($request)) {
             return $redirect;
         }
@@ -135,6 +140,8 @@ class SignupController extends Controller
             'plans' => Plan::visible()->ordered()->with('offers')->get(),
             'surcharge' => NamePriceTier::forLength(mb_strlen($reservation->local_part)),
             'selected' => $request->session()->get('signup.plan'),
+            'hasFree' => $request->user()->hasFreeMailbox(),
+            'extra' => (bool) $request->session()->get('signup.extra'),
         ]);
     }
 
@@ -156,6 +163,9 @@ class SignupController extends Controller
         $analytics->signupCompleted($request, $mailbox, $plan);
 
         $request->session()->forget('signup.plan');
+        if ($request->session()->pull('signup.extra')) {
+            return redirect()->route('account')->with('status', "Listo: {$mailbox->email} ya está creado.");
+        }
 
         return redirect()->route($request->user()->hasVerifiedEmail() ? 'signup.done' : 'signup.verify');
     }
@@ -240,7 +250,7 @@ class SignupController extends Controller
         if (! $user) {
             return null;
         }
-        if ($user->mailboxes()->exists()) {
+        if ($user->mailboxes()->exists() && ! $request->session()->get('signup.extra')) {
             return redirect()->route($user->hasVerifiedEmail() ? 'signup.done' : 'signup.verify');
         }
         if ($except !== 'plan' && $this->signup->currentReservation($this->token($request))) {

@@ -8,15 +8,4 @@ Formato: `## D-NNN · Título` → contexto, opciones, recomendación, y una lí
 
 ---
 
-## D-014 · Varios buzones por usuario: cuántos y con qué plan
-
-Contexto: la Fase 3 trae "Añadir otro buzón". Hoy cada usuario tiene uno, gratis. Sin límite, una sola cuenta podría acaparar nombres gratis (y el límite de altas por IP no lo frena, porque ya está dentro).
-
-Opciones:
-- **A.** Un buzón gratis por usuario; los demás, solo con plan de pago (cada uno con su plan o todos bajo uno).
-- **B.** Hasta N gratis por usuario (p. ej. 3), configurable desde el admin.
-- **C.** Sin buzones extra hasta la Fase 4 (Stripe): ahora solo se prepara la pantalla.
-
-Recomendación: **A**, y mientras no haya pagos, **C** en la práctica (la pantalla existe pero dice "con los planes de pago, muy pronto"). Evita el acaparamiento y encaja con D-005 (los nombres valiosos se pagan).
-
-Decisión: _pendiente_
+*Ahora mismo no hay decisiones abiertas.*

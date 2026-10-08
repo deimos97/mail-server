@@ -60,6 +60,14 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->hasMany(Mailbox::class);
     }
 
+    /** D-014: un buzón gratis por usuario; los demás, con plan de pago. Los borrados no cuentan. */
+    public function hasFreeMailbox(): bool
+    {
+        return $this->mailboxes()->where('status', '!=', 'deleted')
+            ->whereIn('plan_id', Plan::where('is_free', true)->pluck('id'))
+            ->exists();
+    }
+
     /** Solo los administradores entran al panel /admin. is_admin no es asignable en masa. */
     public function canAccessPanel(Panel $panel): bool
     {
