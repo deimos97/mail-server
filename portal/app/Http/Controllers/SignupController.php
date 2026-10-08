@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\CaptureAttribution;
+use App\Models\Checkout;
 use App\Models\Domain;
 use App\Models\MailboxReservation;
 use App\Models\NamePriceTier;
@@ -10,6 +11,7 @@ use App\Models\Plan;
 use App\Models\User;
 use App\Services\EmailVerification;
 use App\Services\NameAvailability;
+use App\Services\PaidSignup;
 use App\Services\ServerAnalytics;
 use App\Services\Signup;
 use App\Services\Turnstile;
@@ -141,11 +143,12 @@ class SignupController extends Controller
             'surcharge' => NamePriceTier::forLength(mb_strlen($reservation->local_part)),
             'selected' => $request->session()->get('signup.plan'),
             'hasFree' => $request->user()->hasFreeMailbox(),
+            'paidReady' => app(\App\Services\StripeCatalog::class)->enabled(),
             'extra' => (bool) $request->session()->get('signup.extra'),
         ]);
     }
 
-    public function storePlan(Request $request, ServerAnalytics $analytics): RedirectResponse
+    public function storePlan(Request $request, ServerAnalytics $analytics, PaidSignup $paid): RedirectResponse
     {
         $data = $request->validate(['plan' => ['required', 'string', Rule::exists('plans', 'slug')]]);
         $reservation = $this->signup->currentReservation($this->token($request));
@@ -154,6 +157,22 @@ class SignupController extends Controller
         }
 
         $plan = Plan::where('slug', $data['plan'])->firstOrFail();
+
+        // De pago: buzón pendiente y a Stripe Checkout. Hay que pedir empezar ya (desistimiento de 14 días)
+        if (! $plan->is_free) {
+            $request->validate(['immediate_start' => ['accepted']], [
+                'immediate_start.accepted' => 'Marca la casilla para que el correo empiece a funcionar en cuanto pagues.',
+            ]);
+            try {
+                $url = $paid->start($request->user(), $reservation, $plan, $this->token($request));
+            } catch (RuntimeException $e) {
+                return back()->withErrors(['plan' => $e->getMessage()]);
+            }
+            $request->session()->forget('signup.plan');
+
+            return redirect()->away($url);
+        }
+
         try {
             $mailbox = $this->signup->provision($request->user(), $reservation, $plan, $this->token($request));
         } catch (RuntimeException $e) {
@@ -225,9 +244,46 @@ class SignupController extends Controller
     }
 
     /** ¡Listo! (la pantalla completa, con el webmail y el móvil, llega en el bloque E). */
+    /** Vuelta de Stripe Checkout: si ya está pagado, el buzón se activa aquí mismo (si no, espera al webhook). */
+    public function paymentReturn(Request $request, PaidSignup $paid, int $checkout): View|RedirectResponse
+    {
+        $checkout = Checkout::where('user_id', $request->user()->id)->findOrFail($checkout);
+
+        try {
+            $ready = $paid->confirm($checkout);
+        } catch (\Throwable $e) {
+            report($e);
+            $ready = false;
+        }
+
+        if (! $ready) {
+            return view('signup.payment-pending', ['checkout' => $checkout]);
+        }
+
+        if ($request->session()->pull('signup.extra')) {
+            return redirect()->route('account')->with('status', "Listo: {$checkout->mailbox->email} ya está creado.");
+        }
+
+        return redirect()->route('signup.done');
+    }
+
+    /** Ha vuelto sin pagar: se libera el buzón pendiente y puede elegir otro plan para el mismo nombre. */
+    public function paymentCancel(Request $request, PaidSignup $paid, int $checkout): RedirectResponse
+    {
+        $checkout = Checkout::where('user_id', $request->user()->id)->with('mailbox.domain')->findOrFail($checkout);
+        $mailbox = $checkout->mailbox;
+        $paid->release($checkout);
+
+        if ($mailbox && $mailbox->domain && $this->signup->reserve($mailbox->local_part, $mailbox->domain, $this->token($request), $request->user())) {
+            return redirect()->route('signup.plan')->with('status', 'No se ha hecho ningún cargo. Puedes elegir otro plan.');
+        }
+
+        return redirect()->route('signup')->with('status', 'No se ha hecho ningún cargo.');
+    }
+
     public function done(Request $request): View|RedirectResponse
     {
-        $mailbox = $request->user()->mailboxes()->first();
+        $mailbox = $request->user()->mailboxes()->where('status', 'active')->latest('id')->first();
         if (! $mailbox) {
             return redirect()->route('signup.plan');
         }
@@ -250,7 +306,7 @@ class SignupController extends Controller
         if (! $user) {
             return null;
         }
-        if ($user->mailboxes()->exists() && ! $request->session()->get('signup.extra')) {
+        if ($user->mailboxes()->whereIn('status', ['active', 'suspended'])->exists() && ! $request->session()->get('signup.extra')) {
             return redirect()->route($user->hasVerifiedEmail() ? 'signup.done' : 'signup.verify');
         }
         if ($except !== 'plan' && $this->signup->currentReservation($this->token($request))) {

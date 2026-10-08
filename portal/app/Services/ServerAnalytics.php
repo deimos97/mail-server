@@ -44,7 +44,20 @@ class ServerAnalytics
         ]);
     }
 
-    private function capture(Request $request, string $event, array $properties): void
+    /** Primer pago de un buzón (desde la vuelta del Checkout o desde el webhook). */
+    public function subscriptionStarted(\App\Models\Checkout $checkout): void
+    {
+        $request = request();
+        $this->capture($request, 'subscription_started', [
+            'plan' => $checkout->plan?->slug,
+            'price_cents' => $checkout->plan?->effectivePriceCents(),
+            'interval' => $checkout->plan?->interval,
+            'domain' => $checkout->mailbox?->domain?->name,
+        ], $checkout->user);
+    }
+
+    /** $user: el dueño cuando no es el de la petición (p. ej. desde un webhook de Stripe, sin sesión ni cookies). */
+    private function capture(Request $request, string $event, array $properties, ?\App\Models\User $user = null): void
     {
         if (! config('services.posthog.key')) {
             return;
@@ -53,7 +66,8 @@ class ServerAnalytics
         $consented = $request->cookie(self::CONSENT_COOKIE) === 'accepted';
         $browserId = $consented ? $this->browserDistinctId($request) : null;
         // La del usuario (guardada al crear la cuenta) o, si no hay, la de la sesión
-        $attribution = (array) ($request->user()?->attribution ?? $request->session()->get(CaptureAttribution::SESSION_KEY, []));
+        $attribution = (array) (($user ?? $request->user())?->attribution
+            ?? ($request->hasSession() ? $request->session()->get(CaptureAttribution::SESSION_KEY, []) : []));
 
         $keep = $consented ? [...self::CAMPAIGN, ...self::CLICK_IDS] : self::CAMPAIGN;
         $campaign = array_filter(array_intersect_key($attribution, array_flip($keep)));

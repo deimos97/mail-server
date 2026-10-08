@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             Route::group([], base_path('routes/mail-clients.php'));
+            Route::group([], base_path('routes/stripe.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

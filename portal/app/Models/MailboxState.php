@@ -18,7 +18,7 @@ class MailboxState extends Model
 
     protected function casts(): array
     {
-        return ['unpaid_since' => 'datetime', 'suspended_at' => 'datetime', 'inactivity_warned_at' => 'datetime'];
+        return ['unpaid_since' => 'datetime', 'suspended_at' => 'datetime', 'deletion_warned_at' => 'datetime', 'inactivity_warned_at' => 'datetime'];
     }
 
     public static function for(int $mailboxId): self

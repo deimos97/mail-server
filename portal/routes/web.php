@@ -38,6 +38,8 @@ Route::prefix('alta')->name('signup')->controller(SignupController::class)->grou
         Route::post('/verificar', 'storeVerify')->name('.verify.store');
         Route::post('/verificar/reenviar', 'resend')->name('.verify.resend');
         Route::get('/listo', 'done')->name('.done');
+        Route::get('/pago/{checkout}', 'paymentReturn')->name('.payment.return');
+        Route::get('/pago/{checkout}/cancelado', 'paymentCancel')->name('.payment.cancel');
     });
 });
 

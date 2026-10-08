@@ -10,7 +10,11 @@
 #                                      borra el correo de un buzón que la web ya ha marcado como borrado
 #                                      (status='deleted', active=0). La fila se queda: el nombre sigue
 #                                      ocupado durante la cuarentena (D-009)
-#   mail-provision purge-deleted       quita las filas de buzones borrados hace más de QUARANTINE_DAYS:
+#   mail-provision delete-pending <buzón>
+#                                      quita la fila de un buzón `pending` (pago no completado en el alta):
+#                                      nunca ha recibido correo, así que el nombre queda libre al momento
+#   mail-provision purge-deleted       borra el correo que quede de buzones ya borrados y quita las filas
+#                                      cuya cuarentena ha terminado (release_at, o deleted_at + QUARANTINE_DAYS):
 #                                      el nombre queda libre. Lo lanza el timer mail-purge (root)
 #   mail-provision process-exports     prepara las copias pedidas desde la web: por cada
 #                                      EXPORTS/requests/<id>.req (contiene la dirección) deja
@@ -62,10 +66,30 @@ case "${1:-}" in
         mysql mailserver -e "DELETE FROM quota_usage WHERE username = '$2'; DELETE FROM last_logins WHERE username = '$2'"
         logger -t mail-provision "contenido borrado: $2"
         ;;
+    delete-pending)
+        [ $# -eq 2 ] || die "uso: delete-pending <buzón>"
+        valid_mailbox "$2" || die "buzón no válido"
+        row=$(mysql -N -B mailserver -e "SELECT m.local_part, d.name FROM mailboxes m JOIN domains d ON d.id = m.domain_id
+                                         WHERE m.email = '$2' AND m.status = 'pending' AND m.active = 0")
+        [ -n "$row" ] || die "el buzón no está pendiente"
+        read -r local domain <<< "$row"
+        [ ! -e "$VMAIL/$domain/$local" ] || die "el buzón tiene correo: no se borra"
+        mysql mailserver -e "DELETE FROM mailboxes WHERE email = '$2' AND status = 'pending' AND active = 0"
+        logger -t mail-provision "pendiente liberado: $2"
+        ;;
     purge-deleted)
         [ $# -eq 1 ] || die "uso: purge-deleted"
+        # 1) Buzones que la web ha dado por borrados sin poder borrar su correo (ciclo de vida: impago,
+        #    inactividad; el scheduler de la web no puede usar sudo): se borra ahora
         mysql -N -B mailserver -e "SELECT m.email, m.local_part, d.name FROM mailboxes m JOIN domains d ON d.id = m.domain_id
-                                   WHERE m.status = 'deleted' AND m.active = 0 AND m.deleted_at < NOW() - INTERVAL $QUARANTINE_DAYS DAY" |
+                                   WHERE m.status = 'deleted' AND m.active = 0 AND m.tier <> 'system'" |
+        while read -r email local domain; do
+            [ -e "$VMAIL/$domain/$local" ] && "$0" delete-content "$email" || true
+        done
+        # 2) Nombres cuya cuarentena ha terminado
+        mysql -N -B mailserver -e "SELECT m.email, m.local_part, d.name FROM mailboxes m JOIN domains d ON d.id = m.domain_id
+                                   WHERE m.status = 'deleted' AND m.active = 0
+                                     AND COALESCE(m.release_at, m.deleted_at + INTERVAL $QUARANTINE_DAYS DAY) < NOW()" |
         while read -r email local domain; do
             # Por si el borrado del contenido falló en su día: nunca se libera un nombre con correo dentro
             if [ -e "$VMAIL/$domain/$local" ]; then

@@ -49,6 +49,7 @@ return new class extends Migration
             $table->unsignedBigInteger('mailbox_id')->primary();
             $table->timestamp('unpaid_since')->nullable();         // impago o cancelación que no cabe en gratis
             $table->timestamp('suspended_at')->nullable();
+            $table->timestamp('deletion_warned_at')->nullable();   // impago: aviso de que se borrará el contenido
             $table->timestamp('inactivity_warned_at')->nullable(); // gratis sin uso: aviso enviado
             $table->timestamps();
         });

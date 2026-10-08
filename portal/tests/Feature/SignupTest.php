@@ -136,12 +136,15 @@ class SignupTest extends TestCase
         $this->assertSame(0, Mailbox::count());
     }
 
-    public function test_paid_plans_are_not_available_yet(): void
+    public function test_paid_plans_need_stripe_and_consent(): void
     {
         $this->get('/alta?nombre=pepito');
         $this->post('/alta/cuenta', $this->account());
 
-        $this->post('/alta/plan', ['plan' => 'basico'])->assertSessionHasErrors(['plan' => 'Ese plan no está disponible ahora mismo.']);
+        $this->get('/alta/plan')->assertSee('Muy pronto');   // sin Stripe configurado
+        $this->post('/alta/plan', ['plan' => 'basico'])->assertSessionHasErrors('immediate_start');
+        $this->post('/alta/plan', ['plan' => 'basico', 'immediate_start' => '1'])
+            ->assertSessionHasErrors(['plan' => 'Ese plan no está disponible ahora mismo.']);
     }
 
     public function test_signed_link_verifies_from_another_device(): void

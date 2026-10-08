@@ -23,7 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // El webhook de Stripe lo registra routes/stripe.php con nuestro controlador (extiende el de Cashier)
+        \Laravel\Cashier\Cashier::ignoreRoutes();
     }
 
     /**

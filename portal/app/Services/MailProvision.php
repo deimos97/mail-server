@@ -31,6 +31,12 @@ class MailProvision
         $this->run(['delete-content', $email]);
     }
 
+    /** Quita un buzón `pending` que nunca llegó a pagarse (el nombre queda libre al momento). */
+    public function deletePending(string $email): void
+    {
+        $this->run(['delete-pending', $email]);
+    }
+
     private function run(array $arguments, ?string $input = null): string
     {
         if (! $this->enabled()) {
