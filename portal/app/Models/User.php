@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
+use Laravel\Cashier\Billable;
 use SensitiveParameter;
 
 #[Fillable(['name', 'email', 'password'])]
@@ -24,7 +25,7 @@ use SensitiveParameter;
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, OnPortalDatabase;
+    use Billable, HasFactory, Notifiable, OnPortalDatabase;
 
     protected $attributes = ['is_admin' => false];
 
@@ -52,6 +53,18 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         Mail::to($this->email)->queue(
             new ResetPasswordEmail(route('password.reset', ['token' => $token, 'email' => $this->email]))
         );
+    }
+
+    /** IVA del 21 % incluido en el precio en todas sus suscripciones (D-017). */
+    public function taxRates(): array
+    {
+        return [app(\App\Services\StripeCatalog::class)->taxRateId()];
+    }
+
+    /** Nombre y email del cliente en Stripe: el email de recuperación (es al que van los recibos). */
+    public function stripeEmail(): ?string
+    {
+        return $this->email;
     }
 
     /** Buzones del usuario (BD `mailserver`). */
