@@ -172,7 +172,7 @@ class StripeCatalog
             $stripe = $this->stripe();
             $params = [
                 'business_profile' => [
-                    'headline' => 'unagrandeylibre.es: tu tarjeta y tus facturas. Para cambiar de plan, ve a Mi cuenta.',
+                    'headline' => 'Tu tarjeta y tus facturas de unagrandeylibre.es',   // máx. 60 caracteres
                     'privacy_policy_url' => route('legal', 'privacidad'),
                     'terms_of_service_url' => route('legal', 'condiciones'),
                 ],
