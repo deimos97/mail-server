@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 2 — EN CURSO**. Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario).
+Estado: **Fase 2 — EN CURSO**. Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario). Fase 2 cerrada en lo técnico el 2026-10-08: lo que queda para lanzar es del usuario (calentamiento, textos legales, pruebas en dispositivos reales) salvo firmar el perfil de Apple; mientras tanto se puede avanzar la Fase 3.
 
 ## Decisiones tomadas
 
@@ -107,7 +107,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Pantalla "¡Listo!": "Abrir mi correo" (login único) y "Configura tu móvil" → "Configura un dispositivo" (`/cuenta/configurar/{buzón}`): se elige la app, se crea su contraseña y se muestran sus pasos
 - [x] Perfil `.mobileconfig` para iPhone/iPad/Mac con la contraseña dentro (cifrado en caché 10 min, una descarga, solo su dueño; validado con `plutil`)
 - [x] `autoconfig` (Thunderbird, apps de Android; en `autoconfig.` y en `/.well-known/autoconfig/`) y Autodiscover POX (Outlook), sin sesión; probados en producción
-- [ ] Registros SRV en Cloudflare (los añade el usuario): `_imaps._tcp` 0 1 993, `_submissions._tcp` 0 1 465 y `_submission._tcp` 0 1 587, todos hacia `mail.unagrandeylibre.es`
+- [x] Registros SRV en Cloudflare (comprobados el 2026-10-08): `_imaps._tcp` 0 1 993, `_submissions._tcp` 0 1 465 y `_submission._tcp` 0 1 587, todos hacia `mail.unagrandeylibre.es`
 - [ ] Probar el perfil en un iPhone real y el autoconfig en Thunderbird y Outlook reales
 - [ ] Firmar el perfil de Apple (hoy sale "No verificado"): necesita la clave del certificado, que solo puede leer root → script privilegiado o firma en el despliegue
 - [ ] (Opcional) Enviar la configuración a la ISPDB de Thunderbird, para que funcione aunque el dominio no tenga `autoconfig.`
