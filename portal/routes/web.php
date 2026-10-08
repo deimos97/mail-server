@@ -56,6 +56,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
     Route::post('/cuenta/dispositivos/{device}/revocar', [AccountController::class, 'revokeDevice'])->name('account.devices.revoke');
     Route::post('/cuenta/dispositivos/{device}/nombre', [AccountController::class, 'renameDevice'])->name('account.devices.rename');
+    Route::post('/cuenta/copia/{mailbox}', [AccountController::class, 'requestExport'])->middleware('throttle:5,60')->name('account.export');
+    Route::get('/cuenta/copia/{export}/descargar', [AccountController::class, 'downloadExport'])->name('account.export.download');
     Route::get('/cuenta/email', [RecoveryEmailController::class, 'edit'])->name('account.email');
     Route::post('/cuenta/email', [RecoveryEmailController::class, 'store'])->middleware('throttle:5,60')->name('account.email.store');
     Route::post('/cuenta/email/confirmar', [RecoveryEmailController::class, 'confirm'])->name('account.email.confirm');

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mail\AccountDeleted;
 use App\Models\AppPassword;
 use App\Models\Mailbox;
+use App\Models\MailboxExport;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -43,6 +44,11 @@ class AccountDeletion
             } catch (RuntimeException $e) {
                 Log::error("Borrar cuenta: no se pudo borrar el correo de {$mailbox->email}: {$e->getMessage()}");
             }
+        }
+
+        // Las copias descargables también son su correo
+        foreach (MailboxExport::where('user_id', $user->id)->where('status', 'ready')->get() as $export) {
+            app(MailboxExports::class)->discard($export);
         }
 
         Mail::to($user->email)->queue(new AccountDeleted($mailboxes->pluck('email')->all()));

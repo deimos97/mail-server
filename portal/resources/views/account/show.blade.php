@@ -95,6 +95,26 @@
 
                 <a href="{{ route('setup', $mailbox->id) }}" class="mt-4 block rounded-2xl px-5 py-3 text-center font-bold ring-2 ring-rojo/60 transition hover:bg-rojo/5">Configura un dispositivo</a>
             </div>
+
+            @php($export = $exports->get($mailbox->id))
+            <div class="border-t border-stone-200 p-4 text-sm sm:p-5">
+                <h2 class="font-bold">Copia de tu correo</h2>
+                @if ($export?->isDownloadable())
+                    <p class="mt-1 text-stone-500">Lista: {{ \App\Support\Bytes::format($export->size_bytes) }}, disponible hasta el {{ $export->expires_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}.</p>
+                    <a href="{{ route('account.export.download', $export->id) }}" class="mt-3 inline-block rounded-xl bg-rojo px-4 py-2 font-semibold text-white hover:bg-rojo-oscuro">Descargar la copia (.zip)</a>
+                @elseif ($export?->status === 'pending')
+                    <p class="mt-1 text-stone-500">La estamos preparando. Te avisaremos por email en cuanto esté lista.</p>
+                @else
+                    <p class="mt-1 text-stone-500">
+                        Todo tu correo en un .zip, con un archivo .mbox por carpeta, que puedes abrir con Thunderbird o Apple Mail.
+                        @if ($export?->status === 'failed') <span class="font-semibold text-rojo">La última vez no se pudo preparar; vuelve a intentarlo.</span> @endif
+                    </p>
+                    <form method="POST" action="{{ route('account.export', $mailbox->id) }}" class="mt-3">
+                        @csrf
+                        <button class="rounded-xl px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Descargar una copia</button>
+                    </form>
+                @endif
+            </div>
         </article>
     @endforeach
 

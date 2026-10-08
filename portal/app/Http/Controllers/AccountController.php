@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Jobs\KickMailboxConnections;
 use App\Models\AppPassword;
 use App\Models\Mailbox;
+use App\Models\MailboxExport;
+use App\Services\MailboxExports;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /** "Mi cuenta": sus buzones (plan, uso, estado), abrir el webmail y sus dispositivos. */
 class AccountController extends Controller
@@ -41,6 +45,30 @@ class AccountController extends Controller
         return redirect()->route('account')->with('status', 'Nombre cambiado.');
     }
 
+    /** "Descargar una copia": la prepara root en segundo plano y avisamos por email. */
+    public function requestExport(Request $request, int $mailbox, MailboxExports $exports): RedirectResponse
+    {
+        $mailbox = Mailbox::where('user_id', $request->user()->id)->where('status', '!=', 'deleted')->findOrFail($mailbox);
+
+        try {
+            $exports->request($request->user(), $mailbox);
+        } catch (RuntimeException $e) {
+            return redirect()->route('account')->with('status', $e->getMessage());
+        }
+
+        return redirect()->route('account')->with('status', 'Estamos preparando la copia. Te avisaremos por email en cuanto esté lista (suele tardar unos minutos).');
+    }
+
+    public function downloadExport(Request $request, int $export, MailboxExports $exports): BinaryFileResponse
+    {
+        $export = MailboxExport::where('user_id', $request->user()->id)->with('mailbox')->findOrFail($export);
+        abort_unless($export->isDownloadable() && is_file($exports->path($export)), 404);
+
+        $name = 'correo-'.$export->mailbox->local_part.'-'.$export->ready_at->timezone('Europe/Madrid')->format('Y-m-d').'.zip';
+
+        return response()->download($exports->path($export), $name, ['Cache-Control' => 'no-store']);
+    }
+
     /** "Abrir mi correo": recuerda qué buzón y manda a Roundcube, que arranca el login único. */
     public function openWebmail(Request $request, int $mailbox): RedirectResponse
     {
@@ -65,6 +93,7 @@ class AccountController extends Controller
             'mailboxes' => Mailbox::where('user_id', $request->user()->id)
                 ->with(['plan', 'domain', 'usage', 'lastLogins', 'appPasswords' => fn ($q) => $q->whereNull('revoked_at')->latest('id')])
                 ->orderBy('id')->get(),
+            'exports' => MailboxExport::where('user_id', $request->user()->id)->latest('id')->get()->unique('mailbox_id')->keyBy('mailbox_id'),
         ];
     }
 }

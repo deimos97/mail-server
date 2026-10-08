@@ -12,12 +12,17 @@
 #                                      ocupado durante la cuarentena (D-009)
 #   mail-provision purge-deleted       quita las filas de buzones borrados hace más de QUARANTINE_DAYS:
 #                                      el nombre queda libre. Lo lanza el timer mail-purge (root)
+#   mail-provision process-exports     prepara las copias pedidas desde la web: por cada
+#                                      EXPORTS/requests/<id>.req (contiene la dirección) deja
+#                                      EXPORTS/files/<id>.zip (un .mbox por carpeta) o <id>.failed.
+#                                      Lo lanza mail-export.path en cuanto aparece una petición
 set -euo pipefail
 
 CERT_DIR=/etc/letsencrypt/live/unagrandeylibre.es
 MAX_PROFILE_BYTES=65536
 QUARANTINE_DAYS=90
 VMAIL=/var/vmail
+EXPORTS=/var/www/portal/shared/exports
 
 die() { echo "mail-provision: $*" >&2; exit 2; }
 
@@ -68,6 +73,52 @@ case "${1:-}" in
             fi
             mysql mailserver -e "DELETE FROM mailboxes WHERE email = '$email' AND status = 'deleted'"
             logger -t mail-provision "nombre liberado: $email"
+        done
+        ;;
+    process-exports)
+        [ $# -eq 1 ] || die "uso: process-exports"
+        shopt -s nullglob
+        for req in "$EXPORTS"/requests/*.req; do
+            id=$(basename "$req" .req)
+            email=$(head -c 400 "$req" | tr -d '[:space:]')
+            rm -f "$req"
+            [[ "$id" =~ ^[0-9]{1,12}$ ]] || { logger -t mail-provision "export: id no válido"; continue; }
+            out="$EXPORTS/files/$id"
+            if ! valid_mailbox "$email" \
+               || [ "$(mysql -N -B mailserver -e "SELECT status FROM mailboxes WHERE email = '$email'")" = deleted ]; then
+                logger -t mail-provision "export $id: buzón no válido"; touch "$out.failed"; chown portal:portal "$out.failed"; continue
+            fi
+            # Espacio: el mbox y el zip pueden ocupar hasta dos veces el buzón; deja siempre 2 GB libres
+            local_part=${email%@*}; domain=${email#*@}
+            need=$(( $(du -sb "$VMAIL/$domain/$local_part" 2>/dev/null | cut -f1 || echo 0) * 2 + 2 * 1024 * 1024 * 1024 ))
+            free=$(( $(df --output=avail -B1 /var/tmp | tail -1) ))
+            if [ "$free" -lt "$need" ]; then
+                logger -t mail-provision "export $id: sin espacio"; touch "$out.failed"; chown portal:portal "$out.failed"; continue
+            fi
+            tmp=$(mktemp -d /var/tmp/mail-export.XXXXXX); chown vmail:vmail "$tmp"
+            if doveadm -o namespace/inbox/separator=/ backup -u "$email" "mbox:$tmp/mbox:LAYOUT=fs" 2>/dev/null \
+               && python3 - "$tmp/mbox" "$out.zip.part" <<'PY'
+import os, sys, zipfile
+src, dst = sys.argv[1], sys.argv[2]
+names = {'inbox': 'Bandeja de entrada', 'Sent': 'Enviados', 'Drafts': 'Borradores', 'Junk': 'Spam', 'Trash': 'Papelera', 'Archive': 'Archivo'}
+with zipfile.ZipFile(dst, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as z:
+    for root, dirs, files in os.walk(src):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for f in files:
+            if f.startswith('.'):
+                continue
+            rel = os.path.relpath(os.path.join(root, f), src)
+            name = names.get(rel, rel)
+            z.write(os.path.join(root, f), name + '.mbox')
+PY
+            then
+                mv "$out.zip.part" "$out.zip"; chown portal:portal "$out.zip"; chmod 640 "$out.zip"
+                logger -t mail-provision "export $id listo: $email"
+            else
+                rm -f "$out.zip.part"; touch "$out.failed"; chown portal:portal "$out.failed"
+                logger -t mail-provision "export $id falló: $email"
+            fi
+            rm -rf "$tmp"
         done
         ;;
     *)

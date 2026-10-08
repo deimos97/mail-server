@@ -15,6 +15,7 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 - [ ] Textos definitivos de la landing (hero, bloques, FAQ)
 
 **No bloquean:**
+- [ ] Decidir D-015 (copias de seguridad y cuentas borradas) en [DECISIONS.md](DECISIONS.md)
 - [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
 - [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar`
 - [ ] PostHog (grabaciones, mapas de calor, embudo) juntos, en la Fase 5
@@ -39,7 +40,7 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 | D-014 | **Un buzón gratis por usuario**; los demás, solo con plan de pago. Tiene que quedar claro en la pantalla de planes para que nadie se atasque sin saber por qué no puede elegir el gratis. | 2026-10-08 |
 | D-013 | **Actualizar ya el servidor a Ubuntu 24.04** (`do-release-upgrade` en el mismo servidor), con lo que llegan Roundcube 1.6 y PHP 8.3 de serie. Se hace antes de construir nada, para empezar sobre una base sólida. | 2026-10-05 |
 
-No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
+Hay decisiones abiertas en [DECISIONS.md](DECISIONS.md).
 
 ---
 
@@ -150,8 +151,8 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Skin `unagrandeylibre` (Elastic con los colores de la web: rojo, amarillo, tinta y papel; claro y oscuro). En el login, el botón principal es "Iniciar sesión con unagrandeylibre.es" (login único). Fuente en `server/roundcube/skins/`, se compila y sube con `server/roundcube/build-skin.sh`
 - [x] Cambiar el email de recuperación (pide la contraseña; código de 6 cifras al nuevo; aviso al anterior con la dirección medio oculta)
 - [x] Borrar cuenta (D-009; `/cuenta/borrar`, con contraseña y casilla): buzones marcados como borrados (`status=deleted`, `active=0`, `deleted_at`), dispositivos y tokens revocados, correo borrado del disco al momento (`mail-provision delete-content`), usuario de la web borrado y aviso a su email. El nombre sigue ocupado 90 días; después lo libera el timer `mail-purge` (root, diario 05:15, `mail-provision purge-deleted`), que nunca libera un nombre si aún queda correo en disco
-- [ ] Copias de seguridad y borrado: restic guarda el correo de un buzón borrado hasta 6 meses (retención mensual). Decirlo en la política de privacidad o purgarlo de las copias
-- [ ] Exportar el correo (descarga del buzón)
+- [ ] Copias de seguridad y borrado: restic guarda el correo de un buzón borrado hasta 6 meses (retención mensual) — **depende de D-015**
+- [x] Exportar el correo: "Descargar una copia" en Mi cuenta → la web deja `exports/requests/<id>.req` → `mail-export.path` (root) lanza `mail-provision process-exports` (`doveadm backup` a mbox + zip, un `.mbox` por carpeta con nombres en español) → `exports/files/<id>.zip`. El scheduler lo recoge cada minuto, avisa por email y la copia se puede descargar 48 h (solo su dueño). Una a la vez por buzón; también se borra al borrar la cuenta
 
 ## Fase 4 · Planes de pago (Stripe)
 

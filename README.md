@@ -96,6 +96,7 @@ La skin `unagrandeylibre` (fuente en `server/roundcube/skins/`) es Elastic con n
 La web no corre como root. Lo que lo necesita (firmar el perfil de Apple con la clave del certificado, `doveadm kick`, borrar el correo de un buzón) va por `/usr/local/sbin/mail-provision` (fuente: `server/bin/`), que `portal` puede ejecutar con `sudo` y nada más (`/etc/sudoers.d/portal-mail-provision`). El script valida todo lo que recibe y comprueba en la BD que el buzón exista (y, para borrar, que la web ya lo haya marcado como borrado; los de `tier=system` nunca).
 
 - El worker de colas (`portal-queue.service`) tiene `NoNewPrivileges=yes`, así que **no puede usar sudo**: estas llamadas se hacen en la propia petición (o con `dispatchAfterResponse`), no en la cola.
+- `doveadm backup` a mbox falla con "Mail locations must use the same hierarchy separator": hay que pasar `-o namespace/inbox/separator=/` (Maildir usa `.`, el mbox con `LAYOUT=fs`, `/`).
 - `openssl smime -verify` dice "unsuitable certificate purpose" con el perfil firmado: los certificados de Let's Encrypt no llevan el uso S/MIME. A iOS le da igual; para comprobarlo, `openssl cms -verify -purpose any`.
 
 ### Uso de buzones y último acceso (Dovecot → MariaDB)
@@ -180,6 +181,7 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 | Autoconfiguración de apps | `autoconfig.` y `autodiscover.unagrandeylibre.es` solo exponen `/mail/config-v1.1.xml` y `/autodiscover/autodiscover.xml` (sin distinguir mayúsculas), servidos por la web sin sesión (`routes/mail-clients.php`); el resto da 404. También `/.well-known/autoconfig/…` en el dominio principal. Datos de conexión en `portal/config/mail_clients.php`. |
 | Desplegar la web | `portal/deploy.sh` desde tu máquina, con todo ya subido a GitHub (el servidor clona el repo público). `portal/deploy.sh --rollback` vuelve a la release anterior. El script del servidor es `server/bin/portal-deploy` → `/usr/local/sbin/portal-deploy`. |
 | Borrado de buzones | La web marca el buzón como borrado y borra su correo (`mail-provision delete-content`); la fila se queda 90 días para que nadie coja el nombre. El timer `mail-purge.timer` (05:15) quita las filas caducadas (`journalctl -t mail-provision`). Nunca libera un nombre si queda correo en `/var/vmail`. |
+| Copias del correo (exportar) | La web deja la petición en `/var/www/portal/shared/exports/requests/`; `mail-export.path` (root) lanza `mail-provision process-exports`, que deja el zip en `exports/files/` (como `portal`). Necesita el doble del buzón libre en `/var/tmp` más 2 GB; si no, falla y la web lo dice. `journalctl -t mail-provision`. |
 | Logs útiles | `/var/log/mail.log`, `/var/log/roundcube/`, `journalctl -t mail-alert`, `fail2ban-client status <jail>`, `/var/www/portal/shared/storage/logs/` |
 
 ## TODO back-end

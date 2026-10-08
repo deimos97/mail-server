@@ -1,0 +1,9 @@
+[Unit]
+Description=Copias del correo pedidas desde la web (mail-provision process-exports)
+
+[Path]
+DirectoryNotEmpty=/var/www/portal/shared/exports/requests
+MakeDirectory=no
+
+[Install]
+WantedBy=paths.target

@@ -42,6 +42,7 @@ PATHS=(
   /usr/local/sbin/mail-alert /usr/local/sbin/mail-backup /usr/local/sbin/mail-monitor
   /etc/sudoers.d/portal-mail-provision
   /etc/systemd/system/mail-purge.service /etc/systemd/system/mail-purge.timer
+  /etc/systemd/system/mail-export.path /etc/systemd/system/mail-export.service
 )
 
 # Nunca se copian (secretos puros o basura).

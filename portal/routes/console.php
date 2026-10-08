@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\MailboxReservation;
+use App\Models\OauthCode;
+use App\Models\OauthToken;
+use App\Services\MailboxExports;
 use Illuminate\Support\Facades\Schedule;
 
 // Tareas programadas (portal-schedule.timer ejecuta schedule:run cada minuto)
@@ -14,6 +17,10 @@ Schedule::command('disposable:update')->weekly()->sundays()->at('04:15');
 
 // Login único: códigos y tokens caducados (los revocados se guardan 30 días por si hay que investigar algo)
 Schedule::call(function () {
-    \App\Models\OauthCode::where('expires_at', '<', now()->subDay())->delete();
-    \App\Models\OauthToken::where('refresh_expires_at', '<', now())->orWhere('revoked_at', '<', now()->subDays(30))->delete();
+    OauthCode::where('expires_at', '<', now()->subDay())->delete();
+    OauthToken::where('refresh_expires_at', '<', now())->orWhere('revoked_at', '<', now()->subDays(30))->delete();
 })->daily()->at('04:30')->name('limpiar-oauth');
+
+// Copias del correo: recoge las que ha preparado root, avisa por email y borra las caducadas
+Schedule::call(fn () => app(MailboxExports::class)->collect())
+    ->everyMinute()->name('copias-del-correo')->withoutOverlapping();
