@@ -15,7 +15,6 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 - [ ] Textos definitivos de la landing (hero, bloques, FAQ)
 
 **No bloquean:**
-- [ ] Decidir D-015 (copias de seguridad y cuentas borradas) en [DECISIONS.md](DECISIONS.md)
 - [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
 - [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar`
 - [ ] PostHog (grabaciones, mapas de calor, embudo) juntos, en la Fase 5
@@ -38,9 +37,10 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 | D-011 | En la web se entra con el **email de recuperación o con cualquiera de sus direcciones**. Para las apps de correo, **contraseñas de aplicación por dispositivo desde el principio**: el usuario solo recuerda la contraseña de la web. | 2026-10-05 |
 | D-012 | El correo transaccional sale por el **propio Postfix** con `noreply@`. | 2026-10-05 |
 | D-014 | **Un buzón gratis por usuario**; los demás, solo con plan de pago. Tiene que quedar claro en la pantalla de planes para que nadie se atasque sin saber por qué no puede elegir el gratis. | 2026-10-08 |
+| D-015 | Copias de seguridad: **retención de ~1 mes para todos** (7 diarias + 4 semanales; antes, también 6 mensuales). El correo de una cuenta borrada desaparece de las copias en ese plazo; la política de privacidad lo dirá. Se acepta tener menos margen para recuperar un problema que se descubra tarde. | 2026-10-08 |
 | D-013 | **Actualizar ya el servidor a Ubuntu 24.04** (`do-release-upgrade` en el mismo servidor), con lo que llegan Roundcube 1.6 y PHP 8.3 de serie. Se hace antes de construir nada, para empezar sobre una base sólida. | 2026-10-05 |
 
-Hay decisiones abiertas en [DECISIONS.md](DECISIONS.md).
+No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
 
 ---
 
@@ -151,7 +151,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Skin `unagrandeylibre` (Elastic con los colores de la web: rojo, amarillo, tinta y papel; claro y oscuro). En el login, el botón principal es "Iniciar sesión con unagrandeylibre.es" (login único). Fuente en `server/roundcube/skins/`, se compila y sube con `server/roundcube/build-skin.sh`
 - [x] Cambiar el email de recuperación (pide la contraseña; código de 6 cifras al nuevo; aviso al anterior con la dirección medio oculta)
 - [x] Borrar cuenta (D-009; `/cuenta/borrar`, con contraseña y casilla): buzones marcados como borrados (`status=deleted`, `active=0`, `deleted_at`), dispositivos y tokens revocados, correo borrado del disco al momento (`mail-provision delete-content`), usuario de la web borrado y aviso a su email. El nombre sigue ocupado 90 días; después lo libera el timer `mail-purge` (root, diario 05:15, `mail-provision purge-deleted`), que nunca libera un nombre si aún queda correo en disco
-- [ ] Copias de seguridad y borrado: restic guarda el correo de un buzón borrado hasta 6 meses (retención mensual) — **depende de D-015**
+- [x] Copias de seguridad y borrado (D-015): retención de restic reducida a 7 diarias + 4 semanales (~1 mes); el correo de una cuenta borrada sale de las copias en ese plazo
 - [x] Exportar el correo: "Descargar una copia" en Mi cuenta → la web deja `exports/requests/<id>.req` → `mail-export.path` (root) lanza `mail-provision process-exports` (`doveadm backup` a mbox + zip, un `.mbox` por carpeta con nombres en español) → `exports/files/<id>.zip`. El scheduler lo recoge cada minuto, avisa por email y la copia se puede descargar 48 h (solo su dueño). Una a la vez por buzón; también se borra al borrar la cuenta
 
 ## Fase 4 · Planes de pago (Stripe)
@@ -172,7 +172,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 
 ## Fase 5 · Optimización y crecimiento
 
-- [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría. **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies; tenerlos listos antes de abrir altas al público.
+- [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría. La privacidad debe decir que el correo borrado puede seguir hasta ~1 mes en copias de seguridad cifradas (D-015). **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies; tenerlos listos antes de abrir altas al público.
 - [ ] Conversiones a Meta (Conversions API) y Google Ads desde el servidor al completarse el alta, **solo con consentimiento** y con el click ID de `users.attribution`; se hace cuando existan las cuentas de anuncios
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político antes de lanzar campañas. Si hay problemas, valorar una comunicación más neutra
 - [ ] PostHog: activar Session replay y Heatmaps en el proyecto, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel). Pendiente de hacer juntos

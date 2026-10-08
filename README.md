@@ -170,7 +170,7 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 
 | Qué | Dónde |
 |---|---|
-| Backup | `/usr/local/sbin/mail-backup`, timer `mail-backup.timer` (diario a las 03:30). Repositorio restic en `/var/backups/mail-restic`, con retención de 7 diarios, 4 semanales y 6 mensuales. Incluye `/var/vmail`, volcados de las dos BD, claves DKIM y la configuración de los servicios. |
+| Backup | `/usr/local/sbin/mail-backup`, timer `mail-backup.timer` (diario a las 03:30). Repositorio restic en `/var/backups/mail-restic`, con retención de 7 diarios y 4 semanales (~1 mes, D-015: así el correo de las cuentas borradas sale de las copias en ese plazo). Incluye `/var/vmail`, volcados de las dos BD, claves DKIM y la configuración de los servicios. |
 | Contraseña de restic | `/etc/mail-backup/restic.pass` (también guardada fuera del servidor) |
 | Monitorización | `/usr/local/sbin/mail-monitor`, timer `mail-monitor.timer` (cada 10 min). Comprueba servicios, cola de Postfix (> 50), disco (> 85 %), caducidad de certificados por puerto (< 14 días), antigüedad del backup (> 26 h) y blacklists de la IP y del dominio. Los umbrales están al principio del script. |
 | Alertas | `/usr/local/sbin/mail-alert` → Telegram (`/etc/mail-monitor/telegram.env`). Avisa una vez por problema, lo repite cada 6 h mientras siga y avisa cuando se resuelve. |

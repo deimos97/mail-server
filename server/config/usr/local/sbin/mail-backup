@@ -22,7 +22,7 @@ restic backup --quiet --tag mail \
     /etc/nginx /etc/fail2ban /etc/iptables /etc/php \
     /var/www/portal/shared
 
-restic forget --quiet --tag mail --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+restic forget --quiet --tag mail --keep-daily 7 --keep-weekly 4 --prune   # ~1 mes (D-015)
 restic check --quiet
 
 date +%s > /var/lib/mail-backup/last-success
