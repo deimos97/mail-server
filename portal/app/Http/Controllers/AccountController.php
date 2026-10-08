@@ -6,7 +6,9 @@ use App\Jobs\KickMailboxConnections;
 use App\Models\AppPassword;
 use App\Models\Mailbox;
 use App\Models\MailboxExport;
+use App\Models\MailboxState;
 use App\Services\MailboxExports;
+use App\Services\StripeCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -69,6 +71,14 @@ class AccountController extends Controller
         return response()->download($exports->path($export), $name, ['Cache-Control' => 'no-store']);
     }
 
+    /** "Gestionar pago, facturas y plan": portal de cliente de Stripe. */
+    public function billingPortal(Request $request, StripeCatalog $catalog): RedirectResponse
+    {
+        abort_unless($catalog->enabled() && $request->user()->hasStripeId(), 404);
+
+        return $request->user()->redirectToBillingPortal(route('account'), ['configuration' => $catalog->portalConfigurationId()]);
+    }
+
     /** "Abrir mi correo": recuerda qué buzón y manda a Roundcube, que arranca el login único. */
     public function openWebmail(Request $request, int $mailbox): RedirectResponse
     {
@@ -90,9 +100,11 @@ class AccountController extends Controller
     {
         return [
             'user' => $request->user(),
-            'mailboxes' => Mailbox::where('user_id', $request->user()->id)
+            'mailboxes' => Mailbox::where('user_id', $request->user()->id)->whereIn('status', ['active', 'suspended'])
                 ->with(['plan', 'domain', 'usage', 'lastLogins', 'appPasswords' => fn ($q) => $q->whereNull('revoked_at')->latest('id')])
                 ->orderBy('id')->get(),
+            'subscriptions' => $request->user()->subscriptions()->get()->keyBy('type'),
+            'states' => MailboxState::whereIn('mailbox_id', Mailbox::where('user_id', $request->user()->id)->pluck('id'))->get()->keyBy('mailbox_id'),
             'exports' => MailboxExport::where('user_id', $request->user()->id)->latest('id')->get()->unique('mailbox_id')->keyBy('mailbox_id'),
         ];
     }

@@ -7,7 +7,6 @@ use App\Models\Checkout;
 use App\Models\Mailbox;
 use App\Models\MailboxState;
 use App\Models\Plan;
-use App\Models\User;
 use App\Services\StripeCatalog;
 use Database\Seeders\DemoPlansSeeder;
 use Database\Seeders\NameRulesSeeder;
@@ -17,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Tests\Concerns\UsesMailserverDatabase;
 use Tests\Support\FakeStripe;
 use Tests\TestCase;
@@ -54,7 +54,7 @@ class StripeWebhookTest extends TestCase
         return Mailbox::where('email', "{$name}@unagrandeylibre.es")->firstOrFail();
     }
 
-    private function event(string $type, array $object, ?string $id = null): \Illuminate\Testing\TestResponse
+    private function event(string $type, array $object, ?string $id = null): TestResponse
     {
         return $this->postJson('/stripe/webhook', ['id' => $id ?? 'evt_'.Str::random(10), 'type' => $type, 'data' => ['object' => $object]]);
     }
@@ -167,5 +167,23 @@ class StripeWebhookTest extends TestCase
         config(['cashier.webhook.secret' => 'whsec_prueba']);
         $this->postJson('/stripe/webhook', ['id' => 'evt_x', 'type' => 'checkout.session.completed', 'data' => ['object' => []]])
             ->assertForbidden();
+    }
+
+    public function test_account_shows_paid_plan_and_opens_the_billing_portal(): void
+    {
+        $mailbox = $this->activePaidMailbox();
+        $this->actingAs($mailbox->user);
+
+        $this->get('/cuenta')->assertOk()->assertSee('Gestionar pago, facturas y plan');
+        $this->post('/cuenta/facturacion')->assertRedirect();
+        $this->assertStringStartsWith('https://billing.stripe.test/', $this->post('/cuenta/facturacion')->headers->get('Location'));
+
+        $config = array_values($this->stripe->objects['billing_portal/configurations'])[0];
+        $this->assertSame('at_period_end', $config['features']['subscription_cancel']['mode']);
+        $this->assertTrue($config['features']['subscription_update']['enabled']);
+
+        // Impago: aviso con botón para pagar
+        $this->event('customer.subscription.updated', $this->subscription($mailbox, 'past_due'))->assertOk();
+        $this->get('/cuenta')->assertSee('No hemos podido cobrar el plan')->assertSee('Actualizar la tarjeta y pagar');
     }
 }

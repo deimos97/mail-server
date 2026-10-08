@@ -30,10 +30,22 @@ class AccountDeletion
         $mailboxes = Mailbox::where('user_id', $user->id)->where('status', '!=', 'deleted')->get();
 
         foreach ($mailboxes as $mailbox) {
-            $mailbox->update(['status' => 'deleted', 'active' => false, 'can_send' => false, 'deleted_at' => now()]);
+            $mailbox->update(['status' => 'deleted', 'active' => false, 'can_send' => false, 'deleted_at' => now(),
+                'release_at' => now()->addDays(config('lifecycle.voluntary_release_days'))]);
             AppPassword::where('mailbox_id', $mailbox->id)->whereNull('revoked_at')->update(['revoked_at' => now()]);
         }
         $this->oauth->revokeForUser($user);
+
+        // Planes de pago: se cancelan ya (sin más cargos). Las facturas se quedan en Stripe (contabilidad).
+        foreach ($user->subscriptions()->get() as $subscription) {
+            if (! $subscription->ended()) {
+                try {
+                    $subscription->cancelNow();
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        }
 
         foreach ($mailboxes as $mailbox) {
             if (! $this->provision->enabled()) {

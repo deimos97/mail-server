@@ -40,6 +40,7 @@ class Mailbox extends Model
             'quota_bytes' => 'integer',
             'created_at' => 'datetime',
             'deleted_at' => 'datetime',
+            'release_at' => 'datetime',
         ];
     }
 

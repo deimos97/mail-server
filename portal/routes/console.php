@@ -4,6 +4,7 @@ use App\Models\MailboxReservation;
 use App\Models\OauthCode;
 use App\Models\OauthToken;
 use App\Services\MailboxExports;
+use App\Services\MailboxLifecycle;
 use Illuminate\Support\Facades\Schedule;
 
 // Tareas programadas (portal-schedule.timer ejecuta schedule:run cada minuto)
@@ -24,3 +25,7 @@ Schedule::call(function () {
 // Copias del correo: recoge las que ha preparado root, avisa por email y borra las caducadas
 Schedule::call(fn () => app(MailboxExports::class)->collect())
     ->everyMinute()->name('copias-del-correo')->withoutOverlapping();
+
+// Ciclo de vida de los buzones (D-009): impagos, cancelaciones y gratis sin uso
+Schedule::call(fn () => app(MailboxLifecycle::class)->run())
+    ->dailyAt('04:45')->name('ciclo-de-vida')->withoutOverlapping();

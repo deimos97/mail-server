@@ -19,7 +19,7 @@ class FakeStripe implements ClientInterface
     public array $requests = [];
 
     private const PREFIX = ['products' => 'prod', 'prices' => 'price', 'coupons' => 'co', 'tax_rates' => 'txr',
-        'customers' => 'cus', 'checkout/sessions' => 'cs_test', 'billing_portal/sessions' => 'bps', 'subscriptions' => 'sub'];
+        'customers' => 'cus', 'checkout/sessions' => 'cs_test', 'billing_portal/sessions' => 'bps', 'billing_portal/configurations' => 'bpc', 'subscriptions' => 'sub'];
 
     public static function install(): self
     {
@@ -71,7 +71,9 @@ class FakeStripe implements ClientInterface
     private function decode(array $params): array
     {
         array_walk_recursive($params, function (&$v) {
-            $v = match ($v) { 'true' => true, 'false' => false, default => $v };
+            $v = match ($v) {
+                'true' => true, 'false' => false, default => $v
+            };
         });
 
         return $params;
@@ -79,7 +81,7 @@ class FakeStripe implements ClientInterface
 
     private function split(string $path): array
     {
-        foreach (['checkout/sessions', 'billing_portal/sessions'] as $nested) {
+        foreach (['checkout/sessions', 'billing_portal/sessions', 'billing_portal/configurations'] as $nested) {
             if (str_starts_with($path, $nested)) {
                 $rest = trim(substr($path, strlen($nested)), '/');
 

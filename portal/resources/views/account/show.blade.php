@@ -25,6 +25,41 @@
                 @endif
             </header>
 
+            @php($subscription = $subscriptions->get('mailbox:'.$mailbox->id))
+            @php($state = $states->get($mailbox->id))
+            @if ($state?->unpaid_since)
+                <div class="border-b border-stone-200 bg-rojo/5 p-4 text-sm sm:p-5">
+                    <p class="font-semibold text-rojo">
+                        @if ($mailbox->status === 'suspended')
+                            Suspendido por falta de pago: sigue recibiendo correo, pero no puedes entrar ni enviar.
+                        @else
+                            No hemos podido cobrar el plan.
+                        @endif
+                        Si no se paga, el {{ $state->unpaid_since->copy()->addDays(config('lifecycle.unpaid.delete_after_days'))->timezone('Europe/Madrid')->format('d/m/Y') }} borraremos este buzón.
+                    </p>
+                    @if ($subscription && ! $subscription->ended())
+                        <form method="POST" action="{{ route('account.billing') }}" class="mt-3">@csrf
+                            <button class="rounded-xl bg-rojo px-4 py-2 font-semibold text-white hover:bg-rojo-oscuro">Actualizar la tarjeta y pagar</button>
+                        </form>
+                    @else
+                        <a href="{{ route('signup', ['nuevo' => 1]) }}" class="mt-3 inline-block font-semibold text-rojo underline">Contratar un plan</a>
+                    @endif
+                </div>
+            @elseif ($subscription && ! $subscription->ended())
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 p-4 text-sm sm:p-5">
+                    <p class="text-stone-600">
+                        @if ($subscription->onGracePeriod())
+                            Plan cancelado: seguirá activo hasta el {{ $subscription->ends_at->timezone('Europe/Madrid')->format('d/m/Y') }}.
+                        @else
+                            Plan de pago activo. Se renueva solo; puedes cancelarlo cuando quieras.
+                        @endif
+                    </p>
+                    <form method="POST" action="{{ route('account.billing') }}">@csrf
+                        <button class="rounded-xl px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Gestionar pago, facturas y plan</button>
+                    </form>
+                </div>
+            @endif
+
             @php($percent = $mailbox->usedPercent())
             <div class="border-b border-stone-200 p-4 sm:p-5">
                 <div class="flex items-baseline justify-between gap-3 text-sm">

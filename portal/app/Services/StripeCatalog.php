@@ -34,6 +34,8 @@ class StripeCatalog
         Plan::where('is_free', false)->each(fn (Plan $plan) => $this->syncPlan($plan));
         NamePriceTier::query()->each(fn (NamePriceTier $tier) => $this->syncTier($tier));
         PlanOffer::with('plan')->each(fn (PlanOffer $offer) => $this->syncOffer($offer));
+        Cache::forget($this->portalCacheKey());
+        $this->portalConfigurationId(refresh: true);
     }
 
     public function syncPlan(Plan $plan): void
@@ -156,6 +158,64 @@ class StripeCatalog
                 'metadata' => ['key' => self::TAX_RATE_KEY],
             ])->id;
         });
+    }
+
+    /**
+     * Configuración del portal de cliente de Stripe (tarjeta, facturas, cancelar al final del periodo y
+     * cambiar entre planes). Se crea o actualiza con los planes de pago visibles.
+     * Ojo: Stripe no deja cambiar de plan desde el portal una suscripción con varios productos (plan +
+     * sobrecoste de nombre corto); esas solo pueden cancelarse.
+     */
+    public function portalConfigurationId(bool $refresh = false): string
+    {
+        $build = function () {
+            $stripe = $this->stripe();
+            $products = Plan::visible()->where('is_free', false)->whereNotNull('stripe_price_id')->ordered()->get()
+                ->map(fn (Plan $p) => ['product' => $p->stripe_product_id, 'prices' => [$p->stripe_price_id]])->values()->all();
+            $params = [
+                'business_profile' => [
+                    'headline' => 'unagrandeylibre.es: tu plan, tus facturas y tu tarjeta',
+                    'privacy_policy_url' => route('legal', 'privacidad'),
+                    'terms_of_service_url' => route('legal', 'condiciones'),
+                ],
+                'default_return_url' => route('account'),
+                'features' => [
+                    'customer_update' => ['enabled' => true, 'allowed_updates' => ['address', 'name', 'tax_id']],
+                    'invoice_history' => ['enabled' => true],
+                    'payment_method_update' => ['enabled' => true],
+                    'subscription_cancel' => ['enabled' => true, 'mode' => 'at_period_end',
+                        'cancellation_reason' => ['enabled' => true, 'options' => ['too_expensive', 'missing_features', 'switched_service', 'unused', 'other']]],
+                    'subscription_update' => $products
+                        ? ['enabled' => true, 'default_allowed_updates' => ['price'], 'proration_behavior' => 'create_prorations', 'products' => $products]
+                        : ['enabled' => false],
+                ],
+                'metadata' => ['key' => 'portal-unagrandeylibre'],
+            ];
+
+            foreach ($stripe->billingPortal->configurations->all(['limit' => 100])->autoPagingIterator() as $config) {
+                if (($config->metadata['key'] ?? null) === 'portal-unagrandeylibre') {
+                    $stripe->billingPortal->configurations->update($config->id, $params);
+
+                    return $config->id;
+                }
+            }
+
+            return $stripe->billingPortal->configurations->create($params)->id;
+        };
+
+        if ($refresh) {
+            $id = $build();
+            Cache::forever($this->portalCacheKey(), $id);
+
+            return $id;
+        }
+
+        return Cache::rememberForever($this->portalCacheKey(), $build);
+    }
+
+    private function portalCacheKey(): string
+    {
+        return 'stripe:portal-config:'.substr(md5((string) config('cashier.secret')), 0, 8);
     }
 
     private function stripe(): StripeClient
