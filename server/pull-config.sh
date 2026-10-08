@@ -23,7 +23,7 @@ trap 'rm -rf "$OUT"' EXIT
 PATHS=(
   /etc/postfix/main.cf /etc/postfix/master.cf /etc/postfix/mysql
   /etc/dovecot
-  /etc/rspamd/local.d /etc/rspamd/override.d
+  /etc/rspamd/local.d /etc/rspamd/override.d /etc/rspamd/rspamd.local.lua
   /etc/roundcube/config.inc.php
   /etc/nginx/nginx.conf /etc/nginx/sites-available /etc/nginx/conf.d /etc/nginx/snippets
   /etc/fail2ban/jail.local /etc/fail2ban/jail.d /etc/fail2ban/filter.d

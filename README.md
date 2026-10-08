@@ -107,6 +107,13 @@ La web no corre como root. Lo que lo necesita (firmar el perfil de Apple con la 
 - Para saber qué dispositivo entra, la passdb de contraseñas de dispositivo devuelve `a.id AS userdb_app_password_id` y la clave es `last-login/%u/%{userdb:app_password_id:0}` (0 = sin contraseña de dispositivo, o sea, el webmail con login único).
 - El socket del dict tiene que ser del usuario `vmail` (`service dict { unix_listener dict { user = vmail } }`); si no, los procesos IMAP no pueden escribir.
 
+### Pagos con Stripe (Fase 4)
+
+- El webhook es `https://unagrandeylibre.es/stripe/webhook`, con los eventos de `portal/config/cashier.php`. Si se añade un evento, hay que añadirlo también al endpoint en Stripe (Developers → Webhooks). El secreto (`STRIPE_WEBHOOK_SECRET`) es distinto en sandbox y en live.
+- Tras cambiar de claves (p. ej. de sandbox a live): `php artisan stripe:sync` crea en la cuenta nueva los productos, precios, cupones, el IVA y la configuración del portal de cliente. Los IDs viejos de la BD dejan de valer: limpiar antes `stripe_*` de `plans`, `plan_offers` y `name_price_tiers`.
+- El scheduler y el worker corren con `NoNewPrivileges` (no pueden usar sudo): el ciclo de vida solo **marca** los buzones como borrados y el correo lo borra `mail-purge` (root) esa noche.
+- Rspamd lee de la web las listas de buzones de pago (`/etc/rspamd/rspamd.local.lua`, mapas `ugl_*`). Si la web no responde, se queda con la última lista que bajó; si nunca la bajó, todos van al cubo del plan gratis. Si un tier no tiene cubo en `ratelimit.conf`, también va al gratis.
+
 ### Correo de la web (`noreply@`)
 
 La web envía como `noreply@unagrandeylibre.es` por el 587 (la contraseña solo está en `/var/www/portal/shared/.env`, `MAIL_PASSWORD`). Está en `whitelisted_user` de `/etc/rspamd/local.d/ratelimit.conf` para que el límite de 40/h por usuario no frene las verificaciones. Los rebotes llegan a ese buzón.
@@ -182,6 +189,8 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 | Desplegar la web | `portal/deploy.sh` desde tu máquina, con todo ya subido a GitHub (el servidor clona el repo público). `portal/deploy.sh --rollback` vuelve a la release anterior. El script del servidor es `server/bin/portal-deploy` → `/usr/local/sbin/portal-deploy`. |
 | Borrado de buzones | La web marca el buzón como borrado y borra su correo (`mail-provision delete-content`); la fila se queda 90 días para que nadie coja el nombre. El timer `mail-purge.timer` (05:15) quita las filas caducadas (`journalctl -t mail-provision`). Nunca libera un nombre si queda correo en `/var/vmail`. |
 | Copias del correo (exportar) | La web deja la petición en `/var/www/portal/shared/exports/requests/`; `mail-export.path` (root) lanza `mail-provision process-exports`, que deja el zip en `exports/files/` (como `portal`). Necesita el doble del buzón libre en `/var/tmp` más 2 GB; si no, falla y la web lo dice. `journalctl -t mail-provision`. |
+| Pagos (Stripe) | Cuenta "Servicio Correo Minorista" (sandbox por ahora). Webhook `/stripe/webhook`; eventos procesados en `portal.stripe_events`; fallos en `storage/logs/laravel.log`. Catálogo: `php artisan stripe:sync`. Ciclo de vida diario a las 04:45 (`ciclo-de-vida` del scheduler). |
+| Límites de envío por plan | `/etc/rspamd/local.d/ratelimit.conf` + `/etc/rspamd/rspamd.local.lua` (mapas desde `https://unagrandeylibre.es/internal/rspamd/{paid,basic,pro}.map`, solo desde el servidor). |
 | Logs útiles | `/var/log/mail.log`, `/var/log/roundcube/`, `journalctl -t mail-alert`, `fail2ban-client status <jail>`, `/var/www/portal/shared/storage/logs/` |
 
 ## TODO back-end

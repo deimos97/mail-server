@@ -83,6 +83,7 @@ CREATE TABLE `mailboxes` (
   `status` enum('pending','active','suspended','deleted') NOT NULL DEFAULT 'active',
   `can_send` tinyint(1) NOT NULL DEFAULT 1,
   `deleted_at` timestamp NULL DEFAULT NULL,
+  `release_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),

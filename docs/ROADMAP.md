@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 3 — EN CURSO** (desde el 2026-10-08). Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario). Fase 2 cerrada en lo técnico el 2026-10-08: lo que queda para lanzar es del usuario (ver "En manos del usuario"); mientras tanto se avanza la Fase 3.
+Estado: **Fase 4 — EN CURSO** (desde el 2026-10-08; la Fase 3 quedó cerrada ese mismo día). Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario). Fase 2 cerrada en lo técnico el 2026-10-08: lo que queda para lanzar es del usuario (ver "En manos del usuario"); mientras tanto se avanza la Fase 3.
 
 ## En manos del usuario
 
@@ -15,6 +15,8 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 - [ ] Textos definitivos de la landing (hero, bloques, FAQ)
 
 **No bloquean:**
+- [ ] Probar el alta de pago en el sandbox de Stripe: `/alta?acceso=<token>` → nombre → plan Básico → casilla → pagar con la tarjeta de prueba `4242 4242 4242 4242` (cualquier fecha futura y CVC) → debe volver a "¡Listo!" con el buzón activo. Probar también cancelar en Checkout, y "Gestionar pago, facturas y plan" en Mi cuenta
+- [ ] En Stripe (sandbox y luego live): activar los recibos por email (Settings → Customer emails) y la marca (logo y `#AA151B`)
 - [ ] Activar la cuenta de Stripe "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte y marca (logo y `#AA151B`). Bloquea cobrar de verdad, no la Fase 4 en sandbox
 - [ ] Preguntar a la gestoría por la serie de facturas propia de esta cuenta de Stripe (y Verifactu)
 - [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
@@ -41,6 +43,7 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 | D-014 | **Un buzón gratis por usuario**; los demás, solo con plan de pago. Tiene que quedar claro en la pantalla de planes para que nadie se atasque sin saber por qué no puede elegir el gratis. | 2026-10-08 |
 | D-015 | Copias de seguridad: **retención de ~1 mes para todos** (7 diarias + 4 semanales; antes, también 6 mensuales). El correo de una cuenta borrada desaparece de las copias en ese plazo; la política de privacidad lo dirá. Se acepta tener menos margen para recuperar un problema que se descubra tarde. | 2026-10-08 |
 | D-016 | Stripe: **cuenta propia "Servicio Correo Minorista"** dentro del mismo login y de la misma empresa (Tibletech), separada de la de tibletech.com: claves, clientes, productos, webhooks y marca pública propios (`unagrandeylibre.es`). Tibletech es quien vende (no Managed Payments / merchant of record de Stripe). Las cifras se pueden juntar luego con una organización de Stripe. Pendiente del usuario: activar la cuenta (datos fiscales) antes de cobrar de verdad. | 2026-10-08 |
+| D-017 | IVA: **21 % fijo, incluido en el precio** (un Tax Rate de Stripe `inclusive`), sin Stripe Tax. Si algún día se superan 10.000 €/año de ventas a consumidores de otros países de la UE, pasar a Stripe Tax (OSS). | 2026-10-08 |
 | D-013 | **Actualizar ya el servidor a Ubuntu 24.04** (`do-release-upgrade` en el mismo servidor), con lo que llegan Roundcube 1.6 y PHP 8.3 de serie. Se hace antes de construir nada, para empezar sobre una base sólida. | 2026-10-05 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
@@ -159,24 +162,29 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 
 ## Fase 4 · Planes de pago (Stripe)
 
-- [ ] Sincronización planes/ofertas ↔ Stripe desde el admin (Product, Price, Coupon); cada cambio de precio crea un `Price` nuevo y los clientes existentes conservan el suyo
-- [ ] Sobrecoste de nombre corto como línea periódica extra en la suscripción (solo planes de pago)
-- [ ] Stripe Checkout en el onboarding y al cambiar de plan; desistimiento de 14 días
-- [ ] Crear el webhook con `php artisan cashier:webhook` (URL `https://unagrandeylibre.es/stripe/webhook` y eventos de Cashier) y pegar el `whsec_` en `STRIPE_WEBHOOK_SECRET`; no crearlo a mano antes de tener Cashier desplegado
-- [ ] Webhooks idempotentes (`checkout.session.completed`, `invoice.*`, `customer.subscription.*`)
-- [ ] Stripe Customer Portal: tarjetas, facturas, cancelación
-- [ ] Ciclo de vida según D-009: impago → aviso → suspensión → borrado → cuarentena del nombre → nombre libre (timer que ejecuta `mail-provision`)
-- [ ] Política de inactividad de cuentas gratis (según D-009)
-- [ ] Límites de envío por plan en Rspamd según `tier` (hasta que haya planes de pago, el límite global de 40/h por usuario es el del plan gratis)
-- [ ] Subir/bajar de plan ajusta cuota, `tier` y límites al momento
-- [ ] IVA (Stripe Tax o fijo) y facturas; revisar Verifactu con la gestoría
-- [ ] Evento de servidor `subscription_started` + conversión de pago a las plataformas de anuncios
-- [ ] Monitorizar webhooks fallidos
+Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Para cobrar de verdad: activar la cuenta (usuario), cambiar a las claves `live`, volver a ejecutar `php artisan stripe:sync` y crear el webhook de producción.
+
+- [x] Laravel Cashier 16 (`User` es `Billable`; una suscripción por buzón: `type = mailbox:{id}`). Moneda EUR, locale `es_ES`
+- [x] IVA del 21 % incluido (D-017): un Tax Rate `inclusive` que se crea solo y se aplica a todas las suscripciones (`User::taxRates()`)
+- [x] Catálogo en Stripe desde el admin (`App\Services\StripeCatalog`): al guardar un plan, tramo u oferta se sincroniza (si Stripe falla, se guarda igual y avisa). Plan de pago → Product + Price `inclusive`; cambiar el precio crea un Price nuevo, archiva el viejo y los suscriptores lo conservan (D-007; tabla `plan_prices` para saber de qué plan es cada Price). Oferta → Coupon limitado al producto (si cambian sus condiciones, otro Coupon). Todo de golpe: `php artisan stripe:sync`
+- [x] Sobrecoste de nombre corto como línea extra de la suscripción (Price mensual y anual por tramo; solo planes de pago)
+- [x] Alta de pago con Stripe Checkout (`App\Services\PaidSignup`): buzón `pending` (ocupa el nombre; ni recibe ni entra) → Checkout (plan + sobrecoste + cupón, 30 min, en español) → al pagar, activo y con envío (D-006). Vuelve antes que el webhook: se confirma consultando la sesión. Cancelar o caducar: el buzón pendiente desaparece (`mail-provision delete-pending`) y el nombre se vuelve a reservar
+- [x] Desistimiento: casilla obligatoria "quiero que empiece ya" (fecha guardada en `checkouts.immediate_start_consent_at`); las devoluciones, a mano desde Stripe
+- [x] Webhook `POST /stripe/webhook` (firmado; creado en el sandbox con los eventos de `config/cashier.php` y el secreto escrito directamente en el `.env` del servidor) e idempotente (`stripe_events`)
+- [x] Plan, impagos y fin de suscripción por webhook (`App\Services\MailboxBilling`): cambiar de plan ajusta plan, cuota y `tier` al momento; impago → aviso y `unpaid_since`; pagar → todo normal (y reactiva si estaba suspendido); fin del plan → a gratis si se puede (no tiene ya uno, cabe en la cuota y no es nombre corto); si no, camino del impago
+- [x] Portal de cliente de Stripe ("Gestionar pago, facturas y plan" en Mi cuenta): tarjeta, facturas, cancelar al final del periodo y cambiar de plan. Configuración creada por `stripe:sync`. **Limitación de Stripe:** una suscripción con sobrecoste de nombre corto (dos productos) no puede cambiar de plan desde el portal, solo cancelarse
+- [x] Ciclo de vida según D-009 (`App\Services\MailboxLifecycle`, cada día a las 04:45; plazos en `config/lifecycle.php`): impago → suspensión día 10 → aviso día 23 → borrado día 30 → nombre libre día 90 (`mailboxes.release_at`). El correo lo borra root esa misma noche (`mail-purge`), porque el scheduler no puede usar sudo
+- [x] Política de inactividad de las cuentas gratis (D-009): 6 meses sin entrar → aviso → 30 días → borrado → nombre libre 60 días después. Cuenta como uso cualquier acceso IMAP o al webmail (`last_logins`)
+- [x] Límites de envío por plan en Rspamd: la web sirve la lista de buzones de cada `tier` de pago (`/internal/rspamd/{tier}.map`, solo desde el servidor) y `ratelimit.conf` les aplica su cubo (gratis 20/h, Básico 100/h, Pro 300/h). Probado: el envío sigue funcionando
+- [x] Evento de servidor `subscription_started` a PostHog (las conversiones a las plataformas de anuncios, en la Fase 5)
+- [ ] Probar el alta de pago de punta a punta en el sandbox con una tarjeta de prueba (la hace el usuario: ver "En manos del usuario")
+- [ ] Monitorizar webhooks fallidos: Stripe avisa por email al dueño de la cuenta si el endpoint falla varios días; falta un chequeo propio en `mail-monitor`
+- [ ] Facturas: revisar con la gestoría si valen las de Stripe y Verifactu (usuario)
 
 ## Fase 5 · Optimización y crecimiento
 
 - [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría. La privacidad debe decir que el correo borrado puede seguir hasta ~1 mes en copias de seguridad cifradas (D-015). **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies; tenerlos listos antes de abrir altas al público.
-- [ ] Conversiones a Meta (Conversions API) y Google Ads desde el servidor al completarse el alta, **solo con consentimiento** y con el click ID de `users.attribution`; se hace cuando existan las cuentas de anuncios
+- [ ] Conversiones a Meta (Conversions API) y Google Ads desde el servidor al completarse el alta y el primer pago (`subscription_started`), **solo con consentimiento** y con el click ID de `users.attribution`; se hace cuando existan las cuentas de anuncios
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político antes de lanzar campañas. Si hay problemas, valorar una comunicación más neutra
 - [ ] PostHog: activar Session replay y Heatmaps en el proyecto, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel). Pendiente de hacer juntos
 - [ ] Dashboard de embudo en PostHog; revisar mapas de calor y grabaciones de las primeras campañas

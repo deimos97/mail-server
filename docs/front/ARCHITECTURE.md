@@ -139,6 +139,11 @@ El bloqueo de envío se aplica en Postfix (mapa MySQL en `smtpd_sender_restricti
 
 Webhooks a manejar: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`. Idempotentes (guardar `event.id`).
 
+### Implementación (Fase 4)
+
+- `StripeCatalog` (catálogo e IVA), `PaidSignup` (alta de pago), `StripeWebhookController` + `MailboxBilling` (webhooks), `MailboxLifecycle` (ciclo de vida diario). Tablas propias: `plan_prices`, `checkouts`, `stripe_events`, `mailbox_states`; en `mailserver.mailboxes`, `deleted_at` y `release_at`.
+- Tests sin red: `tests/Support/FakeStripe.php` es un Stripe en memoria que se engancha por debajo del SDK.
+
 ### Ciclo de vida de un buzón
 
 `pago fallido → Stripe reintenta → aviso por email → suspendido → borrado del contenido (con aviso previo para exportar) → cuarentena del nombre → nombre libre`. Plazos (configurables, en `config/lifecycle.php` o en el admin): impago → suspensión día 10 (sigue recibiendo) → borrado día 30 → nombre libre día 90. Cancelación → gratis al fin del periodo si cabe en la cuota. Gratis inactiva 6 meses → aviso → +30 días suspensión y borrado → +60 días nombre libre. Borrado voluntario → inmediato, nombre libre a 90 días. Lo ejecuta un timer diario que llama a `mail-provision`. Regla fija: **nunca** se entrega un nombre a otra persona sin haber borrado antes todo el contenido y pasado la cuarentena.
