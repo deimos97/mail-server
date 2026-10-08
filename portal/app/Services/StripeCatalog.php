@@ -161,20 +161,18 @@ class StripeCatalog
     }
 
     /**
-     * Configuración del portal de cliente de Stripe (tarjeta, facturas, cancelar al final del periodo y
-     * cambiar entre planes). Se crea o actualiza con los planes de pago visibles.
-     * Ojo: Stripe no deja cambiar de plan desde el portal una suscripción con varios productos (plan +
-     * sobrecoste de nombre corto); esas solo pueden cancelarse.
+     * Configuración del portal de cliente de Stripe: tarjeta, facturas y cancelar al final del periodo.
+     * Cambiar de plan **no**: se hace en Mi cuenta → "Cambiar de plan" (App\Services\PlanChange), que
+     * también sabe del sobrecoste de nombre corto. Si alguien cambiara de plan en Stripe por otra vía, el
+     * webhook customer.subscription.updated lo recoge igual (MailboxBilling::sync).
      */
     public function portalConfigurationId(bool $refresh = false): string
     {
         $build = function () {
             $stripe = $this->stripe();
-            $products = Plan::visible()->where('is_free', false)->whereNotNull('stripe_price_id')->ordered()->get()
-                ->map(fn (Plan $p) => ['product' => $p->stripe_product_id, 'prices' => [$p->stripe_price_id]])->values()->all();
             $params = [
                 'business_profile' => [
-                    'headline' => 'unagrandeylibre.es: tu plan, tus facturas y tu tarjeta',
+                    'headline' => 'unagrandeylibre.es: tu tarjeta y tus facturas. Para cambiar de plan, ve a Mi cuenta.',
                     'privacy_policy_url' => route('legal', 'privacidad'),
                     'terms_of_service_url' => route('legal', 'condiciones'),
                 ],
@@ -185,9 +183,7 @@ class StripeCatalog
                     'payment_method_update' => ['enabled' => true],
                     'subscription_cancel' => ['enabled' => true, 'mode' => 'at_period_end',
                         'cancellation_reason' => ['enabled' => true, 'options' => ['too_expensive', 'missing_features', 'switched_service', 'unused', 'other']]],
-                    'subscription_update' => $products
-                        ? ['enabled' => true, 'default_allowed_updates' => ['price'], 'proration_behavior' => 'create_prorations', 'products' => $products]
-                        : ['enabled' => false],
+                    'subscription_update' => ['enabled' => false],
                 ],
                 'metadata' => ['key' => 'portal-unagrandeylibre'],
             ];

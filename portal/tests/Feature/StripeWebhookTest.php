@@ -174,13 +174,13 @@ class StripeWebhookTest extends TestCase
         $mailbox = $this->activePaidMailbox();
         $this->actingAs($mailbox->user);
 
-        $this->get('/cuenta')->assertOk()->assertSee('Gestionar pago, facturas y plan');
+        $this->get('/cuenta')->assertOk()->assertSee('Gestionar pago y facturas');
         $this->post('/cuenta/facturacion')->assertRedirect();
         $this->assertStringStartsWith('https://billing.stripe.test/', $this->post('/cuenta/facturacion')->headers->get('Location'));
 
         $config = array_values($this->stripe->objects['billing_portal/configurations'])[0];
         $this->assertSame('at_period_end', $config['features']['subscription_cancel']['mode']);
-        $this->assertTrue($config['features']['subscription_update']['enabled']);
+        $this->assertFalse($config['features']['subscription_update']['enabled']);   // los cambios de plan, solo en Mi cuenta
 
         // Impago: aviso con botón para pagar
         $this->event('customer.subscription.updated', $this->subscription($mailbox, 'past_due'))->assertOk();

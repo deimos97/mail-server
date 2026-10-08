@@ -9,6 +9,7 @@ use App\Http\Controllers\HelpController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\PlaceholderController;
+use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RecoveryEmailController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SignupController;
@@ -60,6 +61,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/cuenta/dispositivos/{device}/nombre', [AccountController::class, 'renameDevice'])->name('account.devices.rename');
     Route::post('/cuenta/copia/{mailbox}', [AccountController::class, 'requestExport'])->middleware('throttle:5,60')->name('account.export');
     Route::post('/cuenta/facturacion', [AccountController::class, 'billingPortal'])->name('account.billing');
+    Route::get('/cuenta/plan/pago/{checkout}', [PlanController::class, 'paymentReturn'])->whereNumber('checkout')->name('account.plan.return');
+    Route::get('/cuenta/plan/{mailbox}', [PlanController::class, 'edit'])->whereNumber('mailbox')->name('account.plan');
+    Route::post('/cuenta/plan/{mailbox}', [PlanController::class, 'update'])->whereNumber('mailbox')->middleware('throttle:10,60')->name('account.plan.store');
+    Route::post('/cuenta/plan/{mailbox}/deshacer', [PlanController::class, 'resume'])->whereNumber('mailbox')->name('account.plan.resume');
     Route::get('/cuenta/copia/{export}/descargar', [AccountController::class, 'downloadExport'])->name('account.export.download');
     Route::get('/cuenta/email', [RecoveryEmailController::class, 'edit'])->name('account.email');
     Route::post('/cuenta/email', [RecoveryEmailController::class, 'store'])->middleware('throttle:5,60')->name('account.email.store');

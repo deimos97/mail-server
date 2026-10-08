@@ -12,10 +12,7 @@
     @foreach ($mailboxes as $mailbox)
         <article class="mt-6 rounded-2xl ring-1 ring-stone-200">
             <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 p-4 sm:p-5">
-                <div class="min-w-0">
-                    <p class="break-all text-lg font-bold" data-ph-mask>{{ $mailbox->email }}</p>
-                    <p class="text-sm text-stone-500">Plan {{ $mailbox->plan?->name ?? '—' }}</p>
-                </div>
+                <p class="min-w-0 break-all text-lg font-bold" data-ph-mask>{{ $mailbox->email }}</p>
                 @if ($mailbox->status !== 'active')
                     <span class="rounded-full bg-rojo/10 px-3 py-1 text-sm font-semibold text-rojo">Suspendido</span>
                 @elseif ($mailbox->can_send)
@@ -26,6 +23,7 @@
             </header>
 
             @php($subscription = $subscriptions->get('mailbox:'.$mailbox->id))
+            @php($subscription = $subscription && ! $subscription->ended() ? $subscription : null)
             @php($state = $states->get($mailbox->id))
             @if ($state?->unpaid_since)
                 <div class="border-b border-stone-200 bg-rojo/5 p-4 text-sm sm:p-5">
@@ -37,28 +35,38 @@
                         @endif
                         Si no se paga, el {{ $state->unpaid_since->copy()->addDays(config('lifecycle.unpaid.delete_after_days'))->timezone('Europe/Madrid')->format('d/m/Y') }} borraremos este buzón.
                     </p>
-                    @if ($subscription && ! $subscription->ended())
+                    @if ($subscription)
                         <form method="POST" action="{{ route('account.billing') }}" class="mt-3">@csrf
                             <button class="rounded-xl bg-rojo px-4 py-2 font-semibold text-white hover:bg-rojo-oscuro">Actualizar la tarjeta y pagar</button>
                         </form>
                     @else
-                        <a href="{{ route('signup', ['nuevo' => 1]) }}" class="mt-3 inline-block font-semibold text-rojo underline">Contratar un plan</a>
+                        <a href="{{ route('account.plan', $mailbox->id) }}" class="mt-3 inline-block font-semibold text-rojo underline">Contratar un plan</a>
                     @endif
                 </div>
-            @elseif ($subscription && ! $subscription->ended())
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 p-4 text-sm sm:p-5">
-                    <p class="text-stone-600">
-                        @if ($subscription->onGracePeriod())
-                            Plan cancelado: seguirá activo hasta el {{ $subscription->ends_at->timezone('Europe/Madrid')->format('d/m/Y') }}.
-                        @else
-                            Plan de pago activo. Se renueva solo; puedes cancelarlo cuando quieras.
+            @endif
+
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 p-4 text-sm sm:p-5">
+                <div class="min-w-0">
+                    <p class="font-semibold">Plan {{ $mailbox->plan?->name ?? '—' }}</p>
+                    <p class="text-stone-500">
+                        @if ($subscription?->onGracePeriod())
+                            Cancelado: termina el {{ $subscription->ends_at->timezone('Europe/Madrid')->format('d/m/Y') }}.
+                        @elseif ($subscription)
+                            Se renueva solo. Puedes cambiarlo o cancelarlo cuando quieras.
+                        @elseif ($mailbox->plan?->is_free)
+                            Gratis, sin fecha de caducidad mientras lo uses.
                         @endif
                     </p>
-                    <form method="POST" action="{{ route('account.billing') }}">@csrf
-                        <button class="rounded-xl px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Gestionar pago, facturas y plan</button>
-                    </form>
                 </div>
-            @endif
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('account.plan', $mailbox->id) }}" class="rounded-xl px-4 py-2 font-semibold text-rojo ring-1 ring-rojo/40 hover:bg-rojo/5">Cambiar de plan</a>
+                    @if ($subscription)
+                        <form method="POST" action="{{ route('account.billing') }}">@csrf
+                            <button class="rounded-xl px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Gestionar pago y facturas</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
 
             @php($percent = $mailbox->usedPercent())
             <div class="border-b border-stone-200 p-4 sm:p-5">
@@ -132,24 +140,29 @@
             </div>
 
             @php($export = $exports->get($mailbox->id))
-            <div class="border-t border-stone-200 p-4 text-sm sm:p-5">
-                <h2 class="font-bold">Copia de tu correo</h2>
-                @if ($export?->isDownloadable())
-                    <p class="mt-1 text-stone-500">Lista: {{ \App\Support\Bytes::format($export->size_bytes) }}, disponible hasta el {{ $export->expires_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}.</p>
-                    <a href="{{ route('account.export.download', $export->id) }}" class="mt-3 inline-block rounded-xl bg-rojo px-4 py-2 font-semibold text-white hover:bg-rojo-oscuro">Descargar la copia (.zip)</a>
-                @elseif ($export?->status === 'pending')
-                    <p class="mt-1 text-stone-500">La estamos preparando. Te avisaremos por email en cuanto esté lista.</p>
-                @else
-                    <p class="mt-1 text-stone-500">
-                        Todo tu correo en un .zip, con un archivo .mbox por carpeta, que puedes abrir con Thunderbird o Apple Mail.
-                        @if ($export?->status === 'failed') <span class="font-semibold text-rojo">La última vez no se pudo preparar; vuelve a intentarlo.</span> @endif
-                    </p>
-                    <form method="POST" action="{{ route('account.export', $mailbox->id) }}" class="mt-3">
-                        @csrf
-                        <button class="rounded-xl px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Descargar una copia</button>
-                    </form>
-                @endif
-            </div>
+            <details class="group border-t border-stone-200 text-sm" @if ($export?->isDownloadable() || $export?->status === 'pending') open @endif>
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-bold sm:px-5 [&::-webkit-details-marker]:hidden">
+                    Copia de tu correo
+                    <span class="text-stone-400 transition group-open:rotate-180" aria-hidden="true">▾</span>
+                </summary>
+                <div class="px-4 pb-4 sm:px-5 sm:pb-5">
+                    @if ($export?->isDownloadable())
+                        <p class="text-stone-500">Lista: {{ \App\Support\Bytes::format($export->size_bytes) }}, disponible hasta el {{ $export->expires_at->timezone('Europe/Madrid')->format('d/m/Y H:i') }}.</p>
+                        <a href="{{ route('account.export.download', $export->id) }}" class="mt-3 inline-block rounded-xl bg-rojo px-4 py-2 font-semibold text-white hover:bg-rojo-oscuro">Descargar la copia (.zip)</a>
+                    @elseif ($export?->status === 'pending')
+                        <p class="text-stone-500">La estamos preparando. Te avisaremos por email en cuanto esté lista.</p>
+                    @else
+                        <p class="text-stone-500">
+                            Todo tu correo en un .zip, con un archivo .mbox por carpeta, que puedes abrir con Thunderbird o Apple Mail.
+                            @if ($export?->status === 'failed') <span class="font-semibold text-rojo">La última vez no se pudo preparar; vuelve a intentarlo.</span> @endif
+                        </p>
+                        <form method="POST" action="{{ route('account.export', $mailbox->id) }}" class="mt-3">
+                            @csrf
+                            <button class="rounded-xl px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Preparar una copia</button>
+                        </form>
+                    @endif
+                </div>
+            </details>
         </article>
     @endforeach
 

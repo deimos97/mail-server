@@ -112,10 +112,48 @@ class FakeStripe implements ClientInterface
         return $this->objects[$resource][$id] = $object;
     }
 
+    /** Crea una suscripción "como la de Stripe" (con sus items) para probar cambios de plan. */
+    public function subscription(string $id, string $customer, array $prices, array $metadata = []): array
+    {
+        $this->objects['subscriptions'][$id] = ['id' => $id, 'object' => 'subscription', 'customer' => $customer,
+            'status' => 'active', 'metadata' => $metadata, 'cancel_at_period_end' => false,
+            'current_period_end' => now()->addMonth()->timestamp, 'items' => ['object' => 'list', 'data' => []]];
+        $this->setItems($id, array_map(fn ($price) => ['price' => $price], $prices));
+
+        return $this->objects['subscriptions'][$id];
+    }
+
+    /** Aplica a una suscripción los `items` de un update (nuevos, cambiados o borrados). */
+    private function setItems(string $subscription, array $items): void
+    {
+        $current = collect($this->objects['subscriptions'][$subscription]['items']['data'])->keyBy('id');
+        foreach ($items as $item) {
+            if (! empty($item['deleted'])) {
+                $current->forget($item['id']);
+                unset($this->objects['subscription_items'][$item['id']]);
+
+                continue;
+            }
+            $id = $item['id'] ?? 'si_'.Str::random(10);
+            $price = $this->objects['prices'][$item['price']] ?? ['id' => $item['price'], 'product' => null];
+            $object = ['id' => $id, 'object' => 'subscription_item', 'subscription' => $subscription, 'quantity' => 1,
+                'current_period_end' => now()->addMonth()->timestamp, 'current_period_start' => now()->timestamp,
+                'price' => ['id' => $price['id'], 'object' => 'price', 'product' => $price['product'] ?? null,
+                    'recurring' => ['usage_type' => 'licensed'] + ($price['recurring'] ?? [])]];
+            $current->put($id, $object);
+            $this->objects['subscription_items'][$id] = $object;
+        }
+        $this->objects['subscriptions'][$subscription]['items']['data'] = $current->values()->all();
+    }
+
     private function update(string $resource, string $id, array $params): ?array
     {
         if (! isset($this->objects[$resource][$id])) {
             return null;
+        }
+        if ($resource === 'subscriptions' && isset($params['items'])) {
+            $this->setItems($id, $params['items']);
+            unset($params['items']);
         }
 
         return $this->objects[$resource][$id] = array_replace_recursive($this->objects[$resource][$id], $params);

@@ -43,15 +43,7 @@ class PaidSignup
         if (! $check->isAvailable()) {
             throw new RuntimeException('Ese nombre ya no está disponible. Elige otro.');
         }
-        $prices = [$plan->stripe_price_id];
-        if ($check->requiresPaidPlan()) {
-            $tier = NamePriceTier::forLength(mb_strlen($check->localPart));
-            $tierPrice = $plan->interval === 'year' ? $tier?->stripe_price_year_id : $tier?->stripe_price_id;
-            if (! $tierPrice) {
-                throw new RuntimeException('Los nombres cortos aún no se pueden contratar. Elige otro nombre.');
-            }
-            $prices[] = $tierPrice;
-        }
+        $prices = $this->prices($plan, $check->localPart);
 
         try {
             $mailbox = Mailbox::create([
@@ -70,23 +62,47 @@ class PaidSignup
             'immediate_start_consent_at' => now()]);
 
         try {
-            $builder = $user->newSubscription("mailbox:{$mailbox->id}", $prices)
-                ->withMetadata(['mailbox_id' => $mailbox->id, 'checkout_id' => $checkout->id]);
-            if (($offer = $plan->currentOffer()) && $offer->stripe_coupon_id) {
-                $builder->withCoupon($offer->stripe_coupon_id);
-            }
-            $session = $builder->checkout([
-                'success_url' => route('signup.payment.return', $checkout->id).'?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('signup.payment.cancel', $checkout->id),
-                'locale' => 'es',
-                'expires_at' => now()->addMinutes(self::CHECKOUT_MINUTES)->timestamp,
-                'metadata' => ['mailbox_id' => $mailbox->id, 'checkout_id' => $checkout->id],
-            ])->asStripeCheckoutSession();
+            return $this->openCheckout($checkout, $prices,
+                route('signup.payment.return', $checkout->id).'?session_id={CHECKOUT_SESSION_ID}',
+                route('signup.payment.cancel', $checkout->id));
         } catch (\Throwable $e) {
             report($e);
             $this->release($checkout);
             throw new RuntimeException('No hemos podido abrir el pago. Inténtalo de nuevo en unos minutos.');
         }
+    }
+
+    /** Prices de la suscripción de un buzón: el del plan y, si el nombre es corto, el sobrecoste (mismo intervalo). */
+    public function prices(Plan $plan, string $localPart): array
+    {
+        $prices = [$plan->stripe_price_id];
+        if ($tier = NamePriceTier::forLength(mb_strlen($localPart))) {
+            $tierPrice = $plan->interval === 'year' ? $tier->stripe_price_year_id : $tier->stripe_price_id;
+            if (! $tierPrice) {
+                throw new RuntimeException('Los nombres cortos aún no se pueden contratar.');
+            }
+            $prices[] = $tierPrice;
+        }
+
+        return $prices;
+    }
+
+    /** Abre Stripe Checkout para la suscripción `mailbox:{id}` del pago. Devuelve su URL. */
+    public function openCheckout(Checkout $checkout, array $prices, string $successUrl, string $cancelUrl): string
+    {
+        $plan = $checkout->plan;
+        $builder = $checkout->user->newSubscription("mailbox:{$checkout->mailbox_id}", $prices)
+            ->withMetadata(['mailbox_id' => $checkout->mailbox_id, 'checkout_id' => $checkout->id]);
+        if (($offer = $plan->currentOffer()) && $offer->stripe_coupon_id) {
+            $builder->withCoupon($offer->stripe_coupon_id);
+        }
+        $session = $builder->checkout([
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'locale' => 'es',
+            'expires_at' => now()->addMinutes(self::CHECKOUT_MINUTES)->timestamp,
+            'metadata' => ['mailbox_id' => $checkout->mailbox_id, 'checkout_id' => $checkout->id],
+        ])->asStripeCheckoutSession();
 
         $checkout->update(['stripe_session_id' => $session->id]);
 
@@ -118,6 +134,10 @@ class PaidSignup
         }
         if ($mailbox->status === 'pending') {
             $mailbox->update(['status' => 'active', 'active' => true, 'can_send' => true]);
+        }
+        if ($checkout->plan && (int) $mailbox->plan_id !== $checkout->plan_id) {
+            app(MailboxBilling::class)->applyPlan($mailbox, $checkout->plan);   // de gratis a pago
+            $mailbox->update(['can_send' => true]);
         }
         $checkout->update(['status' => 'completed']);
         app(ServerAnalytics::class)->subscriptionStarted($checkout);
