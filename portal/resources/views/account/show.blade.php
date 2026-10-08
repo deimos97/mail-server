@@ -143,7 +143,7 @@
             <details class="group border-t border-stone-200 text-sm" @if ($export?->isDownloadable() || $export?->status === 'pending') open @endif>
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-bold sm:px-5 [&::-webkit-details-marker]:hidden">
                     Copia de tu correo
-                    <span class="text-stone-400 transition group-open:rotate-180" aria-hidden="true">▾</span>
+                    <svg class="size-5 text-stone-500 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/></svg>
                 </summary>
                 <div class="px-4 pb-4 sm:px-5 sm:pb-5">
                     @if ($export?->isDownloadable())
