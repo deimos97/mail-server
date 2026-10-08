@@ -15,6 +15,8 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 - [ ] Textos definitivos de la landing (hero, bloques, FAQ)
 
 **No bloquean:**
+- [ ] Activar la cuenta de Stripe "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte y marca (logo y `#AA151B`). Bloquea cobrar de verdad, no la Fase 4 en sandbox
+- [ ] Preguntar a la gestoría por la serie de facturas propia de esta cuenta de Stripe (y Verifactu)
 - [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
 - [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar`
 - [ ] PostHog (grabaciones, mapas de calor, embudo) juntos, en la Fase 5
@@ -38,6 +40,7 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 | D-012 | El correo transaccional sale por el **propio Postfix** con `noreply@`. | 2026-10-05 |
 | D-014 | **Un buzón gratis por usuario**; los demás, solo con plan de pago. Tiene que quedar claro en la pantalla de planes para que nadie se atasque sin saber por qué no puede elegir el gratis. | 2026-10-08 |
 | D-015 | Copias de seguridad: **retención de ~1 mes para todos** (7 diarias + 4 semanales; antes, también 6 mensuales). El correo de una cuenta borrada desaparece de las copias en ese plazo; la política de privacidad lo dirá. Se acepta tener menos margen para recuperar un problema que se descubra tarde. | 2026-10-08 |
+| D-016 | Stripe: **cuenta propia "Servicio Correo Minorista"** dentro del mismo login y de la misma empresa (Tibletech), separada de la de tibletech.com: claves, clientes, productos, webhooks y marca pública propios (`unagrandeylibre.es`). Tibletech es quien vende (no Managed Payments / merchant of record de Stripe). Las cifras se pueden juntar luego con una organización de Stripe. Pendiente del usuario: activar la cuenta (datos fiscales) antes de cobrar de verdad. | 2026-10-08 |
 | D-013 | **Actualizar ya el servidor a Ubuntu 24.04** (`do-release-upgrade` en el mismo servidor), con lo que llegan Roundcube 1.6 y PHP 8.3 de serie. Se hace antes de construir nada, para empezar sobre una base sólida. | 2026-10-05 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
