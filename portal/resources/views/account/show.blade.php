@@ -121,7 +121,7 @@
                                     <span class="flex shrink-0 gap-2">
                                         <button type="button" @click="editing = true; $nextTick(() => $refs.name.focus())" class="rounded-xl px-3 py-1.5 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Renombrar</button>
                                         <form method="POST" action="{{ route('account.devices.revoke', $device->id) }}"
-                                              @submit="if (! confirm(@js('¿Desconectar «'.$device->name.'»? Dejará de poder entrar en tu correo.'))) $event.preventDefault()">
+                                              data-confirm="¿Revocar «{{ $device->name }}»?" data-confirm-body="Ese dispositivo dejará de poder entrar en tu correo. Para volver a usarlo tendrás que configurarlo de nuevo." data-confirm-button="Revocar">
                                             @csrf
                                             <button class="rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Revocar</button>
                                         </form>

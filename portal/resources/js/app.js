@@ -3,6 +3,7 @@ import { mountFlag } from './flag';
 import { getConsent, setConsent, startAnalytics, track } from './analytics';
 import { registerWebMcpTools } from './webmcp';
 import registerPasskeyComponents from './passkeys';
+import { confirmDialog, registerConfirmForms } from './confirm';
 
 /**
  * Estado compartido de la landing: el nombre elegido en el hero lo leen las tarjetas de planes.
@@ -137,6 +138,10 @@ document.addEventListener('click', (event) => {
 window.addEventListener('ugl:ai-help', (event) => track('ai_help_clicked', { provider: event.detail.provider }));
 
 registerPasskeyComponents(Alpine);
+
+// Confirmaciones propias (data-confirm en formularios; $confirm(...) desde Alpine)
+registerConfirmForms();
+Alpine.magic('confirm', () => confirmDialog);
 
 // WebMCP: herramientas para agentes de IA del navegador (si el navegador lo soporta)
 registerWebMcpTools();

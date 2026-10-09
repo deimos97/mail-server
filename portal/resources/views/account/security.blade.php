@@ -88,7 +88,7 @@
                             <span class="text-stone-500">desde el {{ $passkey->created_at->timezone('Europe/Madrid')->format('d/m/Y') }}{{ $passkey->last_used_at ? ' · último uso '.$passkey->last_used_at->locale('es')->diffForHumans() : '' }}</span>
                         </span>
                         <form method="POST" action="{{ route('account.security.passkeys.destroy', $passkey->id) }}"
-                              x-data @submit="if (! confirm(@js('¿Quitar la passkey «'.$passkey->name.'»?'))) $event.preventDefault()">
+                              data-confirm="¿Quitar la passkey «{{ $passkey->name }}»?" data-confirm-body="Ya no podrás entrar con ella. Podrás seguir entrando con tu contraseña." data-confirm-button="Quitar">
                             @csrf @method('DELETE')
                             <button class="rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Quitar</button>
                         </form>
