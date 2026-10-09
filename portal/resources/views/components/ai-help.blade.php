@@ -4,11 +4,11 @@
     $helpers = config('mail_clients.ai_helpers');
 @endphp
 
-{{-- "Que te ayude una IA": abre el chat con las instrucciones (sin la contraseña) y las copia por si el chat no las recibe --}}
+{{-- "Pídele ayuda a una IA": abre el chat con las instrucciones (sin la contraseña) y las copia por si el chat no las recibe --}}
 <section class="mt-8 overflow-hidden rounded-3xl bg-linear-to-br from-amarillo/30 via-white to-rojo/10 p-4 ring-1 ring-amarillo/60 sm:p-6"
          x-data="{ copied: null, prompt: @js($prompt) }">
     <p class="text-xs font-bold uppercase tracking-wider text-rojo">¿Te atascas?</p>
-    <h2 class="mt-1 text-2xl font-extrabold tracking-tight">Que te ayude una IA</h2>
+    <h2 class="mt-1 text-2xl font-extrabold tracking-tight">Pídele ayuda a una IA</h2>
     <p class="mt-2 text-sm text-stone-700">
         Elige tu asistente favorito: se abrirá con tus datos de configuración ya escritos y te guiará paso a paso.
         <strong>Nunca le damos tu contraseña</strong>: te dirá que la copies de esta página directamente en la app.

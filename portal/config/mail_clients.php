@@ -24,7 +24,7 @@ return [
         'otra' => ['label' => 'Otra app', 'device' => 'App de correo', 'profile' => false],
     ],
 
-    // "Que te ayude una IA" (pasos manuales): abre el chat con las instrucciones ya escritas. `url` con {q}
+    // "Pídele ayuda a una IA" (pasos manuales): abre el chat con las instrucciones ya escritas. `url` con {q}
     // si el chat admite la pregunta en el enlace; si no (`null` en `prefill`), se abre el chat y el usuario
     // pega el texto, que copiamos antes al portapapeles. Logos: Simple Icons (CC0), resources/svg/ai/.
     'ai_helpers' => [

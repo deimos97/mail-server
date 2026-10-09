@@ -131,7 +131,7 @@ document.addEventListener('click', (event) => {
     });
 });
 
-// "Que te ayude una IA" en la configuración de apps (solo qué asistente; nunca los datos)
+// "Pídele ayuda a una IA" en la configuración de apps (solo qué asistente; nunca los datos)
 window.addEventListener('ugl:ai-help', (event) => track('ai_help_clicked', { provider: event.detail.provider }));
 
 window.Alpine = Alpine;
