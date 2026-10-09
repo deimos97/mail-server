@@ -8,7 +8,6 @@ use App\Http\Controllers\DeviceSetupController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OAuthController;
-use App\Http\Controllers\PlaceholderController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RecoveryEmailController;
 use App\Http\Controllers\SeoController;
@@ -86,8 +85,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/ayuda/configurar', [HelpController::class, 'index'])->name('help.setup');
 Route::get('/ayuda/configurar/{client}', [HelpController::class, 'show'])->name('help.setup.client');
 
-// Provisional: los textos legales llegan en la Fase 5
-Route::get('/legal/{page}', [PlaceholderController::class, 'legal'])->name('legal');
+// Textos legales (Fase 5; datos del titular en config/legal.php)
+Route::get('/legal/{page}', \App\Http\Controllers\LegalController::class)->name('legal');
 
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/llms.txt', [SeoController::class, 'llms'])->name('llms');
