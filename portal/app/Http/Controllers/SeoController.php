@@ -29,6 +29,9 @@ class SeoController extends Controller
         $domain = Domain::signup()->value('name') ?? 'unagrandeylibre.es';
         $home = route('home');
         $api = url('/api/availability');
+        $plansApi = url('/api/plans');
+        $signup = url('/alta');
+        $status = route('status');
 
         $plans = Plan::visible()->ordered()->with('offers')->get()->map(function (Plan $plan) {
             $per = $plan->interval === 'year' ? 'año' : 'mes';
@@ -51,6 +54,10 @@ class SeoController extends Controller
         - Web: {$home}
         - Se elige el nombre (tunombre@{$domain}) y un plan. Los nombres de 1 a 4 caracteres tienen un suplemento mensual y solo se pueden coger con planes de pago.
         - Comprobar si un nombre está libre: `GET {$api}?local=tunombre` (JSON; limitado por IP).
+        - Planes y precios en JSON: `GET {$plansApi}`
+        - Empezar el alta con el nombre elegido: {$signup}?nombre=tunombre (el usuario completa el resto).
+        - Agentes en el navegador: la web expone herramientas WebMCP (`comprobar_disponibilidad`, `listar_planes`, `empezar_alta`).
+        - Estado del servicio: {$status}
 
         ## Planes
 

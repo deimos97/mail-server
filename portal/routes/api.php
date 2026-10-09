@@ -9,6 +9,8 @@ Route::get('/availability', AvailabilityController::class)
     ->middleware('throttle:availability')
     ->name('api.availability');
 
+Route::get('/plans', \App\Http\Controllers\Api\PlansController::class)->middleware('throttle:60,1')->name('api.plans');
+
 // Proveedor OAuth2 del login único (servidor a servidor: Roundcube y Dovecot)
 Route::post('/oauth/token', [OAuthController::class, 'token'])->middleware('throttle:60,1')->name('oauth.token');
 Route::get('/oauth/userinfo', [OAuthController::class, 'userinfo'])->middleware('throttle:120,1')->name('oauth.userinfo');
