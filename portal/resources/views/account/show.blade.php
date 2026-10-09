@@ -1,5 +1,9 @@
 <x-signup-layout title="Mi cuenta" :wide="true">
     <p class="mt-1 text-sm text-stone-500">Email de recuperación: <span data-ph-mask>{{ $user->email }}</span> · <a href="{{ route('account.email') }}" class="font-medium underline">Cambiar</a></p>
+    <p class="mt-1 text-sm text-stone-500">
+        <a href="{{ route('account.security') }}" class="font-medium underline">Seguridad</a>:
+        {{ $user->hasTwoFactor() ? 'verificación en dos pasos activada' : 'verificación en dos pasos desactivada' }} · {{ trans_choice('{0} sin passkeys|{1} 1 passkey|[2,*] :count passkeys', $user->passkeys()->count()) }}
+    </p>
 
     @unless ($user->hasVerifiedEmail())
         <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">

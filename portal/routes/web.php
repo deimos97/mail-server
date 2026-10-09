@@ -3,6 +3,8 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasskeyLoginController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\DeviceSetupController;
 use App\Http\Controllers\HelpController;
@@ -10,6 +12,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\PlanController;
 use App\Http\Controllers\RecoveryEmailController;
+use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SignupController;
 use App\Http\Middleware\SignupGate;
@@ -47,6 +50,10 @@ Route::prefix('alta')->name('signup')->controller(SignupController::class)->grou
 Route::middleware('guest')->group(function () {
     Route::get('/entrar', [LoginController::class, 'create'])->name('login');
     Route::post('/entrar', [LoginController::class, 'store'])->middleware('throttle:20,1')->name('login.store');
+    Route::get('/entrar/verificacion', [TwoFactorChallengeController::class, 'create'])->name('login.two-factor');
+    Route::post('/entrar/verificacion', [TwoFactorChallengeController::class, 'store'])->middleware('throttle:20,1')->name('login.two-factor.store');
+    Route::get('/entrar/passkey/opciones', \Spatie\LaravelPasskeys\Http\Controllers\GeneratePasskeyAuthenticationOptionsController::class)->middleware('throttle:30,1')->name('passkeys.authentication_options');
+    Route::post('/entrar/passkey', PasskeyLoginController::class)->middleware('throttle:20,1')->name('passkeys.login');
     Route::get('/recuperar', [PasswordResetController::class, 'create'])->name('password.request');
     Route::post('/recuperar', [PasswordResetController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/recuperar/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
@@ -60,6 +67,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/cuenta/dispositivos/{device}/nombre', [AccountController::class, 'renameDevice'])->name('account.devices.rename');
     Route::post('/cuenta/copia/{mailbox}', [AccountController::class, 'requestExport'])->middleware('throttle:5,60')->name('account.export');
     Route::post('/cuenta/facturacion', [AccountController::class, 'billingPortal'])->name('account.billing');
+    Route::get('/cuenta/seguridad', [SecurityController::class, 'show'])->name('account.security');
+    Route::post('/cuenta/seguridad/dos-pasos', [SecurityController::class, 'start'])->middleware('throttle:10,60')->name('account.security.2fa.start');
+    Route::post('/cuenta/seguridad/dos-pasos/confirmar', [SecurityController::class, 'confirm'])->middleware('throttle:10,1')->name('account.security.2fa.confirm');
+    Route::post('/cuenta/seguridad/dos-pasos/cancelar', [SecurityController::class, 'cancel'])->name('account.security.2fa.cancel');
+    Route::post('/cuenta/seguridad/dos-pasos/desactivar', [SecurityController::class, 'disable'])->middleware('throttle:10,60')->name('account.security.2fa.disable');
+    Route::post('/cuenta/seguridad/dos-pasos/codigos', [SecurityController::class, 'regenerateCodes'])->middleware('throttle:10,60')->name('account.security.2fa.codes');
+    Route::get('/cuenta/seguridad/passkeys/opciones', [SecurityController::class, 'passkeyOptions'])->middleware('throttle:20,1')->name('account.security.passkeys.options');
+    Route::post('/cuenta/seguridad/passkeys', [SecurityController::class, 'storePasskey'])->middleware('throttle:20,1')->name('account.security.passkeys.store');
+    Route::delete('/cuenta/seguridad/passkeys/{passkey}', [SecurityController::class, 'destroyPasskey'])->whereNumber('passkey')->name('account.security.passkeys.destroy');
     Route::get('/cuenta/plan/pago/{checkout}', [PlanController::class, 'paymentReturn'])->whereNumber('checkout')->name('account.plan.return');
     Route::get('/cuenta/plan/{mailbox}', [PlanController::class, 'edit'])->whereNumber('mailbox')->name('account.plan');
     Route::post('/cuenta/plan/{mailbox}', [PlanController::class, 'update'])->whereNumber('mailbox')->middleware('throttle:10,60')->name('account.plan.store');

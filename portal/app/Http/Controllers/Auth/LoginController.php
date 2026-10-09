@@ -51,6 +51,16 @@ class LoginController extends Controller
         }
 
         RateLimiter::clear($key);
+
+        // Con verificación en dos pasos: falta el código de la app (5 min para darlo)
+        if ($user->hasTwoFactor()) {
+            $request->session()->put(TwoFactorChallengeController::SESSION_KEY, [
+                'user' => $user->id, 'remember' => $request->boolean('remember'), 'until' => now()->addMinutes(5)->timestamp,
+            ]);
+
+            return redirect()->route('login.two-factor');
+        }
+
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 

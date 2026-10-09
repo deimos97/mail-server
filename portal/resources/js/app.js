@@ -2,6 +2,7 @@ import Alpine from 'alpinejs';
 import { mountFlag } from './flag';
 import { getConsent, setConsent, startAnalytics, track } from './analytics';
 import { registerWebMcpTools } from './webmcp';
+import registerPasskeyComponents from './passkeys';
 
 /**
  * Estado compartido de la landing: el nombre elegido en el hero lo leen las tarjetas de planes.
@@ -134,6 +135,8 @@ document.addEventListener('click', (event) => {
 
 // "Pídele ayuda a una IA" en la configuración de apps (solo qué asistente; nunca los datos)
 window.addEventListener('ugl:ai-help', (event) => track('ai_help_clicked', { provider: event.detail.provider }));
+
+registerPasskeyComponents(Alpine);
 
 // WebMCP: herramientas para agentes de IA del navegador (si el navegador lo soporta)
 registerWebMcpTools();
