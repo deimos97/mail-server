@@ -141,6 +141,9 @@ class PaidSignup
         }
         $checkout->update(['status' => 'completed']);
         app(ServerAnalytics::class)->subscriptionStarted($checkout);
+        if ($checkout->user && $checkout->plan) {
+            app(AdConversions::class)->purchase($checkout->user, $checkout->plan->effectivePriceCents());
+        }
     }
 
     /** Pago cancelado o caducado: el buzón pendiente desaparece y el nombre queda libre. */

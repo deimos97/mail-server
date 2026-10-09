@@ -119,6 +119,11 @@ class SignupController extends Controller
         if ($experiments = app(\App\Services\Experiments::class)->assigned()) {
             $attribution['experiments'] = $experiments;
         }
+        // Para las conversiones de anuncios (solo si aceptó las cookies; ver App\Services\AdConversions)
+        if ($request->cookie(ServerAnalytics::CONSENT_COOKIE) === 'accepted') {
+            $attribution['ads_consent'] = true;
+            $attribution['user_agent'] = mb_substr((string) $request->userAgent(), 0, 255);
+        }
         $user = $this->signup->createUser($data['email'], $data['password'], $request->ip(), $attribution ?: null);
 
         Auth::login($user);
@@ -184,6 +189,7 @@ class SignupController extends Controller
         }
 
         $analytics->signupCompleted($request, $mailbox, $plan);
+        app(\App\Services\AdConversions::class)->signup($request->user());
 
         $request->session()->forget('signup.plan');
         if ($request->session()->pull('signup.extra')) {

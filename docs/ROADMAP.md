@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 4 cerrada** el 2026-10-09; siguiente: **Fase 5** (lo que queda de código). Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
+Estado: **Fase 5 — EN CURSO** (desde el 2026-10-09; queda solo el backup fuera del servidor). Fase 4 cerrada el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
 **Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
@@ -157,12 +157,13 @@ Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Pasar a
 
 ## Fase 5 · Lo que falta de código antes de lanzar
 
-- [ ] Borrador de los textos legales (aviso legal, privacidad, cookies, condiciones, uso aceptable) para que el usuario los revise con la asesoría (Fase 6). La privacidad debe decir que el correo borrado puede seguir hasta ~1 mes en copias de seguridad cifradas (D-015). **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies
-- [ ] Conversiones a Meta (Conversions API) y Google Ads desde el servidor al completarse el alta y el primer pago (`subscription_started`), **solo con consentimiento** y con el click ID de `users.attribution` (se deja listo; se activa cuando existan las cuentas de anuncios, Fase 6)
-- [ ] WebMCP: exponer `comprobar_disponibilidad`, `listar_planes`, `empezar_alta` (comprobar estado del estándar)
-- [ ] 2FA (TOTP) y passkeys en la web
-- [ ] Backups fuera del servidor (TODO back-end del README) — **antes** de tener clientes de pago
-- [ ] Página de estado del servicio
+- [x] Textos legales (borrador, 2026-10-09): aviso legal, privacidad, cookies, condiciones y uso aceptable en `/legal/…` (`resources/views/legal/`), con los datos de Tible Technologies, S.L. (de tibletech.com; la marca es el dominio) en `config/legal.php`. Adaptados a un servicio de correo para consumidores: desistimiento de 14 días, plazos de D-009, copias de ~1 mes (D-015), juzgados del domicilio del consumidor. No se publican el DNI del responsable ni datos de la gestoría. Llevan el aviso "Borrador pendiente de revisión" hasta que la asesoría los apruebe (`LEGAL_DRAFT=false`)
+- [x] Infraestructura de pruebas A/B (2026-10-09, `App\Services\Experiments`): experimentos en el admin (Web → Pruebas A/B) con variantes, pesos y fechas; la variante se decide en el servidor (sin parpadeo; estable en la sesión) y puede cambiar cualquier texto de `config/landing.php`, o el código puede preguntar `variant('clave')`. Se mide en PostHog con consentimiento: `$feature/<clave>` en todos los eventos, también en `signup_completed` y `subscription_started` (`users.attribution.experiments`). Para probar: `?variante=clave:b`. Hay un ejemplo desactivado ("Ejemplo: título del hero")
+- [x] Conversiones a Meta (Conversions API: `CompleteRegistration` y `Subscribe`) y Google Ads (`uploadClickConversions`) desde el servidor, al completarse el alta y el primer pago (`App\Services\AdConversions`, por la cola). Solo si el usuario aceptó las cookies al darse de alta y vino de un anuncio (fbclid / gclid, gbraid, wbraid); a Meta, el email cifrado con SHA-256. **Apagadas** hasta rellenar las claves (`config/ads.php`, Fase 6)
+- [x] WebMCP (2026-10-09): `comprobar_disponibilidad`, `listar_planes`, `empezar_alta` (`resources/js/webmcp.js`), con `document.modelContext` y, si no, `navigator.modelContext` (el estándar es un borrador del W3C WebML CG de 2026 y cambió de sitio). API pública `GET /api/plans` y `llms.txt` ampliado
+- [x] Verificación en dos pasos (TOTP, códigos de recuperación de un solo uso, código que no se puede reutilizar) y passkeys (`spatie/laravel-passkeys`, interfaz propia con `@simplewebauthn/browser`) en Mi cuenta → Seguridad; "Entrar con una passkey" en `/entrar`. Los admins siguen entrando solo por `/admin`. Cada cambio se avisa por email
+- [x] Página de estado del servicio `/estado` (2026-10-09): `mail-monitor` escribe qué comprobaciones fallan en `/var/www/portal/shared/status.json` y la web lo traduce a componentes (recibir, enviar, apps, webmail, web, pagos) sin detalles técnicos; "sin datos recientes" si tiene más de 30 min. Enlazada en el pie. Al estar en el mismo servidor, si este cae, la página también
+- [ ] Backups fuera del servidor (TODO back-end del README) — **antes** de tener clientes de pago. Destino: el VPS de backups del usuario (`root@37.27.5.15`); no crear nada en él sin avisar. Siguiente iteración
 
 ## Fase 6 · Pre-lanzamiento
 
@@ -176,7 +177,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 
 ### Contenido
 - [ ] Textos definitivos de la landing: hero, bloques informativos y FAQ (también cuentan para el SEO). Van en `portal/config/landing.php`, o pasárselos a la IA
-- [ ] Textos legales: revisar con la asesoría el borrador de la Fase 5 y darlos por buenos (la IA los publica)
+- [ ] Textos legales: revisar con la asesoría el borrador de la Fase 5 (`/legal/…`) y darlos por buenos; entonces la IA quita el aviso de borrador (`LEGAL_DRAFT=false`)
 
 ### Correo y reputación
 - [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
@@ -191,7 +192,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 
 ### Analítica y anuncios
 - [ ] PostHog, juntos: activar Session replay y Heatmaps, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel)
-- [ ] Cuentas de anuncios en Meta y Google (la IA activa entonces las conversiones de servidor)
+- [ ] Cuentas de anuncios en Meta y Google. Para activar las conversiones de servidor, pasar a la IA las claves de `config/ads.php` (píxel y token de Meta; cliente, developer token, OAuth y acciones de conversión de Google). Al activarlas, la IA añade a la política de privacidad que, con tu consentimiento, comunicamos el alta y el pago a Meta/Google (email cifrado, IP, navegador e identificador del clic)
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político. Si hay problemas, valorar una comunicación más neutra
 
 ### Abrir altas
