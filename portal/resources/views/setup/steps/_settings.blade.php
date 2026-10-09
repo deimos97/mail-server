@@ -1,8 +1,36 @@
 @php $c = config('mail_clients'); @endphp
-<dl class="mt-3 grid gap-x-6 gap-y-3 rounded-2xl bg-stone-100 p-4 text-sm sm:grid-cols-2 [&>div]:min-w-0 [&_dd]:break-all">
-    <div><dt class="text-stone-500">Usuario</dt><dd class="font-mono" data-ph-mask>{{ $email ?? 'tu dirección completa (tunombre@unagrandeylibre.es)' }}</dd></div>
-    <div><dt class="text-stone-500">Contraseña</dt><dd>{{ isset($password) ? 'la de arriba' : 'la de un dispositivo (créala en Mi cuenta)' }}</dd></div>
-    <div><dt class="text-stone-500">Servidor de entrada (IMAP)</dt><dd class="font-mono">{{ $c['host'] }}<span class="block">puerto {{ $c['imap']['port'] }} · SSL/TLS</span></dd></div>
-    <div><dt class="text-stone-500">Servidor de salida (SMTP)</dt><dd class="font-mono">{{ $c['host'] }}<span class="block">puerto {{ $c['smtp']['port'] }} · SSL/TLS</span></dd></div>
-</dl>
+<div class="mt-3 space-y-4 rounded-2xl bg-stone-100 p-4 text-sm">
+    <div>
+        <p class="mb-1.5 text-stone-500">Usuario <span class="text-stone-400">(tu dirección completa)</span></p>
+        @isset($email)
+            <x-copy-field :value="$email" label="Usuario" mask />
+        @else
+            <p class="font-mono">tunombre@unagrandeylibre.es</p>
+        @endisset
+    </div>
+
+    <div>
+        <p class="mb-1.5 text-stone-500">Contraseña</p>
+        @isset($password)
+            <div class="flex items-center justify-between gap-3">
+                <span>La de arriba (16 letras y números)</span>
+                <x-copy-field :value="$password" label="Contraseña" short mask class="[&>input]:hidden" />
+            </div>
+        @else
+            <p>La de un dispositivo (créala en Mi cuenta → Configura un dispositivo)</p>
+        @endisset
+    </div>
+
+    @foreach (['imap' => 'Servidor de entrada (IMAP)', 'smtp' => 'Servidor de salida (SMTP)'] as $key => $title)
+        <div>
+            <p class="mb-1.5 text-stone-500">{{ $title }}</p>
+            <x-copy-field :value="$c['host']" :label="$title" />
+            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span class="text-stone-500">Puerto</span>
+                <x-copy-field :value="(string) $c[$key]['port']" :label="'Puerto '.strtoupper($key)" short />
+                <span class="text-stone-500">Seguridad: <strong class="text-tinta">SSL/TLS</strong></span>
+            </div>
+        </div>
+    @endforeach
+</div>
 <p class="mt-2 text-xs text-stone-500">Si tu app no conecta por el {{ $c['smtp']['port'] }}, usa el {{ $c['smtp_alt']['port'] }} con STARTTLS.</p>
