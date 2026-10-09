@@ -17,6 +17,10 @@
         @include('setup.steps.'.$client, ['email' => $mailbox->email, 'password' => $password, 'profileUrl' => $profileUrl])
     </div>
 
+    @unless ($profileUrl)
+        <x-ai-help :mailbox="$mailbox" :client="$client" />
+    @endunless
+
     <x-slot:after>
         <p class="mt-4 text-center text-sm text-stone-500"><a href="{{ route('account') }}" class="font-medium underline">Volver a mi cuenta</a></p>
     </x-slot:after>

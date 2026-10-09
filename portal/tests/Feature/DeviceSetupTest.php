@@ -75,6 +75,28 @@ class DeviceSetupTest extends TestCase
         $this->get($url)->assertNotFound();                                   // una sola vez
     }
 
+    public function test_manual_setup_offers_ai_help_without_the_password(): void
+    {
+        $response = $this->actingAs($this->user)->post("/cuenta/configurar/{$this->mailbox->id}", ['client' => 'android'])
+            ->assertOk()->assertSee('Que te ayude una IA');
+        $html = $response->getContent();
+        preg_match('#<p class="mt-3 select-all[^>]*>(.*?)</p>#s', $html, $m);
+        $password = preg_replace('/\s+|<[^>]+>/', '', $m[1]);
+        $this->assertSame(16, strlen($password));
+
+        preg_match('#href="(https://chatgpt\.com/\?q=[^"]+)"#', $html, $link);
+        $prompt = rawurldecode(html_entity_decode($link[1]));
+        $this->assertStringContainsString('ana@unagrandeylibre.es', $prompt);
+        $this->assertStringContainsString('mail.unagrandeylibre.es, puerto 993', $prompt);
+        $this->assertStringContainsString('NO me la pidas', $prompt);
+        $this->assertStringNotContainsString($password, $prompt);
+        $this->assertStringContainsString('https://claude.ai/new?q=', $html);
+        $this->assertStringContainsString('https://gemini.google.com/app"', $html);       // sin texto en el enlace: se pega
+
+        // Con perfil automático (iPhone) no hace falta
+        $this->post("/cuenta/configurar/{$this->mailbox->id}", ['client' => 'iphone'])->assertDontSee('Que te ayude una IA');
+    }
+
     public function test_profile_is_signed_by_mail_provision_or_served_unsigned_if_it_fails(): void
     {
         config(['mail_provision.command' => '/usr/bin/sudo -n /usr/local/sbin/mail-provision']);
