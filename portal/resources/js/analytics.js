@@ -59,6 +59,11 @@ export async function startAnalytics() {
         },
     });
     client.opt_in_capturing();
+    // Pruebas A/B: la variante de cada experimento va en todos los eventos ($feature/<clave>)
+    const experiments = window.UGL?.experiments ?? {};
+    if (Object.keys(experiments).length) {
+        client.register(Object.fromEntries(Object.entries(experiments).map(([key, variant]) => [`$feature/${key}`, variant])));
+    }
     posthog = client;
 
     while (queue.length) client.capture(...queue.shift());

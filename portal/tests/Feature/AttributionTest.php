@@ -50,6 +50,6 @@ class AttributionTest extends TestCase
         $this->get('/')->assertSee('x-data="consentBanner"', false)->assertDontSee('window.UGL', false);
 
         config(['services.posthog.key' => 'phc_test']);
-        $this->get('/')->assertSee('window.UGL = { posthog: { key: \'phc_test\' } }', false);
+        $this->get('/')->assertSee('window.UGL = { posthog: { key: \'phc_test\' }, experiments: {} }', false);
     }
 }

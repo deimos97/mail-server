@@ -114,8 +114,12 @@ class SignupController extends Controller
                 ->withErrors(['turnstile' => 'No hemos podido comprobar que no eres un robot. Inténtalo de nuevo.']);
         }
 
-        $user = $this->signup->createUser($data['email'], $data['password'], $request->ip(),
-            $request->session()->get(CaptureAttribution::SESSION_KEY));
+        // Atribución de la campaña y variantes de las pruebas A/B que vio (para medir el alta y el pago)
+        $attribution = (array) $request->session()->get(CaptureAttribution::SESSION_KEY, []);
+        if ($experiments = app(\App\Services\Experiments::class)->assigned()) {
+            $attribution['experiments'] = $experiments;
+        }
+        $user = $this->signup->createUser($data['email'], $data['password'], $request->ip(), $attribution ?: null);
 
         Auth::login($user);
         $request->session()->regenerate();   // el token del alta va en los datos de sesión: sobrevive

@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Domain;
 use App\Models\Plan;
+use App\Services\Experiments;
 use App\Support\StructuredData;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class LandingController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(Request $request, Experiments $experiments): View
     {
+        // Pruebas A/B: textos de la variante de este visitante (y ?variante=clave:b para probarlas)
+        $experiments->forceFromQuery($request->query('variante'));
+        $experiments->applyLandingOverrides();
+
         $models = Plan::visible()->ordered()->with('offers')->get();
 
         $plans = $models->map(fn (Plan $plan) => [

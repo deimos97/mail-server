@@ -84,6 +84,7 @@ class ServerAnalytics
             'timestamp' => now()->toIso8601String(),
             'properties' => [
                 ...$properties,
+                ...collect((array) ($attribution['experiments'] ?? []))->mapWithKeys(fn ($variant, $key) => ["\$feature/{$key}" => $variant])->all(),
                 ...$campaign,
                 'source_referrer' => $referrer,
                 'consent' => $consented,

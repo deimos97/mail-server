@@ -62,7 +62,7 @@ class AdminPanelTest extends TestCase
         $this->actingAs($this->admin());
 
         foreach (['/admin', '/admin/plans', '/admin/plans/create', "/admin/plans/{$plan->id}/edit",
-            '/admin/reserved-names', '/admin/name-price-tiers', '/admin/name-rules'] as $url) {
+            '/admin/reserved-names', '/admin/name-price-tiers', '/admin/name-rules', '/admin/experiments', '/admin/experiments/create'] as $url) {
             $this->get($url)->assertOk();
         }
 

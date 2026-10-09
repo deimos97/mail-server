@@ -37,7 +37,7 @@
         {!! \App\Support\StructuredData::toScript($structuredData) !!}
     @endif
     @if ($posthogKey = config('services.posthog.key'))
-        <script>window.UGL = { posthog: { key: @js($posthogKey) } };</script>
+        <script>window.UGL = { posthog: { key: @js($posthogKey) }, experiments: @json((object) (request()->hasSession() ? app(\App\Services\Experiments::class)->assigned() : [])) };</script>
     @endif
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
