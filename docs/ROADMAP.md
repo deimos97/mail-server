@@ -15,7 +15,7 @@ Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por 
 - [ ] Textos definitivos de la landing (hero, bloques, FAQ)
 
 **No bloquean:**
-- [ ] Probar el alta de pago en el sandbox de Stripe: `/alta?acceso=<token>` → nombre → plan Básico → casilla → pagar con la tarjeta de prueba `4242 4242 4242 4242` (cualquier fecha futura y CVC) → debe volver a "¡Listo!" con el buzón activo. Probar también cancelar en Checkout, y "Gestionar pago, facturas y plan" en Mi cuenta
+- [ ] Probar el alta de pago en el sandbox de Stripe: `/alta?acceso=<token>` → nombre → plan Básico → casilla → pagar con la tarjeta de prueba `4242 4242 4242 4242` (cualquier fecha futura y CVC) → debe volver a "¡Listo!" con el buzón activo. Probar también cancelar en Checkout, "Gestionar pago y facturas" y "Cambiar de plan" (subir, bajar y pasar a gratis) en Mi cuenta. El alta de pago básica ya la hizo el usuario el 2026-10-08 (`varela@`, plan Básico)
 - [ ] En Stripe (sandbox y luego live): activar los recibos por email (Settings → Customer emails) y la marca (logo y `#AA151B`)
 - [ ] Activar la cuenta de Stripe "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte y marca (logo y `#AA151B`). Bloquea cobrar de verdad, no la Fase 4 en sandbox
 - [ ] Preguntar a la gestoría por la serie de facturas propia de esta cuenta de Stripe (y Verifactu)
