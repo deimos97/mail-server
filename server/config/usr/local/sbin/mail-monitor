@@ -95,6 +95,13 @@ check_bl() {
 for bl in $IP_DNSBLS; do check_bl "$rev" "$bl" "IP $IP"; done
 for bl in $DOMAIN_DNSBLS; do check_bl "$DOMAIN" "$bl" "dominio $DOMAIN"; done
 
+# Pagos: el webhook de Stripe sigue activo y no hay eventos sin entregar (lo comprueba la web, que tiene las claves)
+if out=$(timeout 60 sudo -u portal -H php8.3 /var/www/portal/current/artisan stripe:webhook-health 2>&1); then
+    p=""
+else
+    p="Stripe: $(echo "${out:-la comprobación no respondió}" | tail -1)"
+fi
+report stripe-webhooks "$p"
 date +%s > "$STATE/last-run"
 
 # Dead-man's switch: an external service alerts if these pings stop arriving

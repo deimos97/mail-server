@@ -2,27 +2,9 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 4 — EN CURSO** (desde el 2026-10-08; la Fase 3 quedó cerrada ese mismo día). Fase 0 cerrada el 2026-10-05; Fase 1 cerrada en lo técnico el 2026-10-06 (quedan los textos definitivos y el calentamiento del dominio, a cargo del usuario). Fase 2 cerrada en lo técnico el 2026-10-08: lo que queda para lanzar es del usuario (ver "En manos del usuario"); mientras tanto se avanza la Fase 3.
+Estado: **Fase 4 cerrada** el 2026-10-09; siguiente: **Fase 5** (lo que queda de código). Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
-## En manos del usuario
-
-Lo que solo puede hacer el dueño. Una IA que retome el proyecto no lo hace por él: como mucho, lo prepara y se lo recuerda. Se tacha aquí y en su fase.
-
-**Bloquean el lanzamiento (abrir altas):**
-- [ ] Calentamiento del dominio con `javier@` hasta el criterio de salida (Fase 1)
-- [ ] Textos legales: aviso legal, privacidad, cookies y condiciones, revisados con asesoría (la IA puede preparar el borrador)
-- [ ] Probar en dispositivos reales: el perfil en un iPhone (entrando a la web desde Safari en el iPhone) y la autoconfiguración en Thunderbird y Outlook
-- [ ] Textos definitivos de la landing (hero, bloques, FAQ)
-
-**No bloquean:**
-- [ ] Probar el alta de pago en el sandbox de Stripe: `/alta?acceso=<token>` → nombre → plan Básico → casilla → pagar con la tarjeta de prueba `4242 4242 4242 4242` (cualquier fecha futura y CVC) → debe volver a "¡Listo!" con el buzón activo. Probar también cancelar en Checkout, "Gestionar pago y facturas" y "Cambiar de plan" (subir, bajar y pasar a gratis) en Mi cuenta. El alta de pago básica ya la hizo el usuario el 2026-10-08 (`varela@`, plan Básico)
-- [ ] En Stripe (sandbox y luego live): activar los recibos por email (Settings → Customer emails) y la marca (logo y `#AA151B`)
-- [ ] Activar la cuenta de Stripe "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte y marca (logo y `#AA151B`). Bloquea cobrar de verdad, no la Fase 4 en sandbox
-- [ ] Preguntar a la gestoría por la serie de facturas propia de esta cuenta de Stripe (y Verifactu)
-- [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
-- [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar`
-- [ ] PostHog (grabaciones, mapas de calor, embudo) juntos, en la Fase 5
-- [ ] Cuentas de anuncios en Meta y Google y anuncio de prueba (Fase 5)
+**Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
 ## Decisiones tomadas
 
@@ -80,11 +62,8 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 
 - [x] Alta en **Google Postmaster Tools** (dominio `unagrandeylibre.es`) y **Microsoft SNDS** (IP `128.140.5.221`); revisar la reputación cada semana
 - [x] Buzón real para el calentamiento: **`javier@unagrandeylibre.es`**, creado con el propio alta (2026-10-07). `postmaster@` y `abuse@` redirigidos a él (reciben los informes DMARC)
-- [ ] Poner nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
 - [x] `postmaster@` y `abuse@` operativos (alias de `javier@` desde el 2026-10-07; antes de `test@`)
-- [ ] 2–4 semanas de uso real: correos normales (varias frases, sin enlaces al principio) a Gmail, Outlook y otros proveedores, **con respuestas** de vuelta; marcar "No es spam" y añadir a contactos cuando caiga en spam
-- [ ] Subir el volumen poco a poco; nada de envíos masivos
-- [ ] Criterio de salida: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención
+- El calentamiento en sí (semanas de uso real con `javier@` y su criterio de salida) está en la Fase 6
 
 - [x] Migraciones: `plans`, `plan_offers`, `reserved_names`, `name_rules`, `name_price_tiers`; columnas `public_signup` y `sort_order` en `mailserver.domains` (`server/sql/2026-10-06-domains-public-signup.sql`, aplicada como root)
 - [x] Admin Filament 5 en `/admin` (2FA obligatoria; solo `is_admin`): planes (gratis/pago, activación absoluta o programada, destacado, orden), ofertas programables, dominios, nombres reservados, reglas de nombre y tramos de precio por longitud. Alta del admin: `portal:make-admin`
@@ -93,7 +72,6 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [x] Endpoint de disponibilidad `GET /api/availability?local=&domain=` (`App\Services\NameAvailability`): reglas configurables, reservados, buzones y alias, sobrecoste por longitud, sugerencias (incluida la versión sin tildes), 30/min y 500/día por IP
 - [x] Sección de planes renderizada desde BD (precio con IVA, tachado si hay oferta, duración de la oferta, destacado; el plan gratis se desactiva si el nombre es corto)
 - [x] Bloques informativos y FAQ (textos en `portal/config/landing.php`, **provisionales**) + footer con enlaces legales (páginas "en preparación" hasta la Fase 5)
-- [ ] Textos definitivos de la landing (hero, bloques, FAQ) — los pone el usuario (ver "En manos del usuario")
 - [x] Banner de consentimiento (Aceptar/Rechazar con la misma relevancia; reabrible desde el footer) + PostHog solo tras aceptar, por `/ingest` (proxy nginx): autocaptura, páginas vistas, mapas de calor, grabaciones con campos y direcciones enmascarados, y eventos `name_checked`, `name_suggestion_used`, `name_chosen`, `plan_selected`
 - [x] Captura de UTM y click IDs (`gclid`, `fbclid`, `msclkid`, `ttclid`…) y referrer externo en sesión, primer contacto (`CaptureAttribution`); se guardará con el alta en la Fase 2
 - [x] SEO: metadatos, Open Graph con imagen propia (`public/img/og.png`), favicon e icono de iPhone, JSON-LD (`Organization`, `WebSite`, `Product`/`Offer` por plan con el precio de la BD, `FAQPage`), `sitemap.xml`, `robots.txt`, `llms.txt` (los dos últimos generados desde la BD)
@@ -132,19 +110,14 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Perfil `.mobileconfig` para iPhone/iPad/Mac con la contraseña dentro (cifrado en caché 10 min, una descarga, solo su dueño; validado con `plutil`)
 - [x] `autoconfig` (Thunderbird, apps de Android; en `autoconfig.` y en `/.well-known/autoconfig/`) y Autodiscover POX (Outlook), sin sesión; probados en producción
 - [x] Registros SRV en Cloudflare (comprobados el 2026-10-08): `_imaps._tcp` 0 1 993, `_submissions._tcp` 0 1 465 y `_submission._tcp` 0 1 587, todos hacia `mail.unagrandeylibre.es`
-- [ ] Probar el perfil en un iPhone real y el autoconfig en Thunderbird y Outlook reales
 - [x] Perfil de Apple firmado (2026-10-08) con el certificado de la web, al descargarlo, por `mail-provision sign-profile` (sudo solo para ese script). Si la firma falla, sale sin firmar
 - [x] ~~Enviar la configuración a la ISPDB de Thunderbird~~ — descartado (2026-10-08): la ISPDB es para proveedores grandes que no publican su propio autoconfig, y prefieren que cada proveedor lo sirva él mismo, como ya hacemos
 - [x] Guías públicas en `/ayuda/configurar` (iPhone/iPad, Mac, Android/Gmail, Outlook, Thunderbird, otra app), con los mismos pasos que ve el usuario al configurar
-- [ ] Capturas de pantalla reales en las guías (necesitan los dispositivos; las pone el usuario)
 - [x] "Pídele ayuda a una IA" en los pasos manuales de "Configura un dispositivo" (2026-10-09; componente `x-ai-help`, `App\Support\MailClients\AiHelpPrompt`): botones con logo de ChatGPT, Claude, Gemini, DeepSeek, Le Chat (Mistral) y Perplexity que abren el chat con un prompt en español con la dirección y los servidores, **sin la contraseña** (se le explica a la IA que el usuario la copia de la web directamente en la app). En los que no admiten el texto en el enlace (Gemini, DeepSeek) se copia al portapapeles y se avisa de pegarlo. Logos de Simple Icons (CC0) en `resources/svg/ai/`; lista en `config/mail_clients.php` (`ai_helpers`). Evento `ai_help_clicked` (solo el asistente)
 
 ### F · Medición y lanzamiento
 - [x] Evento de servidor `signup_completed` a PostHog al crearse el buzón (`App\Services\ServerAnalytics`, por la cola). Con consentimiento lleva el `distinct_id` del navegador (cierra el embudo del front) y la atribución completa; sin consentimiento, anónimo (id aleatorio, sin perfil, sin click IDs ni referrer completo). Nunca la dirección, el email ni la IP
-- [ ] Textos legales publicados (aviso legal, privacidad, cookies, condiciones; tarea de la Fase 5): la ley los exige antes de recoger datos de usuarios
-- [ ] Confirmar que el calentamiento del dominio (Fase 1) ha cumplido su criterio de salida antes de abrir altas
-- [ ] Al abrir altas: `SIGNUP_OPEN=true` y `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces el alta está cerrada y la web lleva `noindex`)
-- [ ] **Último paso: la web está en marcha.** Quitar de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales" e indicar que el servicio está **en producción con usuarios reales desde el <fecha>**: desde entonces, los cortes importan (cambios con copia, en horas de poco uso y probados al momento)
+- Abrir altas y el resto del lanzamiento: Fase 6
 
 ## Fase 3 · Área de cliente completa
 
@@ -153,7 +126,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 - [x] Dispositivos: renombrar y "último uso" (Dovecot `last_login` → `mailserver.last_logins`, por id de contraseña de dispositivo; 0 = webmail), más "último acceso al webmail"
 - [x] Al revocar, se cierran las conexiones abiertas del buzón (`mail-provision kick`, tras responder; no por la cola: el worker corre con `NoNewPrivileges`)
 - [x] Añadir otro buzón (D-014): "Añadir otro buzón" en Mi cuenta → `/alta?nuevo=1` → nombre → plan. El gratis sale bloqueado con el motivo ("Tu cuenta ya tiene su buzón gratis…") y el servidor lo impide. Hasta la Fase 4 no se puede completar (los de pago están "Muy pronto")
-- [ ] Fase 4: completar "Añadir otro buzón" con plan de pago (Checkout por buzón)
+- [x] "Añadir otro buzón" con plan de pago (Fase 4): el mismo alta de pago con Stripe Checkout; al volver, a Mi cuenta
 - [x] Plugin de Roundcube `unagrandeylibre` (fuente en `server/roundcube/`): botón "Mi cuenta" en el menú; logo, nombre y enlace de ayuda en `config.inc.php`. Roundcube no tiene activado el plugin de cambio de contraseña (no hace falta desactivar nada)
 - [x] Skin `unagrandeylibre` (Elastic con los colores de la web: rojo, amarillo, tinta y papel; claro y oscuro). En el login, el botón principal es "Iniciar sesión con unagrandeylibre.es" (login único). Fuente en `server/roundcube/skins/`, se compila y sube con `server/roundcube/build-skin.sh`
 - [x] Cambiar el email de recuperación (pide la contraseña; código de 6 cifras al nuevo; aviso al anterior con la dirección medio oculta)
@@ -163,7 +136,7 @@ Objetivo: alguien llega por un anuncio y sale con una cuenta completa: buzón, w
 
 ## Fase 4 · Planes de pago (Stripe)
 
-Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Para cobrar de verdad: activar la cuenta (usuario), cambiar a las claves `live`, volver a ejecutar `php artisan stripe:sync` y crear el webhook de producción.
+Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Pasar a cobrar de verdad está en la Fase 6.
 
 - [x] Laravel Cashier 16 (`User` es `Billable`; una suscripción por buzón: `type = mailbox:{id}`). Moneda EUR, locale `es_ES`
 - [x] IVA del 21 % incluido (D-017): un Tax Rate `inclusive` que se crea solo y se aplica a todas las suscripciones (`User::taxRates()`)
@@ -180,23 +153,56 @@ Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Para co
 - [x] Política de inactividad de las cuentas gratis (D-009): 6 meses sin entrar → aviso → 30 días → borrado → nombre libre 60 días después. Cuenta como uso cualquier acceso IMAP o al webmail (`last_logins`)
 - [x] Límites de envío por plan en Rspamd: la web sirve la lista de buzones de cada `tier` de pago (`/internal/rspamd/{tier}.map`, solo desde el servidor) y `ratelimit.conf` les aplica su cubo (gratis 20/h, Básico 100/h, Pro 300/h). Probado: el envío sigue funcionando
 - [x] Evento de servidor `subscription_started` a PostHog (las conversiones a las plataformas de anuncios, en la Fase 5)
-- [ ] Probar el alta de pago de punta a punta en el sandbox con una tarjeta de prueba (la hace el usuario: ver "En manos del usuario")
-- [ ] Monitorizar webhooks fallidos: Stripe avisa por email al dueño de la cuenta si el endpoint falla varios días; falta un chequeo propio en `mail-monitor`
-- [ ] Facturas: revisar con la gestoría si valen las de Stripe y Verifactu (usuario)
+- [x] Vigilancia de los webhooks de Stripe (2026-10-09): `php artisan stripe:webhook-health` comprueba que el endpoint existe y está activo en Stripe y que no hay eventos de las últimas 24 h sin entregar; `mail-monitor` lo ejecuta cada 10 min y avisa por Telegram (y cuando se resuelve). Además, Stripe avisa por email si el endpoint falla varios días
 
-## Fase 5 · Optimización y crecimiento
+## Fase 5 · Lo que falta de código antes de lanzar
 
-- [ ] Textos legales base (aviso legal, privacidad, cookies, condiciones, uso aceptable) — borrador para revisar con asesoría. La privacidad debe decir que el correo borrado puede seguir hasta ~1 mes en copias de seguridad cifradas (D-015). **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies; tenerlos listos antes de abrir altas al público.
-- [ ] Conversiones a Meta (Conversions API) y Google Ads desde el servidor al completarse el alta y el primer pago (`subscription_started`), **solo con consentimiento** y con el click ID de `users.attribution`; se hace cuando existan las cuentas de anuncios
-- [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político antes de lanzar campañas. Si hay problemas, valorar una comunicación más neutra
-- [ ] PostHog: activar Session replay y Heatmaps en el proyecto, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel). Pendiente de hacer juntos
-- [ ] Dashboard de embudo en PostHog; revisar mapas de calor y grabaciones de las primeras campañas
-- [ ] Primeros A/B: texto del hero, orden/precio de planes, CTA
-- [ ] Contenido de los bloques informativos y FAQ (SEO)
+- [ ] Borrador de los textos legales (aviso legal, privacidad, cookies, condiciones, uso aceptable) para que el usuario los revise con la asesoría (Fase 6). La privacidad debe decir que el correo borrado puede seguir hasta ~1 mes en copias de seguridad cifradas (D-015). **Ojo:** la ley (LSSI/RGPD) exige aviso legal, privacidad y cookies publicados antes de recoger datos de usuarios o activar analítica con cookies
+- [ ] Conversiones a Meta (Conversions API) y Google Ads desde el servidor al completarse el alta y el primer pago (`subscription_started`), **solo con consentimiento** y con el click ID de `users.attribution` (se deja listo; se activa cuando existan las cuentas de anuncios, Fase 6)
 - [ ] WebMCP: exponer `comprobar_disponibilidad`, `listar_planes`, `empezar_alta` (comprobar estado del estándar)
 - [ ] 2FA (TOTP) y passkeys en la web
 - [ ] Backups fuera del servidor (TODO back-end del README) — **antes** de tener clientes de pago
 - [ ] Página de estado del servicio
+
+## Fase 6 · Pre-lanzamiento
+
+Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté terminado, lo haya probado todo y haya pasado su feedback con ajustes. El orden de los bloques es el recomendado; el último bloque abre altas.
+
+### Probar y dar feedback
+- [ ] Probar la web entera y pasar el feedback (alta gratis y de pago, Mi cuenta, configurar dispositivos, webmail, admin)
+- [ ] Probar en dispositivos reales: el perfil en un iPhone (entrando a la web desde Safari en el iPhone) y la autoconfiguración en Thunderbird y Outlook
+- [ ] Pagos en el sandbox de Stripe: el alta de pago (hecha el 2026-10-08 con `varela@`, plan Básico); falta cancelar en Checkout, "Cambiar de plan" (subir a Pro, bajar y pasar a gratis, con "Deshacer") y "Gestionar pago y facturas". Tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y CVC
+- [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar` (necesitan los dispositivos)
+
+### Contenido
+- [ ] Textos definitivos de la landing: hero, bloques informativos y FAQ (también cuentan para el SEO). Van en `portal/config/landing.php`, o pasárselos a la IA
+- [ ] Textos legales: revisar con la asesoría el borrador de la Fase 5 y darlos por buenos (la IA los publica)
+
+### Correo y reputación
+- [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
+- [ ] Calentamiento del dominio con `javier@`: 2–4 semanas de uso real, correos normales (varias frases, sin enlaces al principio) a Gmail, Outlook y otros, **con respuestas** de vuelta; marcar "No es spam" y añadir a contactos cuando caiga en spam. Subir el volumen poco a poco, nada de envíos masivos
+- [ ] Criterio de salida del calentamiento: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención. **Sin esto no se abren altas ni se lanza publicidad**
+
+### Cobrar de verdad (Stripe)
+- [ ] Activar la cuenta "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte
+- [ ] Recibos por email (Settings → Customer emails) y marca (logo y `#AA151B`), en el sandbox y en live
+- [ ] Gestoría: si valen las facturas de Stripe, la serie de facturas propia de esta cuenta y Verifactu
+- [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción
+
+### Analítica y anuncios
+- [ ] PostHog, juntos: activar Session replay y Heatmaps, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel)
+- [ ] Cuentas de anuncios en Meta y Google (la IA activa entonces las conversiones de servidor)
+- [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político. Si hay problemas, valorar una comunicación más neutra
+
+### Abrir altas
+- [ ] Comprobar que todo lo anterior está hecho (sobre todo textos legales y calentamiento)
+- [ ] `SIGNUP_OPEN=true` y `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces el alta está cerrada y la web lleva `noindex`)
+- [ ] **Último paso: la web está en marcha.** Quitar de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales" e indicar que el servicio está **en producción con usuarios reales desde el <fecha>**: desde entonces, los cortes importan (cambios con copia, en horas de poco uso y probados al momento)
+
+## Después del lanzamiento
+
+- [ ] Dashboard de embudo en PostHog; revisar mapas de calor y grabaciones de las primeras campañas
+- [ ] Primeros A/B: texto del hero, orden/precio de planes, CTA
 
 ## Futuro (sin fecha)
 
