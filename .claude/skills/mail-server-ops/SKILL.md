@@ -5,7 +5,7 @@ description: Cómo conectarse e inspeccionar o cambiar el servidor de correo de 
 
 # Operar el servidor de correo
 
-Servidor **único y de producción**. Mientras no se abran altas no hay usuarios reales y un corte breve no afecta a nadie (ver la regla 4 de `AGENTS.md`); aun así, copia de seguridad antes de cada cambio y dejarlo probado al terminar. Lee también los *monkey noises* del [README](../../../README.md): casi todos son trampas que fallan sin avisar.
+Servidor **único y de producción, con usuarios reales desde el 2026-10-09** (ver la regla 4 de `AGENTS.md`): copia de seguridad antes de cada cambio, en horas de poco uso, probado al terminar y con forma de volver atrás. Lee también los *monkey noises* del [README](../../../README.md): casi todos son trampas que fallan sin avisar.
 
 ## Acceso
 

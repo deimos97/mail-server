@@ -46,7 +46,9 @@ class SeoTest extends TestCase
         $this->get('/sitemap.xml')
             ->assertOk()
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
-            ->assertSee('<loc>'.route('home').'</loc>', false);
+            ->assertSee('<loc>'.route('home').'</loc>', false)
+            ->assertSee('<loc>'.url('/legal/privacidad').'</loc>', false)
+            ->assertSee('<loc>'.url('/ayuda/configurar/android').'</loc>', false);
 
         $this->get('/llms.txt')
             ->assertOk()

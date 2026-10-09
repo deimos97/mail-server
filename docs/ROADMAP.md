@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
+Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
 **Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
@@ -178,28 +178,27 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 
 ### Contenido
 - [ ] Textos definitivos de la landing: hero, bloques informativos y FAQ (también cuentan para el SEO). Van en `portal/config/landing.php`, o pasárselos a la IA
-- [ ] Textos legales: revisar con la asesoría el borrador de la Fase 5 (`/legal/…`) y darlos por buenos; entonces la IA quita el aviso de borrador (`LEGAL_DRAFT=false`)
+- [x] Textos legales validados por la gestoría (2026-10-09); aviso de borrador quitado (`LEGAL_DRAFT=false`)
 
 ### Correo y reputación
 - [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
 - [ ] Calentamiento del dominio con `javier@`: 2–4 semanas de uso real, correos normales (varias frases, sin enlaces al principio) a Gmail, Outlook y otros, **con respuestas** de vuelta; marcar "No es spam" y añadir a contactos cuando caiga en spam. Subir el volumen poco a poco, nada de envíos masivos
-- [ ] Criterio de salida del calentamiento: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención. **Sin esto no se abren altas ni se lanza publicidad**
+- [ ] Criterio de salida del calentamiento: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención. **Sin esto no se lanza publicidad** (las altas se abrieron antes, para amigos)
 
 ### Cobrar de verdad (Stripe)
 - [ ] Activar la cuenta "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte
 - [ ] Recibos por email (Settings → Customer emails) y marca (logo y `#AA151B`), en el sandbox y en live
 - [ ] Gestoría: si valen las facturas de Stripe, la serie de facturas propia de esta cuenta y Verifactu
-- [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción
+- [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción. **Antes**, decidir qué pasa con los buzones que los amigos pagaron con la tarjeta de prueba: sus suscripciones del sandbox no existen en live (la IA puede listarlas y pasarlos a gratis o regalarles un tiempo)
 
 ### Analítica y anuncios
 - [ ] PostHog, juntos: activar Session replay y Heatmaps, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel)
 - [ ] Cuentas de anuncios en Meta y Google. Para activar las conversiones de servidor, pasar a la IA las claves de `config/ads.php` (píxel y token de Meta; cliente, developer token, OAuth y acciones de conversión de Google). Al activarlas, la IA añade a la política de privacidad que, con tu consentimiento, comunicamos el alta y el pago a Meta/Google (email cifrado, IP, navegador e identificador del clic)
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político. Si hay problemas, valorar una comunicación más neutra
 
-### Abrir altas
-- [ ] Comprobar que todo lo anterior está hecho (sobre todo textos legales y calentamiento)
-- [ ] `SIGNUP_OPEN=true` y `APP_INDEXABLE=true` en el `.env` del servidor (hasta entonces el alta está cerrada y la web lleva `noindex`)
-- [ ] **Último paso: la web está en marcha.** Quitar de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales" e indicar que el servicio está **en producción con usuarios reales desde el <fecha>**: desde entonces, los cortes importan (cambios con copia, en horas de poco uso y probados al momento)
+### Abrir altas (hecho el 2026-10-09)
+- [x] `SIGNUP_OPEN=true`, `APP_INDEXABLE=true` y sitemap con la ayuda, los textos legales y `/estado`. Se abrió antes de terminar el calentamiento: los amigos que prueban ayudan a calentar el dominio
+- [x] Quitada de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales": **en producción con usuarios reales desde el 2026-10-09**
 
 ## Después del lanzamiento
 

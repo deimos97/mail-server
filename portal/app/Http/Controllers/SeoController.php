@@ -12,8 +12,13 @@ class SeoController extends Controller
 {
     public function sitemap(): Response
     {
-        // Las páginas legales entrarán cuando tengan contenido (Fase 5)
-        $urls = [route('home')];
+        $urls = [
+            route('home'),
+            route('help.setup'),
+            ...collect(config('mail_clients.clients'))->keys()->map(fn (string $client) => route('help.setup.client', $client)),
+            ...collect(config('landing.legal'))->keys()->map(fn (string $page) => route('legal', $page)),
+            route('status'),
+        ];
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
             .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n"
