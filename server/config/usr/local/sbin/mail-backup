@@ -1,5 +1,6 @@
 #!/bin/bash
-# Daily backup of mailboxes, databases, DKIM keys and service config into the local restic repo.
+# Daily backup of mailboxes, databases, DKIM keys and service config into the local restic repo,
+# then a copy of it to the backup VPS (offsite). Setup of the VPS side: server/backup-vps/setup.sh.
 set -euo pipefail
 set -a; . /etc/mail-backup/env; set +a
 DUMPS=/var/backups/mail-dumps
@@ -26,3 +27,21 @@ restic forget --quiet --tag mail --keep-daily 7 --keep-weekly 4 --prune   # ~1 m
 restic check --quiet
 
 date +%s > /var/lib/mail-backup/last-success
+
+# Offsite: copy the new snapshots to the backup VPS (SFTP, chrooted user, key valid only from this IP).
+# Same password: the VPS only stores encrypted blobs. Same retention as local (D-015).
+# The VPS firewall drops the 3rd new SSH connection within 5 min: at most 2 per run (sleep before the weekly check).
+OFFSITE=sftp:ugl-backup@37.27.5.15:/restic
+SFTP_CMD="ssh -i /etc/mail-backup/offsite_ed25519 -o UserKnownHostsFile=/etc/mail-backup/offsite_known_hosts -o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=60 ugl-backup@37.27.5.15 -s sftp"
+offsite() { restic -r "$OFFSITE" -o sftp.command="$SFTP_CMD" "$@"; }
+
+trap - ERR
+offsite copy --quiet --tag mail --from-repo "$RESTIC_REPOSITORY" --from-password-file "$RESTIC_PASSWORD_FILE" \
+    || fail "copia externa: restic copy"
+offsite forget --quiet --tag mail --keep-daily 7 --keep-weekly 4 --prune || fail "copia externa: forget/prune"
+date +%s > /var/lib/mail-backup/last-offsite
+
+if [ "$(date +%u)" = 7 ]; then
+    sleep 310
+    offsite check --quiet --read-data-subset=1/8 || fail "copia externa: check"
+fi

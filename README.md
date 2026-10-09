@@ -41,6 +41,10 @@ Servicio de hosting de correo con un front PHP + Stripe (pendiente) para el alta
 
 ## *Monkey noises* y cosas a tener en cuenta
 
+### VPS de copias (37.27.5.15): 2 conexiones SSH nuevas cada 5 minutos
+
+Su cortafuegos tira la **3.ª conexión SSH nueva en 5 minutos** desde la misma IP. Por eso `mail-backup` abre como mucho dos (`copy` y `forget --prune`) y espera 310 s antes del `check` de los domingos. Si trabajas a mano contra él, usa `ControlMaster`. Ese VPS es de Tibletech y guarda copias de otros clientes: lo nuestro vive solo en `/mnt/HC_Volume_35438240/unagrandeylibre/`, `/etc/ssh/sshd_config.d/ugl-backup.conf` y `/etc/ssh/authorized_keys/ugl-backup`. No toques nada más. Al validar la configuración de SSH: `sshd -T` escribe `forcecommand none` cuando no hay ninguna, y con `pipefail` un `sshd -T | grep -q` falla por SIGPIPE aunque haya coincidencia.
+
 ### Roundcube: nombres de opciones según la versión
 
 Ahora es **Roundcube 1.6**, que usa `imap_host` y `smtp_host` (con el puerto dentro: `tls://127.0.0.1:587`). La 1.5 usaba `default_host`, `smtp_server` y `smtp_port`, e **ignoraba sin avisar** las de la 1.6: se conectaba a `localhost` sin TLS y el envío fallaba con "Ha fallado la autenticación". Al cambiar de versión, revisa siempre estas opciones en `/etc/roundcube/config.inc.php`.
@@ -178,8 +182,9 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 | Qué | Dónde |
 |---|---|
 | Backup | `/usr/local/sbin/mail-backup`, timer `mail-backup.timer` (diario a las 03:30). Repositorio restic en `/var/backups/mail-restic`, con retención de 7 diarios y 4 semanales (~1 mes, D-015: así el correo de las cuentas borradas sale de las copias en ese plazo). Incluye `/var/vmail`, volcados de las dos BD, claves DKIM y la configuración de los servicios. |
-| Contraseña de restic | `/etc/mail-backup/restic.pass` (también guardada fuera del servidor) |
-| Monitorización | `/usr/local/sbin/mail-monitor`, timer `mail-monitor.timer` (cada 10 min). Comprueba servicios, cola de Postfix (> 50), disco (> 85 %), caducidad de certificados por puerto (< 14 días), antigüedad del backup (> 26 h) y blacklists de la IP y del dominio, y los webhooks de Stripe (`artisan stripe:webhook-health` como `portal`: endpoint activo y sin eventos pendientes de entregar). Los umbrales están al principio del script. |
+| Copia externa | Al terminar la local, `mail-backup` copia las instantáneas nuevas a `sftp:ugl-backup@37.27.5.15:/restic` (VPS de copias del dueño; en disco, `/mnt/HC_Volume_35438240/unagrandeylibre/restic`) con la misma contraseña y retención, y los domingos comprueba 1/8 de los datos. Clave `/etc/mail-backup/offsite_ed25519` (solo vale desde la IP de este servidor) y huella fijada en `offsite_known_hosts`. Marca de la última correcta: `/var/lib/mail-backup/last-offsite`. El lado del VPS se prepara con `server/backup-vps/setup.sh`. Restaurar desde allí: `restic -r sftp:ugl-backup@37.27.5.15:/restic -o sftp.command="ssh -i /etc/mail-backup/offsite_ed25519 -o UserKnownHostsFile=/etc/mail-backup/offsite_known_hosts ugl-backup@37.27.5.15 -s sftp" snapshots` (con `RESTIC_PASSWORD_FILE` de `/etc/mail-backup/env`). |
+| Contraseña de restic | `/etc/mail-backup/restic.pass` (también guardada fuera del servidor). Sirve para la copia local y para la externa: si se pierde el servidor, es lo único que hace falta para leer la externa. |
+| Monitorización | `/usr/local/sbin/mail-monitor`, timer `mail-monitor.timer` (cada 10 min). Comprueba servicios, cola de Postfix (> 50), disco (> 85 %), caducidad de certificados por puerto (< 14 días), antigüedad del backup (> 26 h) y de la copia externa (> 36 h) y blacklists de la IP y del dominio, y los webhooks de Stripe (`artisan stripe:webhook-health` como `portal`: endpoint activo y sin eventos pendientes de entregar). Los umbrales están al principio del script. |
 | Alertas | `/usr/local/sbin/mail-alert` → Telegram (`/etc/mail-monitor/telegram.env`). Avisa una vez por problema, lo repite cada 6 h mientras siga y avisa cuando se resuelve. |
 | Vigilante externo | Healthchecks.io (`/etc/mail-monitor/healthchecks.env`). Recibe un ping en cada pasada del monitor y avisa por Telegram si deja de recibirlos. |
 | Web (`portal/`) | `https://unagrandeylibre.es` (`www` redirige al apex; `autoconfig.` y `autodiscover.` tienen certificado y devuelven 404 hasta la Fase 2). Releases en `/var/www/portal/releases`, la activa en `current`; `.env` y `storage/` en `/var/www/portal/shared`. Usuario y pool FPM `portal`. Certificado propio (`--cert-name unagrandeylibre.es`), independiente del del correo. |
@@ -195,7 +200,7 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 
 ## TODO back-end
 
-- [ ] **Backups fuera del servidor.** Ahora el repositorio restic está en el mismo disco: protege contra borrados y errores, pero no si se pierde el servidor. Cuando haya usuarios, añadir un destino externo (por ejemplo, un Hetzner Storage Box) con `restic copy`. No hay que cambiar nada más.
+- [x] **Backups fuera del servidor.** `restic copy` al VPS de copias (`37.27.5.15`). Hecho el 2026-10-09.
 - [ ] **Claves DKIM por dominio** cuando se admitan dominios propios de clientes: generar la clave en `/var/lib/rspamd/dkim/<dominio>.mail.key` y publicar el registro DNS.
 - [x] **Actualizar a Ubuntu 24.04** (Roundcube 1.6, PHP 8.3, Postfix 3.8, Dovecot 2.3.21, MariaDB 10.11). Hecho el 2026-10-05.
 - [ ] *(Opcional)* Purgar los restos de configuración de paquetes ya desinstalados (`dpkg -l | grep ^rc`: PHP 8.1, MariaDB 10.6, kernels 5.15, ufw).

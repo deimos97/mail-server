@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 5 — EN CURSO** (desde el 2026-10-09; queda solo el backup fuera del servidor). Fase 4 cerrada el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
+Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
 **Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
@@ -163,7 +163,8 @@ Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Pasar a
 - [x] WebMCP (2026-10-09): `comprobar_disponibilidad`, `listar_planes`, `empezar_alta` (`resources/js/webmcp.js`), con `document.modelContext` y, si no, `navigator.modelContext` (el estándar es un borrador del W3C WebML CG de 2026 y cambió de sitio). API pública `GET /api/plans` y `llms.txt` ampliado
 - [x] Verificación en dos pasos (TOTP, códigos de recuperación de un solo uso, código que no se puede reutilizar) y passkeys (`spatie/laravel-passkeys`, interfaz propia con `@simplewebauthn/browser`) en Mi cuenta → Seguridad; "Entrar con una passkey" en `/entrar`. Los admins siguen entrando solo por `/admin`. Cada cambio se avisa por email
 - [x] Página de estado del servicio `/estado` (2026-10-09): `mail-monitor` escribe qué comprobaciones fallan en `/var/www/portal/shared/status.json` y la web lo traduce a componentes (recibir, enviar, apps, webmail, web, pagos) sin detalles técnicos; "sin datos recientes" si tiene más de 30 min. Enlazada en el pie. Al estar en el mismo servidor, si este cae, la página también
-- [ ] Backups fuera del servidor (TODO back-end del README) — **antes** de tener clientes de pago. Destino: el VPS de backups del usuario (`root@37.27.5.15`); no crear nada en él sin avisar. Siguiente iteración
+- [x] Confirmaciones propias (2026-10-09): `<dialog>` nativo con la estética de la web en lugar de `confirm()` del navegador (`resources/js/confirm.js`; en un formulario, `data-confirm="…"`)
+- [x] Backups fuera del servidor (2026-10-09): cada noche, tras la copia local, `mail-backup` hace `restic copy` al VPS de copias del dueño (`37.27.5.15`) y aplica la misma retención (D-015); los domingos comprueba 1/8 de los datos. Repositorio cifrado con la misma contraseña (el VPS no puede leerlo) en `/mnt/HC_Volume_35438240/unagrandeylibre/restic`, **separado** de las copias de clientes de ese VPS (fuera de `backup/`, que es lo único que tocan sus scripts y lo que sube a R2). Usuario `ugl-backup` solo SFTP, encerrado en esa carpeta, con una clave válida solo desde la IP del servidor de correo (`server/backup-vps/setup.sh`). `mail-monitor` avisa si la última copia externa tiene más de 36 h. Opción sencilla: si alguien es root en el servidor de correo podría borrarla también
 
 ## Fase 6 · Pre-lanzamiento
 
