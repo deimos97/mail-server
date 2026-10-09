@@ -102,6 +102,10 @@ else
     p="Stripe: $(echo "${out:-la comprobación no respondió}" | tail -1)"
 fi
 report stripe-webhooks "$p"
+# Estado público (página /estado de la web): solo qué comprobaciones fallan ahora, sin detalles
+probs=$(cd "$STATE" && ls -1 | grep -v '^last-run$' | sed 's/.*/"&"/' | paste -sd, -)
+printf '{"checked_at":%s,"problems":[%s]}\n' "$now" "$probs" > /var/www/portal/shared/status.json.tmp \
+    && chmod 644 /var/www/portal/shared/status.json.tmp && mv /var/www/portal/shared/status.json.tmp /var/www/portal/shared/status.json
 date +%s > "$STATE/last-run"
 
 # Dead-man's switch: an external service alerts if these pings stop arriving

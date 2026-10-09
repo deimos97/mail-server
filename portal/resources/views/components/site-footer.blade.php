@@ -12,6 +12,7 @@
                 @foreach (config('landing.legal') as $slug => $label)
                     <li><a href="{{ route('legal', $slug) }}" class="hover:text-tinta hover:underline">{{ $label }}</a></li>
                 @endforeach
+                <li><a href="{{ route('status') }}" class="hover:text-tinta hover:underline">Estado del servicio</a></li>
                 <li><button type="button" x-data @click="$dispatch('ugl-open-consent')" class="hover:text-tinta hover:underline">Configurar cookies</button></li>
             </ul>
         </nav>

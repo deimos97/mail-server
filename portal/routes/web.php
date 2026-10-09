@@ -85,6 +85,9 @@ Route::middleware('auth')->group(function () {
 Route::get('/ayuda/configurar', [HelpController::class, 'index'])->name('help.setup');
 Route::get('/ayuda/configurar/{client}', [HelpController::class, 'show'])->name('help.setup.client');
 
+// Estado del servicio (lo que comprueba mail-monitor)
+Route::get('/estado', \App\Http\Controllers\StatusController::class)->name('status');
+
 // Textos legales (Fase 5; datos del titular en config/legal.php)
 Route::get('/legal/{page}', \App\Http\Controllers\LegalController::class)->name('legal');
 

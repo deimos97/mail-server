@@ -25,7 +25,7 @@
     </table>
 
     <h2>Cómo cambiar de opinión</h2>
-    <p>Puedes aceptar o rechazar las cookies de análisis cuando quieras desde el enlace <strong>«Cookies»</strong> del pie de página. Si las rechazas después de haberlas aceptado, dejamos de medir y borramos lo que PostHog guardó en tu navegador. También puedes borrar las cookies desde la configuración de tu navegador.</p>
+    <p>Puedes aceptar o rechazar las cookies de análisis cuando quieras desde <strong>«Configurar cookies»</strong>, en el pie de página. Si las rechazas después de haberlas aceptado, dejamos de medir y borramos lo que PostHog guardó en tu navegador. También puedes borrar las cookies desde la configuración de tu navegador.</p>
 
     <p>Más información sobre cómo tratamos tus datos en la <a href="{{ route('legal', 'privacidad') }}">política de privacidad</a>.</p>
 </x-legal-page>

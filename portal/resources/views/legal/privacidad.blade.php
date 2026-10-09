@@ -46,7 +46,7 @@
 
     <h2>6. Tus derechos</h2>
     <p>Puedes pedirnos en cualquier momento <strong>acceder</strong> a tus datos, <strong>rectificarlos</strong>, <strong>suprimirlos</strong>, <strong>limitar</strong> u <strong>oponerte</strong> a su tratamiento y su <strong>portabilidad</strong>, y retirar tu consentimiento cuando lo hayas dado (sin que afecte a lo anterior). Escríbenos a <a href="mailto:{{ $l['email'] }}">{{ $l['email'] }}</a> desde tu email de recuperación.</p>
-    <p>Muchas cosas puedes hacerlas tú mismo desde «Mi cuenta»: cambiar tu email de recuperación, descargar una copia de tu correo o borrar tu cuenta. Las cookies de análisis las puedes aceptar o rechazar en cualquier momento desde el enlace «Cookies» del pie de página.</p>
+    <p>Muchas cosas puedes hacerlas tú mismo desde «Mi cuenta»: cambiar tu email de recuperación, descargar una copia de tu correo o borrar tu cuenta. Las cookies de análisis las puedes aceptar o rechazar en cualquier momento desde «Configurar cookies», en el pie de página.</p>
     <p>Si crees que no hemos tratado bien tus datos, puedes reclamar ante la <a href="https://www.aepd.es" rel="noopener">Agencia Española de Protección de Datos</a>.</p>
 
     <h2>7. Seguridad</h2>
