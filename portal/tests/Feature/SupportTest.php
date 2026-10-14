@@ -117,6 +117,22 @@ class SupportTest extends TestCase
         });
     }
 
+    public function test_expired_tickets_are_deleted_with_their_images(): void
+    {
+        $support = app(Support::class);
+        $old = $support->open(null, 'lucia@gmail.com', 'Antigua', 'Hola', [UploadedFile::fake()->image('vieja.png')]);
+        $recent = $support->open(null, 'pepe@gmail.com', 'Reciente', 'Hola');
+        $path = $old->messages()->sole()->attachments()->sole()->path;
+
+        $old->update(['last_message_at' => now()->subMonths(24)->subDay()]);
+        $recent->update(['last_message_at' => now()->subMonths(24)->addDay()]);
+
+        $this->assertSame(1, $support->deleteExpired());
+        $this->assertModelMissing($old);
+        $this->assertModelExists($recent);
+        Storage::disk('local')->assertMissing($path);
+    }
+
     public function test_the_sent_page_needs_the_session(): void
     {
         $this->get('/soporte/enviado')->assertRedirect('/soporte');

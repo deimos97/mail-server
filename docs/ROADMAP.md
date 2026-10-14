@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Fase 7 · Soporte por tickets — EN CURSO** (desde el 2026-10-14; el código está hecho y en producción, queda lo del dueño: la gestoría y probar el aviso de Telegram). **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
+Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Fase 7 · Soporte por tickets — cerrada el 2026-10-14**. **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
 **Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
@@ -31,6 +31,8 @@ Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del d
 | D-019 | Respuestas y autoconfirmaciones salen de un buzón propio **`soporte@unagrandeylibre.es`** mostrado como "Javier · Una Grande y Libre" (no de `javier@`): la web solo lee ese buzón, nunca el personal, y sirve igual si un día atiende más gente. | 2026-10-14 |
 | D-020 | Adjuntos del ticket: **solo imágenes, hasta 3 y 8 MB en total**, dentro de los límites actuales de nginx/PHP (12 MB por petición). Para otros ficheros o más pesados, el formulario remite a `https://transfer.tibletech.com/`. | 2026-10-14 |
 | D-022 | **Avisos a Telegram** (mismo bot y chat que `mail-monitor`): cada mensaje del cliente en soporte (no nuestras respuestas), y un **resumen diario a las 09:00** desde el último enviado: visitas, altas (gratis/de pago y €/mes), ingresos recurrentes, bajas e impagos, soporte, conversión y origen, correo enviado/recibido con top 3 (sin `soporte@`, `javier@` ni los de sistema), cuotas >90 % y >100 %, salud del correo (rechazos, rebotes, cola, fail2ban, copias), disco y CPU/RAM. | 2026-10-14 |
+| D-023 | **Sin calentamiento formal del dominio** como requisito para lanzar publicidad: se quitan de la Fase 6 las semanas de uso con `javier@` y el criterio de salida de Postmaster Tools. Postmaster Tools y SNDS siguen dados de alta para vigilar la reputación. | 2026-10-14 |
+| D-024 | Consultas de soporte: se guardan **2 años desde el último mensaje** y se borran con la cuenta (validado por la gestoría). | 2026-10-14 |
 | D-021 | Abrir tickets **sin sesión: activado** de entrada (con Turnstile y límite por IP), con un interruptor en el admin para cerrarlo. | 2026-10-14 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
@@ -68,7 +70,7 @@ Con SPF, DKIM y DMARC en PASS y un 10/10 en mail-tester, Gmail seguía mandando 
 - [x] Alta en **Google Postmaster Tools** (dominio `unagrandeylibre.es`) y **Microsoft SNDS** (IP `128.140.5.221`); revisar la reputación cada semana
 - [x] Buzón real para el calentamiento: **`javier@unagrandeylibre.es`**, creado con el propio alta (2026-10-07). `postmaster@` y `abuse@` redirigidos a él (reciben los informes DMARC)
 - [x] `postmaster@` y `abuse@` operativos (alias de `javier@` desde el 2026-10-07; antes de `test@`)
-- El calentamiento en sí (semanas de uso real con `javier@` y su criterio de salida) está en la Fase 6
+- El calentamiento en sí (semanas de uso real con `javier@` y su criterio de salida) se quitó del plan el 2026-10-14 (D-023)
 
 - [x] Migraciones: `plans`, `plan_offers`, `reserved_names`, `name_rules`, `name_price_tiers`; columnas `public_signup` y `sort_order` en `mailserver.domains` (`server/sql/2026-10-06-domains-public-signup.sql`, aplicada como root)
 - [x] Admin Filament 5 en `/admin` (2FA obligatoria; solo `is_admin`): planes (gratis/pago, activación absoluta o programada, destacado, orden), ofertas programables, dominios, nombres reservados, reglas de nombre y tramos de precio por longitud. Alta del admin: `portal:make-admin`
@@ -189,9 +191,8 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 - [x] Textos legales validados por la gestoría (2026-10-09); aviso de borrador quitado (`LEGAL_DRAFT=false`)
 
 ### Correo y reputación
-- [ ] Nombre visible en la identidad de Roundcube de `javier@`; retirar `test@` cuando ya no haga falta
-- [ ] Calentamiento del dominio con `javier@`: 2–4 semanas de uso real, correos normales (varias frases, sin enlaces al principio) a Gmail, Outlook y otros, **con respuestas** de vuelta; marcar "No es spam" y añadir a contactos cuando caiga en spam. Subir el volumen poco a poco, nada de envíos masivos
-- [ ] Criterio de salida del calentamiento: Postmaster Tools con reputación de dominio e IP "Media" o mejor, y correos nuevos llegando a la bandeja de entrada de Gmail y Outlook sin intervención. **Sin esto no se lanza publicidad** (las altas se abrieron antes, para amigos)
+- [x] (2026-10-14) Nombre visible "Javier · Una Grande y Libre" en la identidad de Roundcube de `javier@`. `test@` retirado (con copia restic antes): marcado como borrado, correo borrado con `mail-provision delete-content`, contraseñas de aplicación revocadas y su usuario de Roundcube quitado; el nombre queda en cuarentena 90 días
+- Calentamiento del dominio y su criterio de salida: quitados del plan (D-023)
 
 ### Cobrar de verdad (Stripe)
 - [ ] Activar la cuenta "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte
@@ -208,7 +209,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 - [x] `SIGNUP_OPEN=true`, `APP_INDEXABLE=true` y sitemap con la ayuda, los textos legales y `/estado`. Se abrió antes de terminar el calentamiento: los amigos que prueban ayudan a calentar el dominio
 - [x] Quitada de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales": **en producción con usuarios reales desde el 2026-10-09**
 
-## Fase 7 · Soporte por tickets — EN CURSO (queda lo del dueño)
+## Fase 7 · Soporte por tickets (cerrada el 2026-10-14)
 
 Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por separado.
 
@@ -234,16 +235,16 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
   - `support:fetch` con `runInBackground` moría al terminar el scheduler oneshot y no entraban las respuestas (`03cb69b`)
 
 ### D · Privacidad
-- [x] (2026-10-14) Borrador de los cambios en la política de privacidad: [docs/legal/borrador-privacidad-soporte.md](legal/borrador-privacidad-soporte.md). Propone guardar las consultas 2 años desde el último mensaje y borrarlas con la cuenta
-- [ ] **Dueño:** pasarlo a la gestoría y validar el plazo
+- [x] (2026-10-14) Borrador de los cambios en la política de privacidad (ya aplicado y borrado). Proponía guardar las consultas 2 años desde el último mensaje y borrarlas con la cuenta
+- [x] (2026-10-14) **Dueño:** validado por la gestoría, con el plazo de 2 años (D-024)
 - [x] (2026-10-14) Al borrar la cuenta se borran sus tickets con sus imágenes, también los que abrió sin sesión con su email de recuperación (`Support::deleteForUser`, desde `AccountDeletion`). Así se cumple lo que ya promete la política. La página de borrar cuenta lo avisa
-- [ ] Al validarlo: aplicar el texto en `privacidad.blade.php` (y la fecha en `config/legal.php`) y una tarea diaria que borre los tickets caducados con sus imágenes
+- [x] (2026-10-14) Texto aplicado en `privacidad.blade.php` (fila de soporte, Turnstile y Cloudflare también en el formulario, plazo en el punto 3; fecha en `config/legal.php`) y tarea diaria `limpiar-soporte` (04:50) que borra las consultas caducadas con sus imágenes (`Support::deleteExpired`, `support.retention_months`)
 
 ### E · Avisos a Telegram (D-022)
 - [x] (2026-10-14) Aviso de cada ticket nuevo y de cada respuesta del cliente: número, asunto, quién, adjuntos y el mensaje recortado (`Support::telegramText`, por la cola)
 - [x] (2026-10-14) Resumen diario: `report:daily-stats` (web) + `mail-daily-report` y su timer (servidor) + muestras de CPU/RAM en `mail-monitor`. Probado con `--dry-run` en producción
 - [x] (2026-10-14) Resumen de prueba enviado y recibido (17:06); el primero de verdad, el 2026-10-15 a las 09:00
-- [ ] **Dueño:** comprobar que llega el aviso de Telegram al abrir un ticket o responder a uno por email
+- [x] (2026-10-14) **Dueño:** comprobado que llega el aviso de Telegram al abrir un ticket o responder a uno por email
 - [x] (2026-10-14, `e74c5b3`) Instalado en el servidor (script, timer a las 09:00 y `mail-monitor`), token del bot en el `.env` de la web y desplegado
 
 ## Después del lanzamiento

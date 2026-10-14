@@ -19,7 +19,7 @@ Servicio de correo `@unagrandeylibre.es` (en el futuro, más dominios). Dos part
 - **Back-end de correo** (Postfix, Dovecot, Rspamd, Roundcube; ver README).
 - **Web** en `portal/` (Laravel): landing, alta (gratis o de pago con Stripe), Mi cuenta, ayuda y contacto (tickets) y admin. Ver [portal/AGENTS.md](portal/AGENTS.md).
 
-Altas abiertas desde el 2026-10-09 (Stripe todavía en sandbox). El código de las Fases 0–5 está terminado. La Fase 7 (soporte por tickets en `/soporte` y avisos a Telegram) está en producción desde el 2026-10-14. Lo pendiente es de las Fases 6 y 7 del ROADMAP, casi todo tareas del dueño.
+Altas abiertas desde el 2026-10-09 (Stripe todavía en sandbox). El código de las Fases 0–5 está terminado. La Fase 7 (soporte por tickets en `/soporte` y avisos a Telegram) está en producción desde el 2026-10-14. Fase 7 cerrada el 2026-10-14. Lo pendiente es de la Fase 6 del ROADMAP, casi todo tareas del dueño.
 
 ## Reglas de trabajo
 

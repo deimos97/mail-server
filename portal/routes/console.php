@@ -5,6 +5,7 @@ use App\Models\OauthCode;
 use App\Models\OauthToken;
 use App\Services\MailboxExports;
 use App\Services\MailboxLifecycle;
+use App\Services\Support;
 use Illuminate\Support\Facades\Schedule;
 
 // Tareas programadas (portal-schedule.timer ejecuta schedule:run cada minuto)
@@ -33,3 +34,7 @@ Schedule::call(fn () => app(MailboxLifecycle::class)->run())
 // Soporte (Fase 7): respuestas de los clientes por email a soporte@ → su ticket.
 // Sin runInBackground: portal-schedule es un servicio oneshot y systemd mata lo que queda en segundo plano al terminar.
 Schedule::command('support:fetch')->everyMinute()->withoutOverlapping(5);
+
+// Soporte: consultas caducadas (2 años desde el último mensaje, política de privacidad) con sus imágenes
+Schedule::call(fn () => app(Support::class)->deleteExpired())
+    ->dailyAt('04:50')->name('limpiar-soporte')->withoutOverlapping();

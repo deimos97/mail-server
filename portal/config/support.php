@@ -21,6 +21,10 @@ return [
         'max_total_kb' => 8 * 1024,
         'mimes' => ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'],
     ],
+    // Plazo de conservación de las consultas desde su último mensaje (política de privacidad, punto 3;
+    // validado por la gestoría el 2026-10-14). Pasado el plazo, `Support::deleteExpired` las borra con sus imágenes.
+    'retention_months' => 24,
+
     'transfer_url' => 'https://transfer.tibletech.com/',
 
     // D-021: tickets sin sesión. Se cambia desde el admin (ajuste support.guests); esto es el valor de partida.

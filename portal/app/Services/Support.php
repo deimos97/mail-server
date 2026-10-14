@@ -123,6 +123,18 @@ class Support
         return $tickets->count();
     }
 
+    /** Borra las consultas cuyo último mensaje pasa del plazo de conservación (tarea diaria). */
+    public function deleteExpired(): int
+    {
+        $tickets = SupportTicket::where('last_message_at', '<', now()->subMonths(config('support.retention_months')))->get();
+
+        foreach ($tickets as $ticket) {
+            $this->delete($ticket);
+        }
+
+        return $tickets->count();
+    }
+
     /** Borra un ticket, sus mensajes y sus imágenes del disco. */
     public function delete(SupportTicket $ticket): void
     {

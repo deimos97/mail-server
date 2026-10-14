@@ -230,5 +230,5 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 Web en `unagrandeylibre.es` (`portal/`, en producción) para darse de alta, elegir plan (gratis o de pago con Stripe) y gestionar los buzones. Visión en [docs/front/PRODUCT.md](docs/front/PRODUCT.md), diseño técnico en [docs/front/ARCHITECTURE.md](docs/front/ARCHITECTURE.md), decisiones pendientes en [docs/DECISIONS.md](docs/DECISIONS.md) y el detalle por tareas en [docs/ROADMAP.md](docs/ROADMAP.md).
 
 - [x] **Fases 0–5** (cimientos, landing, alta gratis, área de cliente, pagos con Stripe y lo que faltaba antes de lanzar): hechas entre el 2026-10-05 y el 2026-10-09. Altas abiertas el 2026-10-09.
-- [ ] **Fase 6 · Pre-lanzamiento:** pruebas con amigos, calentamiento del dominio, Stripe en real, analítica y anuncios. Detalle en el ROADMAP.
+- [ ] **Fase 6 · Pre-lanzamiento:** pruebas con amigos, Stripe en real, analítica y anuncios. Detalle en el ROADMAP.
 - [ ] **Futuro:** más dominios, store de nombres/dominios, dominios propios.

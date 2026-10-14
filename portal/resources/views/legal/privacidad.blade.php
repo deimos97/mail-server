@@ -13,9 +13,10 @@
             <tr><td>El contenido de tu buzón (correos, carpetas, adjuntos)</td><td>Guardarlo, entregártelo y enviarlo en tu nombre. No lo leemos ni lo usamos para nada más (ver punto 5)</td><td>Contrato</td></tr>
             <tr><td>Datos técnicos: IP, fecha y hora de conexiones y envíos, último acceso, espacio usado</td><td>Seguridad, prevención de abusos y spam, diagnóstico de problemas y mostrarte el uso de tu cuenta</td><td>Interés legítimo en la seguridad del servicio</td></tr>
             <tr><td>Datos de pago y facturación (planes de pago)</td><td>Cobrar, emitir facturas y cumplir obligaciones fiscales. Los datos de tu tarjeta los trata Stripe; nosotros nunca los vemos</td><td>Contrato y obligación legal</td></tr>
+            <tr><td>Lo que nos escribes en el formulario de ayuda o por email a soporte: tu email, el asunto, el mensaje, las imágenes que adjuntes y la IP desde la que escribes</td><td>Responder a tu consulta y, si tienes cuenta, resolver la incidencia en ella</td><td>Contrato, si tienes cuenta; si no la tienes, tu consentimiento al escribirnos</td></tr>
             <tr><td>Origen de tu visita (campaña, enlace o web de procedencia)</td><td>Saber qué campañas funcionan</td><td>Interés legítimo; con datos de terceros, solo con tu consentimiento</td></tr>
             <tr><td>Uso de la web (páginas, clics, mapas de calor, grabaciones de sesión con los campos ocultos)</td><td>Mejorar la web</td><td>Consentimiento (solo si aceptas las cookies de análisis)</td></tr>
-            <tr><td>Verificación anti-robots (Cloudflare Turnstile)</td><td>Evitar altas automáticas</td><td>Interés legítimo en la seguridad</td></tr>
+            <tr><td>Verificación anti-robots (Cloudflare Turnstile)</td><td>Evitar altas y mensajes automáticos (alta y formulario de ayuda)</td><td>Interés legítimo en la seguridad</td></tr>
         </tbody>
     </table>
     <p>Para crear una cuenta, los datos marcados como obligatorios son necesarios: sin ellos no podemos prestarte el servicio. No tomamos decisiones automatizadas que te afecten de forma significativa ni elaboramos perfiles con fines comerciales.</p>
@@ -23,6 +24,7 @@
     <h2>3. Cuánto tiempo los guardamos</h2>
     <ul>
         <li><strong>Cuenta y buzón:</strong> mientras tengas la cuenta. Si la borras, borramos al momento tu correo y tus datos de la web. La dirección se queda bloqueada 90 días (sin contenido) para que nadie pueda recibir correo dirigido a ti, y después queda libre.</li>
+        <li><strong>Consultas de soporte:</strong> hasta 2 años desde el último mensaje, para tener el historial si vuelves a escribirnos por lo mismo. Si borras tu cuenta, borramos también tus consultas.</li>
         <li><strong>Copias de seguridad:</strong> guardamos copias cifradas del servidor durante un máximo de un mes. Lo que borres desaparece de ellas en ese plazo; mientras tanto no se usan para nada salvo para recuperar el servicio ante un desastre.</li>
         <li><strong>Registros técnicos:</strong> unas cinco semanas como máximo.</li>
         <li><strong>Cuentas gratuitas sin uso:</strong> si pasan 6 meses sin que entres, te avisamos y, si no vuelves en 30 días, borramos la cuenta.</li>
@@ -36,7 +38,7 @@
         <li><strong>Hetzner Online GmbH</strong> (Alemania): servidores donde se guardan la web, tu correo y las copias de seguridad, en la Unión Europea.</li>
         <li><strong>Stripe Payments Europe, Ltd.</strong> (Irlanda): cobros de los planes de pago. Stripe trata los datos de tu tarjeta y puede actuar también como responsable para cumplir sus obligaciones financieras.</li>
         <li><strong>PostHog</strong> (servidores en la Unión Europea): análisis de uso de la web, solo si aceptas las cookies de análisis.</li>
-        <li><strong>Cloudflare, Inc.</strong>: DNS del dominio y verificación anti-robots en el alta.</li>
+        <li><strong>Cloudflare, Inc.</strong>: DNS del dominio y verificación anti-robots en el alta y en el formulario de ayuda.</li>
         <li>Nuestra <strong>asesoría fiscal y contable</strong>, para la contabilidad y los impuestos.</li>
     </ul>
     <p>Algunos de estos proveedores pertenecen a grupos con sede en Estados Unidos. Cuando hay transferencias internacionales de datos, se hacen con las garantías del RGPD (Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo de la Comisión Europea).</p>
