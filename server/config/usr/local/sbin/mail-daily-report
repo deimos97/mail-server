@@ -69,6 +69,14 @@ def euros(cents):
     return f'{cents / 100:,.2f} €'.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 
+def dec(x, digits=1):
+    return f'{x:.{digits}f}'.replace('.', ',')
+
+
+def plural(n, one, many):
+    return f'{num(n)} {one if n == 1 else many}'
+
+
 def top(counter, n=3):
     return ', '.join(f'{e(k)} ({num(v)})' for k, v in counter.most_common(n)) or '—'
 
@@ -202,13 +210,13 @@ hours = round((now - since).total_seconds() / 3600)
 period = f'desde el {since:%d/%m %H:%M}' + (f' ({hours} h)' if hours != 24 else '')
 msg = [f'☀️ <b>Resumen diario</b> · {period}', '']
 
-msg.append(f'👀 <b>Visitas (aprox.):</b> {num(len(visitors))} visitantes · {num(pageviews)} páginas vistas')
+msg.append(f'👀 <b>Visitas (aprox.):</b> {plural(len(visitors), "visitante", "visitantes")} · {plural(pageviews, "página vista", "páginas vistas")}')
 if sources:
     msg.append(f'   Origen: {top(sources)}')
 
 if biz:
     s = biz['signups']
-    line = f'🆕 <b>Altas:</b> {num(s["mailboxes"])} buzones'
+    line = f'🆕 <b>Altas:</b> {plural(s["mailboxes"], "buzón", "buzones")}'
     if s['mailboxes']:
         parts = []
         if s['free']:
@@ -218,11 +226,11 @@ if biz:
         line += ' (' + ' · '.join(parts) + ')'
     msg.append(line)
     if visitors:
-        msg.append(f'   Conversión: {s["users"] / len(visitors) * 100:.1f} % ({num(s["users"])} cuentas nuevas / visitantes)')
+        msg.append(f'   Conversión: {dec(s["users"] / len(visitors) * 100)} % ({plural(s["users"], "cuenta nueva", "cuentas nuevas")} / visitantes)')
     if s['sources']:
         msg.append('   De dónde vienen: ' + ', '.join(f'{e(k)} ({v})' for k, v in s['sources'].items()))
     r = biz['revenue']
-    msg.append(f'💶 <b>Ingresos:</b> {euros(r["monthly_cents"])}/mes de {num(r["paid_mailboxes"])} buzones de pago (precio de lista, sin ofertas)')
+    msg.append(f'💶 <b>Ingresos:</b> {euros(r["monthly_cents"])}/mes de {plural(r["paid_mailboxes"], "buzón", "buzones")} de pago (precio de lista, sin ofertas)')
     c = biz['churn']
     if any(c.values()):
         msg.append(f'📉 <b>Bajas:</b> {c["deleted_mailboxes"]} buzones borrados · {c["cancelled_plans"]} planes cancelados · '
@@ -235,7 +243,7 @@ if biz:
 else:
     msg.append('⚠️ No se han podido leer los datos de la web (report:daily-stats).')
 
-msg += ['', f'✉️ <b>Correo:</b> {num(sent)} enviados fuera · {num(received)} entregados en buzones']
+msg += ['', f'✉️ <b>Correo:</b> {plural(sent, "enviado", "enviados")} fuera · {plural(received, "entregado", "entregados")} en buzones']
 msg.append(f'   Más envían: {top(top_sent)}')
 msg.append(f'   Más reciben: {top(top_received)}')
 health = f'🛡 <b>Salud:</b> {num(rejected)} rechazados al entrar (spam, listas negras…) · {num(bounced)} rebotes · ' \
@@ -246,8 +254,8 @@ fmt = lambda h: 'nunca' if h is None else (f'hace {h:.0f} h' + (' ⚠️' if h >
 msg.append(f'💾 <b>Copias:</b> local {fmt(local)} · externa {fmt(offsite)}')
 
 used_pct = disk.used / disk.total * 100
-vmail_gb = f' · correo {int(vmail[0]) / 1e9:.1f} GB' if vmail else ''
-msg += ['', f'🖥 <b>Disco:</b> {used_pct:.0f} % ({disk.used / 1e9:.1f} de {disk.total / 1e9:.0f} GB){vmail_gb}']
+vmail_gb = f' · correo {dec(int(vmail[0]) / 1e9)} GB' if vmail else ''
+msg += ['', f'🖥 <b>Disco:</b> {used_pct:.0f} % ({dec(disk.used / 1e9)} de {disk.total / 1e9:.0f} GB){vmail_gb}']
 msg.append(f'   CPU: media {sum(loads) / len(loads) / cpus * 100:.0f} %, pico {max(loads) / cpus * 100:.0f} % · '
            f'RAM: media {sum(mems) / len(mems):.0f} %, pico {max(mems):.0f} %')
 
