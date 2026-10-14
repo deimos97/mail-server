@@ -45,7 +45,7 @@ Nada más en el onboarding: ni nombre, ni dirección, ni teléfono. Los datos de
 
 Una vez dentro:
 
-- **Mis buzones:** lista (normalmente uno), con plan, uso de cuota y estado. Por buzón: abrir webmail (SSO), dispositivos conectados (añadir, revocar), configuración de clientes, cambiar de plan, cancelar.
+- **Mis buzones:** lista (normalmente uno), con plan, uso de cuota y estado. Por buzón: abrir webmail (SSO), dispositivos conectados (añadir, revocar), configuración de clientes, cambiar de plan, cancelar. Cancelar se hace solo aquí (no en el portal de Stripe, que queda para la tarjeta y las facturas): si el buzón puede pasar a gratis es «Pasar a gratis»; si no (nombre corto, ya tiene uno gratis o no cabe), «Cancelar mi plan» con una confirmación que dice que se pierde y en qué fechas (fin del plan, suspensión y borrado), y un email con esas fechas (D-026).
   - Cada buzón es su propia tarjeta (cabecera con la @ roja), debajo del bloque de la cuenta y con el título "Tus N buzones", para distinguirlos cuando hay varios.
   - Sin dispositivos, las dos acciones principales van igual de grandes y con subtítulo: **Configura un dispositivo** ("Recomendado: en tu móvil u ordenador, como Gmail o iCloud", rojo relleno, arriba) y **Abrir mi correo** ("En el navegador web", en blanco). Con dispositivos, "Abrir mi correo" es la principal y los dispositivos van plegados: número + "Añadir".
 - **Añadir otro buzón:** mismo flujo que el onboarding, sin el paso de email.

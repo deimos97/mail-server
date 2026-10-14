@@ -4,7 +4,7 @@ Aquí solo están las decisiones **pendientes**. Cuando se toma una, se quita de
 
 Una IA que retome el proyecto **no debe tomar en silencio ninguna de estas decisiones**: la propone y pregunta.
 
-Formato: `## D-NNN · Título` → contexto, opciones, recomendación, y una línea `Decisión:` que rellena el usuario. La siguiente libre es **D-026**.
+Formato: `## D-NNN · Título` → contexto, opciones, recomendación, y una línea `Decisión:` que rellena el usuario. La siguiente libre es **D-027**.
 
 ---
 

@@ -21,12 +21,16 @@ class PlanController extends Controller
     {
         $mailbox = $this->mailbox($request, $mailbox);
         $subscription = $this->plans->subscription($mailbox);
+        $fitsFree = app(\App\Services\MailboxBilling::class)->fitsFree($mailbox);
 
         return view('account.plan', [
             'mailbox' => $mailbox,
             'options' => $this->plans->options($mailbox),
             'subscription' => $subscription,
             'pendingFree' => $subscription?->onGracePeriod(),
+            'fitsFree' => $fitsFree,
+            // Si no puede pasar a gratis, cancelar es perderlo: la página enseña las fechas antes y después
+            'loss' => $subscription && ! $fitsFree ? $this->plans->lossDates($subscription) : null,
         ]);
     }
 
@@ -56,6 +60,19 @@ class PlanController extends Controller
         }
 
         return redirect()->route('account')->with('status', 'Hecho: sigues con tu plan actual, que se renovará con normalidad.');
+    }
+
+    public function cancel(Request $request, int $mailbox): RedirectResponse
+    {
+        $mailbox = $this->mailbox($request, $mailbox);
+        try {
+            $subscription = $this->plans->cancel($mailbox);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['plan' => $e->getMessage()]);
+        }
+        $end = $subscription->ends_at?->timezone('Europe/Madrid')->format('d/m/Y');
+
+        return redirect()->route('account')->with('status', "Plan cancelado: {$mailbox->email} funciona hasta el {$end}. Te hemos enviado un email con las fechas; puedes deshacerlo hasta entonces en «Cambiar de plan».");
     }
 
     /** Vuelta de Stripe Checkout al pasar de gratis a pago. */

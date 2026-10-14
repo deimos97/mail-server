@@ -9,9 +9,17 @@
 <x-signup-layout title="Cambiar de plan">
     <p class="mt-2 text-stone-600">Para <strong data-ph-mask>{{ $mailbox->email }}</strong>. Precios con IVA incluido.</p>
 
+    @php $fmt = fn ($date) => $date->timezone('Europe/Madrid')->format('d/m/Y'); @endphp
     @if ($pendingFree)
         <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">
-            <p class="font-semibold">Tu plan pasará a gratis el {{ $subscription->ends_at->timezone('Europe/Madrid')->format('d/m/Y') }}.</p>
+            @if ($fitsFree)
+                <p class="font-semibold">Tu plan pasará a gratis el {{ $fmt($subscription->ends_at) }}.</p>
+            @else
+                <p class="font-semibold">Has cancelado el plan: perderás este buzón.</p>
+                <p class="mt-1 text-stone-700">
+                    Funciona hasta el {{ $fmt($subscription->ends_at) }}; después se suspende{{ $loss ? ' y el '.$fmt($loss['delete']).' borramos todo su correo' : '' }}.
+                </p>
+            @endif
             <form method="POST" action="{{ route('account.plan.resume', $mailbox->id) }}" class="mt-3">@csrf
                 <button class="rounded-xl bg-white px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Deshacer y seguir con mi plan</button>
             </form>
@@ -70,6 +78,28 @@
                     x-text="plan == current ? 'Elige otro plan' : (meta[plan]?.free ? 'Pasar a gratis' : (sub ? 'Cambiar de plan' : 'Ir al pago'))">Cambiar de plan</button>
         @endif
     </form>
+
+    {{-- Cancelar: solo para los que no pueden pasar a gratis (los demás eligen "Gratis" arriba). Avisa de que se pierde. --}}
+    @if ($subscription && ! $pendingFree && ! $fitsFree)
+        @php
+            $why = $options->first(fn ($o) => $o['plan']->is_free)['reason'] ?? null;
+            $body = $loss
+                ? "Seguirá funcionando hasta el {$fmt($loss['end'])}. Después lo suspenderemos y el {$fmt($loss['delete'])} borraremos todo su correo; más adelante, el nombre quedará libre para otras personas. Puedes deshacerlo hasta el {$fmt($loss['end'])}."
+                : 'Seguirá funcionando hasta el final del periodo pagado. Después lo suspenderemos y, pasados unos días, borraremos todo su correo. Puedes deshacerlo hasta entonces.';
+        @endphp
+        <div class="mt-10 border-t border-stone-200 pt-6 text-sm">
+            <h2 class="font-semibold">Cancelar mi plan</h2>
+            <p class="mt-1 text-stone-600">
+                Este buzón no puede pasar al plan gratis{{ $why ? ': '.lcfirst(rtrim($why, '.')) : '' }}. <strong>Si cancelas, lo perderás</strong> con todo su correo.
+                Si quieres conservarlo, elige otro plan de pago.
+            </p>
+            <form method="POST" action="{{ route('account.plan.cancel', $mailbox->id) }}" class="mt-3"
+                  data-confirm="¿Cancelar el plan y perder {{ $mailbox->email }}?" data-confirm-body="{{ $body }}" data-confirm-button="Cancelar y perder el buzón">
+                @csrf
+                <button class="font-semibold text-rojo underline hover:text-rojo-oscuro">Cancelar mi plan</button>
+            </form>
+        </div>
+    @endif
 
     <x-slot:after>
         <p class="mt-4 text-center text-sm text-stone-500"><a href="{{ route('account') }}" class="font-medium underline">Volver a mi cuenta</a></p>

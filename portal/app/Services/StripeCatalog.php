@@ -161,9 +161,10 @@ class StripeCatalog
     }
 
     /**
-     * Configuración del portal de cliente de Stripe: tarjeta, facturas y cancelar al final del periodo.
-     * Cambiar de plan **no**: se hace en Mi cuenta → "Cambiar de plan" (App\Services\PlanChange), que
-     * también sabe del sobrecoste de nombre corto. Si alguien cambiara de plan en Stripe por otra vía, el
+     * Configuración del portal de cliente de Stripe: tarjeta, datos de facturación y facturas.
+     * Cambiar de plan y cancelar **no**: se hace en Mi cuenta → "Cambiar de plan" (App\Services\PlanChange),
+     * que sabe del sobrecoste de nombre corto y avisa antes de cancelar un buzón que no puede pasar a gratis
+     * (se perdería; el portal de Stripe no permite ese aviso). Si alguien cambiara de plan en Stripe por otra vía, el
      * webhook customer.subscription.updated lo recoge igual (MailboxBilling::sync).
      */
     public function portalConfigurationId(bool $refresh = false): string
@@ -181,8 +182,7 @@ class StripeCatalog
                     'customer_update' => ['enabled' => true, 'allowed_updates' => ['address', 'name', 'tax_id']],
                     'invoice_history' => ['enabled' => true],
                     'payment_method_update' => ['enabled' => true],
-                    'subscription_cancel' => ['enabled' => true, 'mode' => 'at_period_end',
-                        'cancellation_reason' => ['enabled' => true, 'options' => ['too_expensive', 'missing_features', 'switched_service', 'unused', 'other']]],
+                    'subscription_cancel' => ['enabled' => false],
                     'subscription_update' => ['enabled' => false],
                 ],
                 'metadata' => ['key' => 'portal-unagrandeylibre'],

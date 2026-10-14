@@ -127,7 +127,59 @@ class PlanChange
             : "Listo: tu plan ahora es {$target->name}. La diferencia se descontará de tus próximos pagos."];
     }
 
-    /** Deshacer el paso a gratis mientras el plan de pago sigue activo. */
+    /**
+     * Fechas de un buzón que no puede pasar a gratis al acabar su plan (D-009: se trata como un impago):
+     * fin del plan, suspensión y borrado del correo.
+     *
+     * @return array{end: \Carbon\CarbonInterface, suspend: \Carbon\CarbonInterface, delete: \Carbon\CarbonInterface}|null
+     */
+    public function lossDates(Subscription $subscription): ?array
+    {
+        try {
+            $end = $subscription->ends_at ?? $subscription->currentPeriodEnd();
+        } catch (\Throwable $e) {
+            report($e);
+            $end = null;
+        }
+        if (! $end) {
+            return null;
+        }
+
+        return ['end' => $end, 'suspend' => $end->copy()->addDays(config('lifecycle.unpaid.suspend_after_days')),
+            'delete' => $end->copy()->addDays(config('lifecycle.unpaid.delete_after_days'))];
+    }
+
+    /**
+     * Cancelar el plan de un buzón que no puede pasar a gratis (nombre corto, ya tiene uno gratis o no cabe).
+     * Termina al final del periodo pagado y después se pierde; se puede deshacer hasta entonces. Se avisa por email.
+     * Los que sí caben en gratis lo hacen con "Pasar a gratis" (change()).
+     */
+    public function cancel(Mailbox $mailbox): Subscription
+    {
+        $subscription = $this->subscription($mailbox);
+        if (! $subscription || $subscription->onGracePeriod()) {
+            throw new RuntimeException('Este buzón no tiene ningún plan que cancelar.');
+        }
+        if ($this->billing->fitsFree($mailbox)) {
+            throw new RuntimeException('Este buzón puede pasar al plan gratis: elige "Gratis" arriba.');
+        }
+
+        try {
+            $subscription->cancel();
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            report($e);
+            throw new RuntimeException('No hemos podido cancelar el plan. Inténtalo de nuevo en unos minutos.');
+        }
+
+        if ($dates = $this->lossDates($subscription)) {
+            $this->billing->notify($mailbox, 'cancelled', $dates['end']->timezone('Europe/Madrid')->format('d/m/Y'),
+                $dates['delete']->timezone('Europe/Madrid')->format('d/m/Y'));
+        }
+
+        return $subscription;
+    }
+
+    /** Deshacer el paso a gratis (o la cancelación) mientras el plan de pago sigue activo. */
     public function resume(Mailbox $mailbox): void
     {
         $subscription = $mailbox->user?->subscription("mailbox:{$mailbox->id}");

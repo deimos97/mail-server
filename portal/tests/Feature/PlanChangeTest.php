@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\LifecycleNotice;
 use App\Models\Checkout;
 use App\Models\Mailbox;
 use App\Models\Plan;
@@ -9,6 +10,7 @@ use App\Models\User;
 use App\Services\StripeCatalog;
 use Database\Seeders\DemoPlansSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\Concerns\UsesMailserverDatabase;
 use Tests\Support\FakeStripe;
 use Tests\TestCase;
@@ -151,6 +153,41 @@ class PlanChangeTest extends TestCase
         $this->actingAs($this->user)->get("/cuenta/plan/{$mailbox->id}")->assertSee('Ya tienes un buzón gratis');
         $this->post("/cuenta/plan/{$mailbox->id}", ['plan' => $this->plan('gratis')->id])
             ->assertSessionHasErrors(['plan' => 'Ya tienes un buzón gratis: cada cuenta incluye uno.']);
+    }
+
+    public function test_a_mailbox_that_cannot_go_free_is_cancelled_with_a_warning_and_an_email(): void
+    {
+        Mail::fake();
+        $this->mailbox('gratis', 'anagratis');                                     // ya tiene su gratis: este se perdería
+        $mailbox = $this->paidMailbox('basico');
+        $end = now()->addMonth()->timezone('Europe/Madrid')->format('d/m/Y');
+        $delete = now()->addMonth()->addDays(30)->timezone('Europe/Madrid')->format('d/m/Y');
+
+        $this->actingAs($this->user)->get("/cuenta/plan/{$mailbox->id}")
+            ->assertSee('Cancelar mi plan')->assertSee('Si cancelas, lo perderás', false)
+            ->assertSee("el {$delete} borraremos todo su correo", false);
+
+        $this->post("/cuenta/plan/{$mailbox->id}/cancelar")->assertRedirect('/cuenta')->assertSessionHas('status');
+        $this->assertTrue($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);
+        $this->assertSame('basic', $mailbox->fresh()->tier);                      // hasta el final del periodo
+        Mail::assertQueued(LifecycleNotice::class, fn ($mail) => $mail->type === 'cancelled' && $mail->hasTo('ana@gmail.com')
+            && $mail->date === $end && $mail->deleteDate === $delete);
+
+        $this->get("/cuenta/plan/{$mailbox->id}")->assertSee('perderás este buzón', false)->assertSee('Deshacer y seguir con mi plan')
+            ->assertDontSee('Cancelar mi plan');
+        $this->get('/cuenta')->assertSee('se suspende, porque no cabe en el plan gratis');
+
+        $this->post("/cuenta/plan/{$mailbox->id}/deshacer")->assertRedirect('/cuenta');
+        $this->assertFalse($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);
+    }
+
+    public function test_a_mailbox_that_fits_free_goes_free_instead_of_cancelling(): void
+    {
+        $mailbox = $this->paidMailbox('basico');
+
+        $this->actingAs($this->user)->get("/cuenta/plan/{$mailbox->id}")->assertDontSee('Cancelar mi plan');
+        $this->post("/cuenta/plan/{$mailbox->id}/cancelar")->assertSessionHasErrors('plan');
+        $this->assertFalse($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);
     }
 
     public function test_cannot_change_someone_elses_plan(): void

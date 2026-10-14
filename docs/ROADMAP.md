@@ -34,6 +34,7 @@ Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del d
 | D-023 | **Sin calentamiento formal del dominio** como requisito para lanzar publicidad: se quitan de la Fase 6 las semanas de uso con `javier@` y el criterio de salida de Postmaster Tools. Postmaster Tools y SNDS siguen dados de alta para vigilar la reputación. | 2026-10-14 |
 | D-024 | Consultas de soporte: se guardan **2 años desde el último mensaje** y se borran con la cuenta (validado por la gestoría). | 2026-10-14 |
 | D-025 | Recargo por nombre corto también en el tramo **5–7 caracteres (0,50 €/mes)**, además de 1–2 y 3–4 (amplía D-005, que dejaba 5+ sin recargo). Como todo nombre con recargo, solo va con plan de pago. | 2026-10-14 |
+| D-026 | **Cancelar solo desde Mi cuenta** (quitado del portal de Stripe). Si el buzón no puede pasar a gratis, «Cancelar mi plan» avisa antes de que se pierde, con las fechas (fin, suspensión, borrado), y manda un email. «Cambiar de nombre y pasar a gratis», quizá después del lanzamiento. | 2026-10-14 |
 | D-021 | Abrir tickets **sin sesión: activado** de entrada (con Turnstile y límite por IP), con un interruptor en el admin para cerrarlo. | 2026-10-14 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
@@ -194,6 +195,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [x] (2026-10-14) Portal de Stripe ("Gestionar pago y facturas"): facturas, tarjeta y cancelar (al final del periodo; la web lo recibe por webhook). En Mi cuenta, una suscripción cancelada lleva la pastilla "Cancelado" y "Sigues con el plan X hasta el … y después pasa a gratis" (o "se suspende" si no cabe, `MailboxBilling::fitsFree`); antes decía "Cancelado: termina el …" y no se entendía. En el portal sale "Servicio Correo Minorista": se cambia con la información pública de la cuenta de Stripe (abajo)
 - [x] (2026-10-14) Gratis → pago (`javier@` a Básico por Checkout): buzón en Básico al volver, factura de 1,49 € (1,99 + 0,50 de nombre corto de 5–7 caracteres − 50 % de la oferta sobre el Básico) con IVA. Ojo: `javier@` ya no puede volver a gratis (nombre corto); no cancelarlo, se decide al pasar a live
 - [x] (2026-10-14) Aviso falso de `mail-monitor` "2 eventos sin entregar al webhook": comprobó Stripe 2 s después del pago, con los eventos aún entregándose. `stripe:webhook-health` ignora ahora los eventos de los últimos 15 minutos
+- [x] (2026-10-14, D-026) Cancelar se quita del portal de Stripe y se hace en "Cambiar de plan": los buzones que no pueden pasar a gratis tienen «Cancelar mi plan» con confirmación (se pierde, con fechas), email `cancelled` con las fechas y el aviso "perderás este buzón" mientras se puede deshacer. Tras desplegar, `php artisan stripe:sync` para actualizar el portal en Stripe
 - [x] Pagos en el sandbox de Stripe: alta de pago (2026-10-08, `varela@`), cancelar en Checkout, cambiar de plan, portal y gratis → pago (2026-10-14) Tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y CVC
 
 ### Contenido

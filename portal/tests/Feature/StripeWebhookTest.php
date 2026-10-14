@@ -179,7 +179,7 @@ class StripeWebhookTest extends TestCase
         $this->assertStringStartsWith('https://billing.stripe.test/', $this->post('/cuenta/facturacion')->headers->get('Location'));
 
         $config = array_values($this->stripe->objects['billing_portal/configurations'])[0];
-        $this->assertSame('at_period_end', $config['features']['subscription_cancel']['mode']);
+        $this->assertFalse($config['features']['subscription_cancel']['enabled']);   // cancelar, solo en Mi cuenta (con aviso)
         $this->assertFalse($config['features']['subscription_update']['enabled']);   // los cambios de plan, solo en Mi cuenta
 
         // Impago: aviso con botón para pagar

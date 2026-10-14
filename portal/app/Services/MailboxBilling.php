@@ -129,10 +129,10 @@ class MailboxBilling
         }
     }
 
-    private function notify(Mailbox $mailbox, string $type): void
+    public function notify(Mailbox $mailbox, string $type, ?string $date = null, ?string $deleteDate = null): void
     {
         if ($email = $mailbox->user?->email) {
-            Mail::to($email)->queue(new LifecycleNotice($type, $mailbox->email));
+            Mail::to($email)->queue(new LifecycleNotice($type, $mailbox->email, $date, $deleteDate));
         }
     }
 }

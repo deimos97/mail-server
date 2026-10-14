@@ -7,6 +7,17 @@ No hemos podido cobrar el plan de **{{ $address }}**. Stripe volverá a intentar
 
 Si no se resuelve, a los 10 días suspenderemos el buzón (seguirá recibiendo correo, pero no podrás entrar ni enviar) y a los 30 lo borraremos.
 @break
+@case('cancelled')
+# Has cancelado tu plan
+
+Has cancelado el plan de **{{ $address }}**. Como este buzón no puede pasar al plan gratis (ya tienes uno, ocupa más de lo que permite o es un nombre corto), **lo perderás**:
+
+- Sigue funcionando con normalidad hasta el **{{ $date }}**.
+- Después lo suspenderemos (seguirá recibiendo correo, pero no podrás entrar ni enviar).
+- El **{{ $deleteDate }}** borraremos todo su correo y, más adelante, el nombre quedará libre para otras personas.
+
+¿Ha sido un error? Puedes deshacerlo hasta el {{ $date }} en tu cuenta → «Cambiar de plan». Si quieres conservar el correo, descarga antes una copia.
+@break
 @case('ended')
 # Tu plan ha terminado
 
