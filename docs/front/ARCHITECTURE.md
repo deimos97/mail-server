@@ -42,7 +42,7 @@ PHP 8.3 viene de serie con Ubuntu 24.04 (el servidor se actualiza en la Fase 0, 
 - nginx: nuevo `server` para `unagrandeylibre.es` y `www` (redirige al apex). Ampliar el certificado con `unagrandeylibre.es`, `www`, `autoconfig`, `autodiscover`. Recordar el *monkey noise* del reto ACME (README).
 - Cloudflare: el apex/`www` pueden ir con proxy (naranja). `mail.` **nunca** con proxy.
 - Código: monorepo. `portal/` (la app), `server/` (copia versionada de la configuración del servidor, **sin secretos**: se sustituyen por `__REDACTED__` y se comprueba con `gitleaks` en un hook pre-commit), `docs/`. Despliegue con un script `deploy.sh` (git pull + composer + migrate + restart worker) o GitHub Actions por SSH.
-- Backups: añadir la BD `portal` al `mail-backup` existente.
+- Backups: la BD `portal` y `/var/www/portal/shared` van en el `mail-backup` existente, que además copia cada noche el repositorio al VPS de copias `37.27.5.15` (README → Operación).
 - Monitorización: añadir al `mail-monitor` la web (HTTP 200), el worker de colas y la recepción de webhooks de Stripe.
 
 ## Modelo de datos
@@ -181,6 +181,7 @@ Sí existen, pero ninguno cubre todo:
 | Outlook nuevo / Outlook móvil | Detección propia, poco fiable para IMAP genérico | Tutorial con capturas. |
 | iPhone / iPad / Mac (Mail) | **Perfil `.mobileconfig`** | Generarlo desde "Mi cuenta" por buzón (puede llevar la contraseña de aplicación dentro → instalación en 3 toques). Firmarlo con el certificado TLS para que salga como "verificado". |
 | Gmail app (Android/iOS) con "Otra cuenta" | Heurísticas propias (prueba `mail.<dominio>`, `imap.<dominio>`…) | Registros SRV + tutorial. |
+| Gmail web (gmail.com en el ordenador) | **No se puede**: Google quitó en enero de 2026 "Consultar el correo de otras cuentas" (era por POP) y Gmailify | Decirlo en la ayuda/FAQ: usar nuestro webmail o la app de Gmail. |
 | Genérico | **SRV RFC 6186/8314**: `_imaps._tcp`, `_submission._tcp`, `_submissions._tcp` | Publicar en Cloudflare. |
 
 Datos a publicar en todos: IMAP `mail.unagrandeylibre.es:993` SSL/TLS, SMTP `mail.unagrandeylibre.es:465` SSL/TLS (o 587 STARTTLS), usuario = dirección completa.

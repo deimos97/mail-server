@@ -68,7 +68,7 @@ Lo más cómodo posible: autoconfiguración donde exista y tutorial con capturas
 
 ## SEO y agentes de IA
 
-- HTML renderizado en servidor, rápido (Core Web Vitals en verde), metadatos, Open Graph, `sitemap.xml`, `robots.txt`.
+- HTML renderizado en servidor, rápido (Core Web Vitals en verde), metadatos, Open Graph, `sitemap.xml` (portada, ayuda de cada app, legales y `/estado`), `robots.txt`. Indexable desde el 2026-10-09.
 - Datos estructurados JSON-LD: `Organization`, `WebSite`, `Product`/`Offer` por plan (precio real desde BD), `FAQPage`.
 - `llms.txt` describiendo el servicio y los planes.
 - **WebMCP** (`navigator.modelContext`): exponer como herramientas para agentes de IA las acciones de la página (comprobar disponibilidad de un nombre, listar planes, empezar el alta). Es un estándar en propuesta: comprobar su estado al implementarlo.

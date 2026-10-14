@@ -14,7 +14,12 @@ Lee esto antes de tocar nada. Después, según la tarea:
 
 ## Qué es esto
 
-Servicio de correo `@unagrandeylibre.es` (en el futuro, más dominios). El **back-end de correo ya funciona** (Postfix, Dovecot, Rspamd, Roundcube; ver README). Lo que falta es el **front-end**: una web donde la gente se crea una cuenta, elige plan (gratis o de pago con Stripe) y gestiona sus buzones.
+Servicio de correo `@unagrandeylibre.es` (en el futuro, más dominios). Dos partes, las dos en producción:
+
+- **Back-end de correo** (Postfix, Dovecot, Rspamd, Roundcube; ver README).
+- **Web** en `portal/` (Laravel): landing, alta (gratis o de pago con Stripe), Mi cuenta y admin. Ver [portal/AGENTS.md](portal/AGENTS.md).
+
+Altas abiertas desde el 2026-10-09 (Stripe todavía en sandbox). El código de las Fases 0–5 está terminado; lo pendiente es de la Fase 6 del ROADMAP, casi todo tareas del dueño.
 
 ## Reglas de trabajo
 

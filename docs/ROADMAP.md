@@ -163,8 +163,8 @@ Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Pasar a
 - [x] WebMCP (2026-10-09): `comprobar_disponibilidad`, `listar_planes`, `empezar_alta` (`resources/js/webmcp.js`), con `document.modelContext` y, si no, `navigator.modelContext` (el estándar es un borrador del W3C WebML CG de 2026 y cambió de sitio). API pública `GET /api/plans` y `llms.txt` ampliado
 - [x] Verificación en dos pasos (TOTP, códigos de recuperación de un solo uso, código que no se puede reutilizar) y passkeys (`spatie/laravel-passkeys`, interfaz propia con `@simplewebauthn/browser`) en Mi cuenta → Seguridad; "Entrar con una passkey" en `/entrar`. Los admins siguen entrando solo por `/admin`. Cada cambio se avisa por email
 - [x] Página de estado del servicio `/estado` (2026-10-09): `mail-monitor` escribe qué comprobaciones fallan en `/var/www/portal/shared/status.json` y la web lo traduce a componentes (recibir, enviar, apps, webmail, web, pagos) sin detalles técnicos; "sin datos recientes" si tiene más de 30 min. Enlazada en el pie. Al estar en el mismo servidor, si este cae, la página también
-- [x] Confirmaciones propias (2026-10-09): `<dialog>` nativo con la estética de la web en lugar de `confirm()` del navegador (`resources/js/confirm.js`; en un formulario, `data-confirm="…"`)
-- [x] Backups fuera del servidor (2026-10-09): cada noche, tras la copia local, `mail-backup` hace `restic copy` al VPS de copias del dueño (`37.27.5.15`) y aplica la misma retención (D-015); los domingos comprueba 1/8 de los datos. Repositorio cifrado con la misma contraseña (el VPS no puede leerlo) en `/mnt/HC_Volume_35438240/unagrandeylibre/restic`, **separado** de las copias de clientes de ese VPS (fuera de `backup/`, que es lo único que tocan sus scripts y lo que sube a R2). Usuario `ugl-backup` solo SFTP, encerrado en esa carpeta, con una clave válida solo desde la IP del servidor de correo (`server/backup-vps/setup.sh`). `mail-monitor` avisa si la última copia externa tiene más de 36 h. Opción sencilla: si alguien es root en el servidor de correo podría borrarla también
+- [x] Confirmaciones propias (2026-10-09, `a0bcbb9`): `<dialog>` nativo con la estética de la web en lugar de `confirm()` del navegador (`resources/js/confirm.js`; en un formulario, `data-confirm="…"`)
+- [x] Backups fuera del servidor (2026-10-09, `608de96`; probada la restauración desde el VPS): cada noche, tras la copia local, `mail-backup` hace `restic copy` al VPS de copias del dueño (`37.27.5.15`) y aplica la misma retención (D-015); los domingos comprueba 1/8 de los datos. Repositorio cifrado con la misma contraseña (el VPS no puede leerlo) en `/mnt/HC_Volume_35438240/unagrandeylibre/restic`, **separado** de las copias de clientes de ese VPS (fuera de `backup/`, que es lo único que tocan sus scripts y lo que sube a R2). Usuario `ugl-backup` solo SFTP, encerrado en esa carpeta, con una clave válida solo desde la IP del servidor de correo (`server/backup-vps/setup.sh`). `mail-monitor` avisa si la última copia externa tiene más de 36 h. Opción sencilla: si alguien es root en el servidor de correo podría borrarla también
 
 ## Fase 6 · Pre-lanzamiento
 
@@ -177,6 +177,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 - [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar` (necesitan los dispositivos)
 
 ### Contenido
+- [ ] Gmail web (gmail.com en el ordenador) ya no puede leer otras cuentas (Google lo quitó en enero de 2026). ¿Lo explicamos en la FAQ o en la guía de Gmail? (la IA lo propuso el 2026-10-09; falta el sí del dueño). Datos para la app de Gmail: IMAP `mail.unagrandeylibre.es:993` SSL/TLS, ya en `/ayuda/configurar/android`
 - [ ] Textos definitivos de la landing: hero, bloques informativos y FAQ (también cuentan para el SEO). Van en `portal/config/landing.php`, o pasárselos a la IA
 - [x] Textos legales validados por la gestoría (2026-10-09); aviso de borrador quitado (`LEGAL_DRAFT=false`)
 
@@ -196,7 +197,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 - [ ] Cuentas de anuncios en Meta y Google. Para activar las conversiones de servidor, pasar a la IA las claves de `config/ads.php` (píxel y token de Meta; cliente, developer token, OAuth y acciones de conversión de Google). Al activarlas, la IA añade a la política de privacidad que, con tu consentimiento, comunicamos el alta y el pago a Meta/Google (email cifrado, IP, navegador e identificador del clic)
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político. Si hay problemas, valorar una comunicación más neutra
 
-### Abrir altas (hecho el 2026-10-09)
+### Abrir altas (hecho el 2026-10-09, `7326012`)
 - [x] `SIGNUP_OPEN=true`, `APP_INDEXABLE=true` y sitemap con la ayuda, los textos legales y `/estado`. Se abrió antes de terminar el calentamiento: los amigos que prueban ayudan a calentar el dominio
 - [x] Quitada de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales": **en producción con usuarios reales desde el 2026-10-09**
 

@@ -29,6 +29,10 @@ Usa `-o BatchMode=yes` desde scripts/IA para que falle en vez de quedarse pidien
 10. Tras cualquier cambio: `server/pull-config.sh` y revisa `git diff server/config`. Se sube junto a la documentación del cambio.
 11. Documenta lo aprendido en el README (*monkey noises*) y lo decidido en "Decisiones tomadas" de `docs/ROADMAP.md`.
 
+## VPS de copias (`37.27.5.15`)
+
+Es de Tibletech y guarda las copias de **otros clientes**: aquí solo es nuestro `/mnt/HC_Volume_35438240/unagrandeylibre/` (repositorio restic cifrado, usuario `ugl-backup` solo SFTP), `/etc/ssh/sshd_config.d/ugl-backup.conf` y `/etc/ssh/authorized_keys/ugl-backup`. **No crees ni cambies nada más sin avisar al dueño.** Su cortafuegos tira la 3.ª conexión SSH nueva en 5 minutos desde una IP: usa `-o ControlMaster=auto -o ControlPath=/tmp/ugl-bk-%C -o ControlPersist=300`. Ver la copia externa desde el servidor de correo: comando de "Copia externa" en README → Operación.
+
 ## Comprobaciones rápidas (solo lectura)
 
 ```bash

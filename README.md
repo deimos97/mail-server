@@ -18,7 +18,7 @@ Servicio de hosting de correo con un front PHP + Stripe (pendiente) para el alta
 | **Let's Encrypt** | Un certificado con SAN  |
 | **fail2ban** | Jails para SSH, Postfix SASL, Dovecot y Roundcube. |
 | **iptables** | Firewall (iptables-persistent). |
-| **restic** | Backups diarios en un repositorio local. |
+| **restic** | Backups diarios en un repositorio local y copia al VPS de copias (`37.27.5.15`). |
 | **mail-monitor** | Comprobaciones de salud cada 10 min con alertas por Telegram, más Healthchecks.io como vigilante externo. |
 
 ### Usuarios virtuales
@@ -187,7 +187,7 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 | Monitorización | `/usr/local/sbin/mail-monitor`, timer `mail-monitor.timer` (cada 10 min). Comprueba servicios, cola de Postfix (> 50), disco (> 85 %), caducidad de certificados por puerto (< 14 días), antigüedad del backup (> 26 h) y de la copia externa (> 36 h) y blacklists de la IP y del dominio, y los webhooks de Stripe (`artisan stripe:webhook-health` como `portal`: endpoint activo y sin eventos pendientes de entregar). Los umbrales están al principio del script. |
 | Alertas | `/usr/local/sbin/mail-alert` → Telegram (`/etc/mail-monitor/telegram.env`). Avisa una vez por problema, lo repite cada 6 h mientras siga y avisa cuando se resuelve. |
 | Vigilante externo | Healthchecks.io (`/etc/mail-monitor/healthchecks.env`). Recibe un ping en cada pasada del monitor y avisa por Telegram si deja de recibirlos. |
-| Web (`portal/`) | `https://unagrandeylibre.es` (`www` redirige al apex; `autoconfig.` y `autodiscover.` tienen certificado y devuelven 404 hasta la Fase 2). Releases en `/var/www/portal/releases`, la activa en `current`; `.env` y `storage/` en `/var/www/portal/shared`. Usuario y pool FPM `portal`. Certificado propio (`--cert-name unagrandeylibre.es`), independiente del del correo. |
+| Web (`portal/`) | `https://unagrandeylibre.es` (`www` redirige al apex; `autoconfig.` y `autodiscover.` solo sirven la autoconfiguración de apps, ver más abajo). Releases en `/var/www/portal/releases`, la activa en `current`; `.env` y `storage/` en `/var/www/portal/shared`. Usuario y pool FPM `portal`. Certificado propio (`--cert-name unagrandeylibre.es`), independiente del del correo. |
 | Analítica (PostHog) | La web solo carga PostHog si el visitante acepta cookies. Va por `https://unagrandeylibre.es/ingest/…`, un proxy en el nginx de la web hacia `eu.i.posthog.com` y `eu-assets.i.posthog.com` (resolución con unbound; sin reenviar cookies). Si PostHog deja de recibir datos, revisar ese bloque. |
 | Colas y tareas de la web | Worker `portal-queue.service` (`queue:work` como `portal`, se recicla cada hora; el deploy lo reinicia con `queue:restart`). Scheduler `portal-schedule.timer` → `schedule:run` cada minuto. Ver: `journalctl -u portal-queue`, `journalctl -u portal-schedule`. Trabajos fallidos: tabla `portal.failed_jobs`. |
 | Autoconfiguración de apps | `autoconfig.` y `autodiscover.unagrandeylibre.es` solo exponen `/mail/config-v1.1.xml` y `/autodiscover/autodiscover.xml` (sin distinguir mayúsculas), servidos por la web sin sesión (`routes/mail-clients.php`); el resto da 404. También `/.well-known/autoconfig/…` en el dominio principal. Datos de conexión en `portal/config/mail_clients.php`. |
@@ -207,12 +207,8 @@ El repositorio de rspamd.com lleva el nombre de la versión (`noble`). Un `do-re
 
 ## TODO front-end
 
-Web en `unagrandeylibre.es` para darse de alta, elegir plan (gratis o de pago con Stripe) y gestionar los buzones. Visión en [docs/front/PRODUCT.md](docs/front/PRODUCT.md), diseño técnico en [docs/front/ARCHITECTURE.md](docs/front/ARCHITECTURE.md), decisiones pendientes en [docs/DECISIONS.md](docs/DECISIONS.md) y el detalle por tareas en [docs/ROADMAP.md](docs/ROADMAP.md).
+Web en `unagrandeylibre.es` (`portal/`, en producción) para darse de alta, elegir plan (gratis o de pago con Stripe) y gestionar los buzones. Visión en [docs/front/PRODUCT.md](docs/front/PRODUCT.md), diseño técnico en [docs/front/ARCHITECTURE.md](docs/front/ARCHITECTURE.md), decisiones pendientes en [docs/DECISIONS.md](docs/DECISIONS.md) y el detalle por tareas en [docs/ROADMAP.md](docs/ROADMAP.md).
 
-- [ ] **Fase 0 · Cimientos:** actualizar el sistema operativo, anuncio de prueba, copia versionada y sin secretos de la configuración en `server/`, BD y usuario `portal`, nginx y certificado para el apex. Stack decidido: Laravel + Cashier + Filament en el mismo VPS; analítica con PostHog.
-- [ ] **Fase 1 · Landing:** hero con bandera e input de nombre, disponibilidad en vivo, planes desde BD (gratis/pago, programables, ofertas), admin de planes, analítica con consentimiento, SEO.
-- [ ] **Fase 2 · Alta gratis:** email de recuperación verificado, provisión del buzón, antiabuso, autoconfiguración de clientes de correo y tutoriales.
-- [ ] **Fase 3 · Área de cliente:** varios buzones por usuario, cuota, contraseñas de aplicación, login único con el webmail.
-- [ ] **Fase 4 · Pago:** Stripe Checkout, webhooks, Customer Portal, impagos, IVA y facturas.
-- [ ] **Fase 5 · Optimización:** A/B, mapas de calor, contenido, WebMCP, 2FA.
+- [x] **Fases 0–5** (cimientos, landing, alta gratis, área de cliente, pagos con Stripe y lo que faltaba antes de lanzar): hechas entre el 2026-10-05 y el 2026-10-09. Altas abiertas el 2026-10-09.
+- [ ] **Fase 6 · Pre-lanzamiento:** pruebas con amigos, calentamiento del dominio, Stripe en real, analítica y anuncios. Detalle en el ROADMAP.
 - [ ] **Futuro:** más dominios, store de nombres/dominios, dominios propios.
