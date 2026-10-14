@@ -122,6 +122,39 @@ Alpine.data('consentBanner', () => ({
     },
 }));
 
+/**
+ * Formulario de soporte: comprueba las imágenes antes de enviar. Si la petición pasara de 12 MB,
+ * PHP la descartaría entera y el usuario vería un error de sesión caducada en vez del motivo.
+ */
+Alpine.data('supportForm', (maxFiles, maxBytes) => ({
+    files: [],
+    error: '',
+    sending: false,
+
+    pick(event) {
+        const files = Array.from(event.target.files);
+        const total = files.reduce((sum, file) => sum + file.size, 0);
+        this.error = '';
+        if (files.length > maxFiles) {
+            this.error = `Puedes adjuntar como mucho ${maxFiles} imágenes.`;
+        } else if (files.some((file) => file.type && !file.type.startsWith('image/'))) {
+            this.error = 'Solo se pueden adjuntar imágenes.';
+        } else if (total > maxBytes) {
+            this.error = `Las imágenes ocupan ${this.mb(total)}; el máximo son ${this.mb(maxBytes)} en total.`;
+        }
+        if (this.error) {
+            event.target.value = '';
+            this.files = [];
+            return;
+        }
+        this.files = files;
+    },
+
+    mb(bytes) {
+        return `${(bytes / 1024 / 1024).toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`;
+    },
+}));
+
 // Clic en un plan (enlaces con data-plan)
 document.addEventListener('click', (event) => {
     const link = event.target.closest('[data-plan]');

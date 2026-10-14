@@ -18,6 +18,8 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Http\Controllers\SupportAttachmentController;
+use Illuminate\Support\Facades\Route;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -35,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Red,
             ])
-            ->navigationGroups(['Catálogo', 'Nombres', 'Correo'])
+            ->navigationGroups(['Soporte', 'Catálogo', 'Nombres', 'Correo'])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -56,6 +58,8 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            // Imágenes de los tickets: con el mismo login, admin y 2FA que el resto del panel
+            ->authenticatedRoutes(fn () => Route::get('soporte/adjuntos/{attachment}', SupportAttachmentController::class)->name('support.attachment'))
             ->authMiddleware([
                 Authenticate::class,
             ]);

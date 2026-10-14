@@ -66,6 +66,11 @@ class AppServiceProvider extends ServiceProvider
         NamePriceTier::saved($sync('syncTier'));
         PlanOffer::saved($sync('syncOffer'));
 
+        RateLimiter::for('support', fn (Request $request) => [
+            Limit::perHour(5)->by($request->ip()),
+            Limit::perDay(15)->by($request->ip()),
+        ]);
+
         RateLimiter::for('availability', fn (Request $request) => [
             Limit::perMinute(30)->by($request->ip()),
             Limit::perDay(500)->by($request->ip()),

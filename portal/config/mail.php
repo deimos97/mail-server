@@ -88,6 +88,18 @@ return [
             'retry_after' => 60,
         ],
 
+        // Soporte (Fase 7): mismo Postfix, autenticado como soporte@ (SUPPORT_MAILER=support)
+        'support' => [
+            'transport' => 'smtp',
+            'scheme' => env('MAIL_SCHEME'),
+            'host' => env('MAIL_HOST', '127.0.0.1'),
+            'port' => env('MAIL_PORT', 2525),
+            'username' => env('SUPPORT_MAIL_USERNAME'),
+            'password' => env('SUPPORT_MAIL_PASSWORD'),
+            'timeout' => null,
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        ],
+
         'roundrobin' => [
             'transport' => 'roundrobin',
             'mailers' => [

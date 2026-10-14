@@ -210,16 +210,16 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por separado.
 
 ### A · Formulario y tickets
-- [ ] Tablas `support_tickets` (número `#NNNN`, usuario o email, asunto, estado abierto/cerrado), `support_messages` (hilo: del cliente o nuestro, origen web/email) y adjuntos en disco privado
-- [ ] Página `/soporte` (contacto y soporte son lo mismo): email si no hay sesión (con sesión, el de recuperación), asunto, descripción, hasta 3 imágenes (8 MB en total; JPG, PNG, WebP, HEIC) con el aviso de `transfer.tibletech.com` para lo demás, Turnstile y límite por IP
-- [ ] Interruptor "Tickets sin sesión" en el admin (activado de entrada); apagado, `/soporte` pide entrar
-- [ ] Autoconfirmación al cliente con `[#NNNN]` en el asunto
-- [ ] Botones de ayuda: icono arriba a la derecha (cabecera de la web y de Mi cuenta), enlace en el footer y botón flotante en la home al hacer scroll
+- [x] Tablas `support_tickets` (número `#NNNN`, usuario o email, asunto, estado abierto/cerrado), `support_messages` (hilo: del cliente o nuestro, origen web/email) y adjuntos en disco privado
+- [x] Página `/soporte` (contacto y soporte son lo mismo): email si no hay sesión (con sesión, el de recuperación), asunto, descripción, hasta 3 imágenes (8 MB en total; JPG, PNG, WebP, HEIC) con el aviso de `transfer.tibletech.com` para lo demás, Turnstile y límite por IP
+- [x] Interruptor "Tickets sin sesión" en el admin (activado de entrada); apagado, `/soporte` pide entrar
+- [x] Autoconfirmación al cliente con `[#NNNN]` en el asunto
+- [x] Botones de ayuda: icono arriba a la derecha (cabecera de la web y de Mi cuenta), enlace en el footer y botón flotante en la home al hacer scroll
 
 ### B · Admin
-- [ ] Recurso de Filament "Tickets": lista con estado y filtros, contador de abiertos en el menú, hilo con las imágenes
-- [ ] Responder desde el admin (sale de `soporte@` con `[#NNNN]` en el asunto), abrir y cerrar
-- [ ] Aviso de ticket nuevo a `javier@`
+- [x] Recurso de Filament "Tickets": lista con estado y filtros, contador de abiertos en el menú, hilo con las imágenes
+- [x] Responder desde el admin (sale de `soporte@` con `[#NNNN]` en el asunto), abrir y cerrar
+- [x] Aviso de ticket nuevo a `javier@`
 
 ### C · Respuestas por email
 - [ ] Buzón `soporte@` en el servidor (`tier=system`, como `noreply@`) y un mailer propio en Laravel con sus credenciales (Postfix no deja enviar como otro: `reject_sender_login_mismatch`). Cambio en producción: con confirmación

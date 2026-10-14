@@ -6,11 +6,14 @@
 
     <header @class(['mx-auto flex items-center justify-between px-4 pt-6 sm:px-6', 'max-w-xl' => ! $wide, 'max-w-2xl' => $wide])>
         <a href="{{ route('home') }}" class="text-lg font-extrabold tracking-tight">unagrandeylibre<span class="text-rojo">.es</span></a>
-        @auth
-            <form method="POST" action="{{ route('logout') }}">@csrf
-                <button class="rounded-full px-3 py-1.5 text-sm font-medium text-stone-600 ring-1 ring-stone-300 hover:bg-white">Salir</button>
-            </form>
-        @endauth
+        <div class="flex items-center gap-2">
+            <x-help-link />
+            @auth
+                <form method="POST" action="{{ route('logout') }}">@csrf
+                    <button class="rounded-full px-3 py-1.5 text-sm font-medium text-stone-600 ring-1 ring-stone-300 hover:bg-white">Salir</button>
+                </form>
+            @endauth
+        </div>
     </header>
 
     <main @class(['mx-auto px-4 pb-16 pt-6 sm:px-6', 'max-w-xl' => ! $wide, 'max-w-2xl' => $wide])>

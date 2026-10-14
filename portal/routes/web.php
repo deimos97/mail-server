@@ -15,10 +15,16 @@ use App\Http\Controllers\RecoveryEmailController;
 use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SignupController;
+use App\Http\Controllers\SupportController;
 use App\Http\Middleware\SignupGate;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('home');
+
+// Ayuda y contacto (Fase 7): abre un ticket. Sin sesión, solo si está activado en el admin (D-021)
+Route::get('/soporte', [SupportController::class, 'create'])->name('support');
+Route::post('/soporte', [SupportController::class, 'store'])->middleware('throttle:support')->name('support.store');
+Route::get('/soporte/enviado', [SupportController::class, 'sent'])->name('support.sent');
 
 // El alta (Fase 2): nombre → cuenta → plan → verificar → listo
 Route::prefix('alta')->name('signup')->controller(SignupController::class)->group(function () {

@@ -16,6 +16,7 @@
                 unagrandeylibre<span class="text-amarillo">.es</span>
             </a>
             <nav class="flex items-center gap-2">
+                <x-help-link tone="light" />
                 <a href="https://webmail.{{ $mainDomain }}" class="hidden rounded-full px-4 py-2 text-sm font-medium text-white/90 transition hover:bg-white/10 sm:inline-block">Webmail</a>
                 @auth
                     <a href="{{ route('account') }}" class="rounded-full px-4 py-2 text-sm font-medium text-white/90 ring-1 ring-white/40 transition hover:bg-white/10">Mi cuenta</a>
@@ -220,5 +221,13 @@
     </section>
 
     <x-site-footer />
+
+    {{-- Ayuda flotante: aparece al bajar por la home (Fase 7) --}}
+    <a href="{{ route('support') }}" x-data="{ shown: false }" @scroll.window.throttle.150ms="shown = window.scrollY > 600"
+       x-show="shown" x-cloak x-transition.opacity.duration.200ms
+       class="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-tinta px-4 py-3 font-semibold text-white shadow-xl shadow-black/20 ring-1 ring-white/10 transition hover:bg-rojo sm:bottom-6 sm:right-6">
+        <x-icon.help class="size-5" />
+        ¿Necesitas ayuda?
+    </a>
 
 </x-layouts.site>

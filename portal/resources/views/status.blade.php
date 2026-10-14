@@ -1,7 +1,10 @@
 <x-layouts.site title="Estado del servicio · Una Grande y Libre">
     <meta http-equiv="refresh" content="120">
     <main class="mx-auto max-w-2xl px-4 py-12 sm:py-16">
-        <a href="{{ route('home') }}" class="text-sm font-medium text-stone-500 underline">← Volver al inicio</a>
+        <div class="flex items-center justify-between gap-3">
+            <a href="{{ route('home') }}" class="text-sm font-medium text-stone-500 underline">← Volver al inicio</a>
+            <x-help-link />
+        </div>
         <h1 class="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">Estado del servicio</h1>
 
         @if ($stale)

@@ -18,6 +18,7 @@ class SeoController extends Controller
             ...collect(config('mail_clients.clients'))->keys()->map(fn (string $client) => route('help.setup.client', $client)),
             ...collect(config('landing.legal'))->keys()->map(fn (string $page) => route('legal', $page)),
             route('status'),
+            route('support'),
         ];
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
@@ -37,6 +38,7 @@ class SeoController extends Controller
         $plansApi = url('/api/plans');
         $signup = url('/alta');
         $status = route('status');
+        $support = route('support');
 
         $plans = Plan::visible()->ordered()->with('offers')->get()->map(function (Plan $plan) {
             $per = $plan->interval === 'year' ? 'año' : 'mes';
@@ -63,6 +65,7 @@ class SeoController extends Controller
         - Empezar el alta con el nombre elegido: {$signup}?nombre=tunombre (el usuario completa el resto).
         - Agentes en el navegador: la web expone herramientas WebMCP (`comprobar_disponibilidad`, `listar_planes`, `empezar_alta`).
         - Estado del servicio: {$status}
+        - Ayuda y contacto (abre un ticket; respondemos por email): {$support}
 
         ## Planes
 
