@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
+Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Fase 7 · Soporte por tickets — EN CURSO** (código, desde el 2026-10-14). **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
 **Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
@@ -27,6 +27,10 @@ Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del d
 | D-016 | Stripe: **cuenta propia "Servicio Correo Minorista"** dentro del mismo login y de la misma empresa (Tibletech), separada de la de tibletech.com: claves, clientes, productos, webhooks y marca pública propios (`unagrandeylibre.es`). Tibletech es quien vende (no Managed Payments / merchant of record de Stripe). Las cifras se pueden juntar luego con una organización de Stripe. Pendiente del usuario: activar la cuenta (datos fiscales) antes de cobrar de verdad. | 2026-10-08 |
 | D-017 | IVA: **21 % fijo, incluido en el precio** (un Tax Rate de Stripe `inclusive`), sin Stripe Tax. Si algún día se superan 10.000 €/año de ventas a consumidores de otros países de la UE, pasar a Stripe Tax (OSS). | 2026-10-08 |
 | D-013 | **Actualizar ya el servidor a Ubuntu 24.04** (`do-release-upgrade` en el mismo servidor), con lo que llegan Roundcube 1.6 y PHP 8.3 de serie. Se hace antes de construir nada, para empezar sobre una base sólida. | 2026-10-05 |
+| D-018 | **Soporte por tickets** propio en la web (`/soporte`), sin herramientas externas. Las respuestas del usuario por email **entran solas en el ticket**: la web lee el buzón de soporte cada minuto y engancha los correos con `[#NNNN]` en el asunto (reabre el ticket si estaba cerrado). | 2026-10-14 |
+| D-019 | Respuestas y autoconfirmaciones salen de un buzón propio **`soporte@unagrandeylibre.es`** mostrado como "Javier · Una Grande y Libre" (no de `javier@`): la web solo lee ese buzón, nunca el personal, y sirve igual si un día atiende más gente. | 2026-10-14 |
+| D-020 | Adjuntos del ticket: **solo imágenes, hasta 3 y 8 MB en total**, dentro de los límites actuales de nginx/PHP (12 MB por petición). Para otros ficheros o más pesados, el formulario remite a `https://transfer.tibletech.com/`. | 2026-10-14 |
+| D-021 | Abrir tickets **sin sesión: activado** de entrada (con Turnstile y límite por IP), con un interruptor en el admin para cerrarlo. | 2026-10-14 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
 
@@ -200,6 +204,26 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 ### Abrir altas (hecho el 2026-10-09, `7326012`)
 - [x] `SIGNUP_OPEN=true`, `APP_INDEXABLE=true` y sitemap con la ayuda, los textos legales y `/estado`. Se abrió antes de terminar el calentamiento: los amigos que prueban ayudan a calentar el dominio
 - [x] Quitada de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales": **en producción con usuarios reales desde el 2026-10-09**
+
+## Fase 7 · Soporte por tickets — EN CURSO (código)
+
+Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por separado.
+
+### A · Formulario y tickets
+- [ ] Tablas `support_tickets` (número `#NNNN`, usuario o email, asunto, estado abierto/cerrado), `support_messages` (hilo: del cliente o nuestro, origen web/email) y adjuntos en disco privado
+- [ ] Página `/soporte` (contacto y soporte son lo mismo): email si no hay sesión (con sesión, el de recuperación), asunto, descripción, hasta 3 imágenes (8 MB en total; JPG, PNG, WebP, HEIC) con el aviso de `transfer.tibletech.com` para lo demás, Turnstile y límite por IP
+- [ ] Interruptor "Tickets sin sesión" en el admin (activado de entrada); apagado, `/soporte` pide entrar
+- [ ] Autoconfirmación al cliente con `[#NNNN]` en el asunto
+- [ ] Botones de ayuda: icono arriba a la derecha (cabecera de la web y de Mi cuenta), enlace en el footer y botón flotante en la home al hacer scroll
+
+### B · Admin
+- [ ] Recurso de Filament "Tickets": lista con estado y filtros, contador de abiertos en el menú, hilo con las imágenes
+- [ ] Responder desde el admin (sale de `soporte@` con `[#NNNN]` en el asunto), abrir y cerrar
+- [ ] Aviso de ticket nuevo a `javier@`
+
+### C · Respuestas por email
+- [ ] Buzón `soporte@` en el servidor (`tier=system`, como `noreply@`) y un mailer propio en Laravel con sus credenciales (Postfix no deja enviar como otro: `reject_sender_login_mismatch`). Cambio en producción: con confirmación
+- [ ] Lector IMAP cada minuto: los correos con `[#NNNN]` se añaden al hilo (sin la cita del correo anterior) y reabren el ticket; los demás se quedan en el buzón para leerlos a mano
 
 ## Después del lanzamiento
 
