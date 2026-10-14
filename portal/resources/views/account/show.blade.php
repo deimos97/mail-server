@@ -101,59 +101,75 @@
                 </div>
 
                 @if ($mailbox->status === 'active')
-                    <div class="border-b border-stone-100 p-4 sm:p-5">
+                    {{-- Sin dispositivos, configurar uno es tan importante como abrir el correo: van los dos igual de grandes, configurar primero --}}
+                    <div @class(['p-4 sm:p-5', 'border-b border-stone-100' => $mailbox->appPasswords->isNotEmpty()])>
+                        @if ($mailbox->appPasswords->isEmpty())
+                            <a href="{{ route('setup', $mailbox->id) }}" class="mb-3 block rounded-2xl bg-rojo px-6 py-3.5 text-center text-lg font-bold text-white transition hover:bg-rojo-oscuro">
+                                Configura un dispositivo
+                            </a>
+                        @endif
                         <a href="{{ route('account.webmail', $mailbox->id) }}" class="block rounded-2xl bg-rojo px-6 py-3.5 text-center text-lg font-bold text-white transition hover:bg-rojo-oscuro">
                             Abrir mi correo
                         </a>
+                        @if ($mailbox->appPasswords->isEmpty())
+                            <p class="mt-2 text-center text-sm text-stone-500">Todavía no has conectado ningún dispositivo. Cada móvil, ordenador o app de correo tiene su propia contraseña.</p>
+                        @endif
                         @if ($webmailAt = $mailbox->lastLoginOf(0))
                             <p class="mt-2 text-center text-sm text-stone-500">Último acceso al webmail: {{ $webmailAt->locale(app()->getLocale())->diffForHumans() }}</p>
                         @endif
                     </div>
                 @endif
 
-                <div class="p-4 sm:p-5">
-                    <h2 class="font-bold">Dispositivos conectados</h2>
-                    <p class="text-sm text-stone-500">Cada móvil, ordenador o app de correo tiene su propia contraseña.</p>
-
-                    @if ($mailbox->appPasswords->isEmpty())
-                        <p class="mt-3 text-sm text-stone-500">Todavía no has conectado ninguno.</p>
-                    @else
-                        <ul class="mt-3 divide-y divide-stone-100">
-                            @foreach ($mailbox->appPasswords as $device)
-                                @php($usedAt = $mailbox->lastLoginOf($device->id))
-                                <li class="py-2 text-sm" x-data="{ editing: false }">
-                                    <div class="flex items-center justify-between gap-3" x-show="! editing">
-                                        <span class="min-w-0">
-                                            <span class="block font-medium">{{ $device->name }}</span>
-                                            <span class="text-stone-500">
-                                                desde el {{ $device->created_at->timezone('Europe/Madrid')->format('d/m/Y') }} ·
-                                                {{ $usedAt ? 'último uso '.$usedAt->locale(app()->getLocale())->diffForHumans() : 'todavía no se ha usado' }}
+                {{-- Plegado: desde fuera solo se ve cuántos hay y el botón para añadir otro. Sin ninguno, el botón grande está arriba --}}
+                @if ($mailbox->appPasswords->isNotEmpty())
+                    <div class="text-sm" x-data="{ open: false }">
+                        <div class="flex items-center justify-between gap-3 p-4 sm:px-5">
+                            <h2 class="min-w-0 flex-1">
+                                <button type="button" @click="open = ! open" :aria-expanded="open" aria-controls="devices-{{ $mailbox->id }}" class="flex w-full items-center gap-2 text-left font-bold">
+                                    Dispositivos conectados
+                                    <span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-600">{{ $mailbox->appPasswords->count() }}</span>
+                                    <svg class="size-5 shrink-0 text-stone-500 transition" :class="open && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/></svg>
+                                </button>
+                            </h2>
+                            <a href="{{ route('setup', $mailbox->id) }}" class="shrink-0 rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/40 hover:bg-rojo/5">+ Añadir</a>
+                        </div>
+                        <div id="devices-{{ $mailbox->id }}" x-show="open" x-cloak class="px-4 pb-4 sm:px-5 sm:pb-5">
+                            <p class="text-stone-500">Cada móvil, ordenador o app de correo tiene su propia contraseña.</p>
+                            <ul class="mt-2 divide-y divide-stone-100">
+                                @foreach ($mailbox->appPasswords as $device)
+                                    @php($usedAt = $mailbox->lastLoginOf($device->id))
+                                    <li class="py-2 text-sm" x-data="{ editing: false }">
+                                        <div class="flex items-center justify-between gap-3" x-show="! editing">
+                                            <span class="min-w-0">
+                                                <span class="block font-medium">{{ $device->name }}</span>
+                                                <span class="text-stone-500">
+                                                    desde el {{ $device->created_at->timezone('Europe/Madrid')->format('d/m/Y') }} ·
+                                                    {{ $usedAt ? 'último uso '.$usedAt->locale(app()->getLocale())->diffForHumans() : 'todavía no se ha usado' }}
+                                                </span>
                                             </span>
-                                        </span>
-                                        <span class="flex shrink-0 gap-2">
-                                            <button type="button" @click="editing = true; $nextTick(() => $refs.name.focus())" class="rounded-xl px-3 py-1.5 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Renombrar</button>
-                                            <form method="POST" action="{{ route('account.devices.revoke', $device->id) }}"
-                                                  data-confirm="¿Revocar «{{ $device->name }}»?" data-confirm-body="Ese dispositivo dejará de poder entrar en tu correo. Para volver a usarlo tendrás que configurarlo de nuevo." data-confirm-button="Revocar">
-                                                @csrf
-                                                <button class="rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Revocar</button>
-                                            </form>
-                                        </span>
-                                    </div>
-                                    <form method="POST" action="{{ route('account.devices.rename', $device->id) }}" class="flex gap-2" x-show="editing" x-cloak>
-                                        @csrf
-                                        <label class="sr-only" for="device-name-{{ $device->id }}">Nombre del dispositivo</label>
-                                        <input id="device-name-{{ $device->id }}" name="name" x-ref="name" value="{{ $device->name }}" maxlength="64" required
-                                               class="min-w-0 flex-1 rounded-xl border-stone-300 px-3 py-1.5" @keydown.escape="editing = false">
-                                        <button class="rounded-xl bg-rojo px-3 py-1.5 font-semibold text-white hover:bg-rojo-oscuro">Guardar</button>
-                                        <button type="button" @click="editing = false" class="rounded-xl px-3 py-1.5 font-semibold ring-1 ring-stone-300">Cancelar</button>
-                                    </form>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-
-                    <a href="{{ route('setup', $mailbox->id) }}" class="mt-4 block rounded-2xl px-5 py-3 text-center font-bold ring-2 ring-rojo/60 transition hover:bg-rojo/5">Configura un dispositivo</a>
-                </div>
+                                            <span class="flex shrink-0 gap-2">
+                                                <button type="button" @click="editing = true; $nextTick(() => $refs.name.focus())" class="rounded-xl px-3 py-1.5 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Renombrar</button>
+                                                <form method="POST" action="{{ route('account.devices.revoke', $device->id) }}"
+                                                      data-confirm="¿Revocar «{{ $device->name }}»?" data-confirm-body="Ese dispositivo dejará de poder entrar en tu correo. Para volver a usarlo tendrás que configurarlo de nuevo." data-confirm-button="Revocar">
+                                                    @csrf
+                                                    <button class="rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Revocar</button>
+                                                </form>
+                                            </span>
+                                        </div>
+                                        <form method="POST" action="{{ route('account.devices.rename', $device->id) }}" class="flex gap-2" x-show="editing" x-cloak>
+                                            @csrf
+                                            <label class="sr-only" for="device-name-{{ $device->id }}">Nombre del dispositivo</label>
+                                            <input id="device-name-{{ $device->id }}" name="name" x-ref="name" value="{{ $device->name }}" maxlength="64" required
+                                                   class="min-w-0 flex-1 rounded-xl border-stone-300 px-3 py-1.5" @keydown.escape="editing = false">
+                                            <button class="rounded-xl bg-rojo px-3 py-1.5 font-semibold text-white hover:bg-rojo-oscuro">Guardar</button>
+                                            <button type="button" @click="editing = false" class="rounded-xl px-3 py-1.5 font-semibold ring-1 ring-stone-300">Cancelar</button>
+                                        </form>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
 
                 @php($export = $exports->get($mailbox->id))
                 <details class="group border-t border-stone-100 text-sm" @if ($export?->isDownloadable() || $export?->status === 'pending') open @endif>

@@ -106,7 +106,7 @@ class AuthAndAccountTest extends TestCase
         $this->get('/cuenta')->assertRedirect('/entrar');
 
         $this->actingAs($this->user)->get('/cuenta')
-            ->assertOk()->assertSeeText('ana@unagrandeylibre.es')->assertSee('Recibe y envía')->assertSee('Todavía no has conectado ninguno')->assertSee('Configura un dispositivo')->assertSee('Abrir mi correo');
+            ->assertOk()->assertSeeText('ana@unagrandeylibre.es')->assertSee('Recibe y envía')->assertSee('Todavía no has conectado ningún dispositivo')->assertSee('Configura un dispositivo')->assertSee('Abrir mi correo');
     }
 
     public function test_revoking_a_device(): void
