@@ -186,6 +186,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [ ] **Dueño:** Microsoft bloquea la IP `128.140.5.221` (rebote `550 5.7.1 … block list (S3150)` el 2026-10-14): no llega nada nuestro a hotmail/outlook/live. Pedir que la quiten en https://sender.office.com. **Sin esto no se lanza**
 - [x] (2026-10-14) "Cambiar de plan" marca de entrada el plan actual; el botón dice "Elige otro plan" y se activa al elegir otro
 - [x] (2026-10-14) Subir de plan daba 500: Cashier manda `items[][tax_rates]` vacío y Stripe no lo admite con `pending_if_incomplete`. El IVA ya va en la suscripción (`default_tax_rates`), así que `App\Models\Subscription` lo quita; y un error de Stripe al cambiar de plan ya no da 500, sino un aviso sin cambiar nada
+- [x] (2026-10-14) Subir de Básico a Pro (`javier-checkout@`): plan y 50 GB al momento, factura de 4,00 € (−0,99 de Básico sin usar con la oferta + 4,99 de Pro) con 0,69 € de IVA incluido, webhooks 200
 - [ ] Pagos en el sandbox de Stripe: el alta de pago (hecha el 2026-10-08 con `varela@`, plan Básico); falta "Cambiar de plan" (subir a Pro, bajar y pasar a gratis, con "Deshacer") y "Gestionar pago y facturas". Tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y CVC
 
 ### Contenido
