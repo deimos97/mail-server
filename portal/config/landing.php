@@ -33,7 +33,7 @@ return [
         ['q' => '¿Puedo leerlo dentro de gmail.com?', 'a' => 'En el móvil sí: añade tu cuenta en la app de Gmail (te explicamos cómo paso a paso). En gmail.com desde el ordenador no, porque Google ya no permite añadir cuentas de otros proveedores; ahí usa nuestro webmail o un programa como Outlook o Thunderbird.'],
         ['q' => '¿Qué pasa si dejo de pagar?', 'a' => 'Te avisamos antes. Si no se renueva el pago, la cuenta se suspende y, pasado un tiempo, se borra. Siempre podrás descargar tu correo antes.'],
         ['q' => '¿Puedo cambiar de plan?', 'a' => 'Cuando quieras, desde tu área de cliente. El cambio se aplica al momento.'],
-        ['q' => '¿Por qué algunos nombres cortos cuestan más?', 'a' => 'Los nombres de 1 a 4 caracteres son escasos. Se pueden coger con cualquier plan de pago con un pequeño suplemento mensual.'],
+        ['q' => '¿Por qué algunos nombres cortos cuestan más?', 'a' => 'Los nombres de pocos caracteres son escasos. Se pueden coger con cualquier plan de pago con un pequeño suplemento mensual.'],
     ],
 
     'legal' => [

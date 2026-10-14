@@ -57,7 +57,7 @@ class SeoController extends Controller
         ## Conseguir una cuenta
 
         - Web: {$home}
-        - Se elige el nombre (tunombre@{$domain}) y un plan. Los nombres de 1 a 4 caracteres tienen un suplemento mensual y solo se pueden coger con planes de pago.
+        - Se elige el nombre (tunombre@{$domain}) y un plan. Los nombres de pocos caracteres tienen un suplemento mensual y solo se pueden coger con planes de pago.
         - Comprobar si un nombre está libre: `GET {$api}?local=tunombre` (JSON; limitado por IP).
         - Planes y precios en JSON: `GET {$plansApi}`
         - Empezar el alta con el nombre elegido: {$signup}?nombre=tunombre (el usuario completa el resto).
