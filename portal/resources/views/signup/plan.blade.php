@@ -7,6 +7,8 @@
         ? ! $surcharge && ! $hasFree
         : $paidReady && $plan->stripe_price_id && (! $surcharge || $surchargePrice($plan));
     $paidSlugs = $plans->reject->is_free->pluck('slug')->values();
+    // Tras un error (p. ej. sin marcar la casilla), el plan que mandó; si no, el que eligió en la landing o al volver de Stripe
+    $selected = old('plan', $selected);
     $default = $plans->first(fn ($p) => $p->slug === $selected && $selectable($p)) ?? $plans->first($selectable);
 @endphp
 

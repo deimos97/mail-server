@@ -280,9 +280,10 @@ class SignupController extends Controller
     /** Ha vuelto sin pagar: se libera el buzón pendiente y puede elegir otro plan para el mismo nombre. */
     public function paymentCancel(Request $request, PaidSignup $paid, int $checkout): RedirectResponse
     {
-        $checkout = Checkout::where('user_id', $request->user()->id)->with('mailbox.domain')->findOrFail($checkout);
+        $checkout = Checkout::where('user_id', $request->user()->id)->with('mailbox.domain', 'plan')->findOrFail($checkout);
         $mailbox = $checkout->mailbox;
         $paid->release($checkout);
+        $request->session()->put('signup.plan', $checkout->plan?->slug);   // vuelve con el mismo plan marcado
 
         if ($mailbox && $mailbox->domain && $this->signup->reserve($mailbox->local_part, $mailbox->domain, $this->token($request), $request->user())) {
             return redirect()->route('signup.plan')->with('status', 'No se ha hecho ningún cargo. Puedes elegir otro plan.');

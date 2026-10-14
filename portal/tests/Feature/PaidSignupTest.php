@@ -103,7 +103,19 @@ class PaidSignupTest extends TestCase
         $this->assertSame(0, Mailbox::count());
         $this->assertSame('expired', $checkout->fresh()->status);
         $this->assertNotEmpty($this->stripe->sent('POST', 'checkout/sessions/'.$checkout->stripe_session_id.'/expire'));
-        $this->get('/alta/plan')->assertOk()->assertSee('lucia@unagrandeylibre.es');   // sigue reservado para él
+        $this->get('/alta/plan')->assertOk()->assertSee('lucia@unagrandeylibre.es')   // sigue reservado para él
+            ->assertSee('plan: \'basico\'', false);                                  // y con el mismo plan marcado
+    }
+
+    public function test_a_validation_error_keeps_the_paid_plan_selected(): void
+    {
+        $this->goToPayment();
+        $checkout = Checkout::firstOrFail();
+        $this->get("/alta/pago/{$checkout->id}/cancelado");
+        session()->forget('signup.plan');   // como si hubiera llegado sin plan elegido: el de partida es el gratis
+
+        $this->followingRedirects()->from('/alta/plan')->post('/alta/plan', ['plan' => 'basico'])
+            ->assertSee('plan: \'basico\'', false)->assertSee('Marca la casilla');
     }
 
     public function test_short_names_add_the_surcharge_line(): void
