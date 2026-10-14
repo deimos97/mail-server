@@ -5,6 +5,7 @@
             <li>Borramos al momento todo tu correo{{ $mailboxes->isNotEmpty() ? ' de ' : '' }}<span data-ph-mask>{{ $mailboxes->implode(', ') }}</span>. No podremos recuperarlo.</li>
             <li>{{ $mailboxes->count() === 1 ? 'La dirección deja' : 'Las direcciones dejan' }} de recibir correo y tus dispositivos se desconectan.</li>
             <li>Durante 90 días nadie podrá registrar {{ $mailboxes->count() === 1 ? 'esa dirección' : 'esas direcciones' }}; después quedarán libres.</li>
+            <li>También borramos tus consultas de soporte, con sus imágenes.</li>
         </ul>
         <p class="mt-3 text-stone-700">Si quieres conservar tu correo, <a href="{{ route('account') }}" class="font-semibold underline">descarga antes una copia</a> desde Mi cuenta.</p>
     </div>

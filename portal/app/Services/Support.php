@@ -104,6 +104,30 @@ class Support
         $ticket->update(['status' => 'open', 'closed_at' => null]);
     }
 
+    /**
+     * Borra los tickets de un usuario con sus imágenes: los de su cuenta y los que escribió sin sesión
+     * desde su email de recuperación. Se llama al borrar la cuenta (la política promete borrar sus datos).
+     */
+    public function deleteForUser(User $user): int
+    {
+        $tickets = SupportTicket::where('user_id', $user->id)
+            ->orWhere(fn ($q) => $q->whereNull('user_id')->where('email', Str::lower($user->email)))
+            ->get();
+
+        foreach ($tickets as $ticket) {
+            $this->delete($ticket);
+        }
+
+        return $tickets->count();
+    }
+
+    /** Borra un ticket, sus mensajes y sus imágenes del disco. */
+    public function delete(SupportTicket $ticket): void
+    {
+        Storage::disk('local')->deleteDirectory('support/'.$ticket->id);
+        $ticket->delete();   // mensajes y adjuntos van en cascada
+    }
+
     private function attach(SupportMessage $message, string $content, string $name, string $mime): void
     {
         $extension = Str::lower(pathinfo($name, PATHINFO_EXTENSION)) ?: Str::after($mime, '/');

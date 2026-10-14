@@ -50,5 +50,5 @@ Ya dice que solo accederíamos a un buzón si nos lo pides para resolver una inc
 
 ## Qué hay que programar cuando se valide
 
-- Al borrar una cuenta, borrar sus tickets y sus imágenes (`App\Services\AccountDeletion`).
+- ~~Al borrar una cuenta, borrar sus tickets y sus imágenes~~: hecho el 2026-10-14 (`Support::deleteForUser`).
 - Tarea diaria que borre los tickets cuyo último mensaje tenga más del plazo validado, con sus imágenes.

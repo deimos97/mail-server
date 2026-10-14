@@ -5,13 +5,19 @@ namespace Tests\Feature;
 use App\Mail\AccountDeleted;
 use App\Models\Domain;
 use App\Models\Mailbox;
+use App\Models\SupportAttachment;
+use App\Models\SupportMessage;
+use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\AppPasswords;
 use App\Services\NameAvailability;
+use App\Services\Support;
 use Database\Seeders\DemoPlansSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\UsesMailserverDatabase;
 use Tests\TestCase;
 
@@ -58,6 +64,25 @@ class AccountDeletionTest extends TestCase
 
         // El nombre sigue ocupado (cuarentena)
         $this->assertFalse(app(NameAvailability::class)->check('ana', Domain::firstOrFail())->isAvailable());
+    }
+
+    public function test_deleting_the_account_erases_its_support_tickets(): void
+    {
+        Storage::fake('local');
+        $support = app(Support::class);
+        $own = $support->open($this->user, 'ana@gmail.com', 'Con sesión', 'Hola', [UploadedFile::fake()->image('c.png')]);
+        $asGuest = $support->open(null, 'Ana@Gmail.com', 'Sin sesión', 'Hola');
+        $someoneElse = $support->open(null, 'otra@gmail.com', 'De otra persona', 'Hola');
+        $path = $own->messages()->sole()->attachments()->sole()->path;
+
+        $this->actingAs($this->user)->post('/cuenta/borrar', ['password' => 'una-clave-larga-123', 'confirm' => '1']);
+
+        $this->assertModelMissing($own);
+        $this->assertModelMissing($asGuest);
+        $this->assertModelExists($someoneElse);
+        $this->assertSame(1, SupportMessage::count());
+        $this->assertSame(0, SupportAttachment::count());
+        Storage::disk('local')->assertMissing($path);
     }
 
     public function test_needs_password_and_explicit_confirmation(): void

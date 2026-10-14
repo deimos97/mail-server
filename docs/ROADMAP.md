@@ -230,7 +230,8 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 ### D · Privacidad
 - [x] (2026-10-14) Borrador de los cambios en la política de privacidad: [docs/legal/borrador-privacidad-soporte.md](legal/borrador-privacidad-soporte.md). Propone guardar las consultas 2 años desde el último mensaje y borrarlas con la cuenta
 - [ ] **Dueño:** pasarlo a la gestoría y validar el plazo
-- [ ] Al validarlo: aplicar el texto en `privacidad.blade.php` (y la fecha en `config/legal.php`), borrar los tickets al borrar la cuenta (`AccountDeletion`) y una tarea diaria que borre los caducados con sus imágenes
+- [x] (2026-10-14) Al borrar la cuenta se borran sus tickets con sus imágenes, también los que abrió sin sesión con su email de recuperación (`Support::deleteForUser`, desde `AccountDeletion`). Así se cumple lo que ya promete la política. La página de borrar cuenta lo avisa
+- [ ] Al validarlo: aplicar el texto en `privacidad.blade.php` (y la fecha en `config/legal.php`) y una tarea diaria que borre los tickets caducados con sus imágenes
 
 ## Después del lanzamiento
 

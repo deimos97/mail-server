@@ -19,7 +19,8 @@ use RuntimeException;
  * 2. `mail-provision delete-content` borra su correo del disco. Si fallara, el buzón ya está inaccesible
  *    y `purge-deleted` nunca liberará el nombre mientras quede correo: se arregla a mano (está en el log).
  * 3. La fila del buzón se queda 90 días (el nombre sigue ocupado); luego la quita el timer `mail-purge`.
- * 4. El usuario de la web se borra (email, contraseña, atribución) y se le avisa en su email de recuperación.
+ * 4. Sus tickets de soporte se borran con sus imágenes (también los que abrió sin sesión con su email).
+ * 5. El usuario de la web se borra (email, contraseña, atribución) y se le avisa en su email de recuperación.
  */
 class AccountDeletion
 {
@@ -62,6 +63,9 @@ class AccountDeletion
         foreach (MailboxExport::where('user_id', $user->id)->where('status', 'ready')->get() as $export) {
             app(MailboxExports::class)->discard($export);
         }
+
+        // Sus consultas de soporte (texto, imágenes y su email)
+        app(Support::class)->deleteForUser($user);
 
         Mail::to($user->email)->queue(new AccountDeleted($mailboxes->pluck('email')->all()));
         $user->delete();
