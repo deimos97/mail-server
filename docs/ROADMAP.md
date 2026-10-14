@@ -177,7 +177,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 - [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar` (necesitan los dispositivos)
 
 ### Contenido
-- [ ] Gmail web (gmail.com en el ordenador) ya no puede leer otras cuentas (Google lo quitó en enero de 2026). ¿Lo explicamos en la FAQ o en la guía de Gmail? (la IA lo propuso el 2026-10-09; falta el sí del dueño). Datos para la app de Gmail: IMAP `mail.unagrandeylibre.es:993` SSL/TLS, ya en `/ayuda/configurar/android`
+- [x] Gmail web (2026-10-14): gmail.com en el ordenador ya no puede leer otras cuentas (Google lo quitó en enero de 2026). Explicado en la FAQ de la landing ("¿Puedo leerlo dentro de gmail.com?") y en una nota de la guía de Gmail (`setup/steps/android.blade.php`): en el ordenador, webmail, Outlook o Thunderbird
 - [ ] Textos definitivos de la landing: hero, bloques informativos y FAQ (también cuentan para el SEO). Van en `portal/config/landing.php`, o pasárselos a la IA
 - [x] Textos legales validados por la gestoría (2026-10-09); aviso de borrador quitado (`LEGAL_DRAFT=false`)
 

@@ -7,3 +7,8 @@
     </li>
     <li>Acepta las opciones de sincronización. Tu correo aparecerá en Gmail.</li>
 </ol>
+
+<p class="mt-4 rounded-2xl bg-amarillo/20 p-3 text-sm text-stone-700">
+    <strong>Esto es para la app de Gmail del móvil.</strong> En gmail.com desde el ordenador no se pueden añadir cuentas de otros proveedores (Google lo quitó en 2026).
+    En el ordenador, entra en nuestro webmail, <a href="https://webmail.unagrandeylibre.es" class="font-medium underline">webmail.unagrandeylibre.es</a>, o usa Outlook o Thunderbird.
+</p>

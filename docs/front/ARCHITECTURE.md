@@ -181,7 +181,7 @@ Sí existen, pero ninguno cubre todo:
 | Outlook nuevo / Outlook móvil | Detección propia, poco fiable para IMAP genérico | Tutorial con capturas. |
 | iPhone / iPad / Mac (Mail) | **Perfil `.mobileconfig`** | Generarlo desde "Mi cuenta" por buzón (puede llevar la contraseña de aplicación dentro → instalación en 3 toques). Firmarlo con el certificado TLS para que salga como "verificado". |
 | Gmail app (Android/iOS) con "Otra cuenta" | Heurísticas propias (prueba `mail.<dominio>`, `imap.<dominio>`…) | Registros SRV + tutorial. |
-| Gmail web (gmail.com en el ordenador) | **No se puede**: Google quitó en enero de 2026 "Consultar el correo de otras cuentas" (era por POP) y Gmailify | Decirlo en la ayuda/FAQ: usar nuestro webmail o la app de Gmail. |
+| Gmail web (gmail.com en el ordenador) | **No se puede**: Google quitó en enero de 2026 "Consultar el correo de otras cuentas" (era por POP) y Gmailify | Dicho en la FAQ de la landing y en la guía de Gmail: usar nuestro webmail o la app de Gmail. |
 | Genérico | **SRV RFC 6186/8314**: `_imaps._tcp`, `_submission._tcp`, `_submissions._tcp` | Publicar en Cloudflare. |
 
 Datos a publicar en todos: IMAP `mail.unagrandeylibre.es:993` SSL/TLS, SMTP `mail.unagrandeylibre.es:465` SSL/TLS (o 587 STARTTLS), usuario = dirección completa.

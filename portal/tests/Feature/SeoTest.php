@@ -23,7 +23,8 @@ class SeoTest extends TestCase
         $this->get('/')
             ->assertSee('<meta property="og:image" content="'.asset('img/og.png').'">', false)
             ->assertSee('<meta name="twitter:card" content="summary_large_image">', false)
-            ->assertSee('<link rel="icon" href="/favicon.svg" type="image/svg+xml">', false);
+            ->assertSee('<link rel="icon" href="/favicon.svg" type="image/svg+xml">', false)
+            ->assertSee('¿Puedo leerlo dentro de gmail.com?');
     }
 
     public function test_structured_data_lists_visible_plans_with_current_price(): void

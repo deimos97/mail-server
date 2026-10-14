@@ -167,7 +167,8 @@ class DeviceSetupTest extends TestCase
     public function test_public_help_pages(): void
     {
         $this->get('/ayuda/configurar')->assertOk()->assertSee('Android (Gmail)')->assertSee('Thunderbird');
-        $this->get('/ayuda/configurar/android')->assertOk()->assertSee('Personal (IMAP)')->assertSee('mail.unagrandeylibre.es');
+        $this->get('/ayuda/configurar/android')->assertOk()->assertSee('Personal (IMAP)')->assertSee('mail.unagrandeylibre.es')
+            ->assertSee('En gmail.com desde el ordenador no se pueden añadir cuentas');
         $this->get('/ayuda/configurar/iphone')->assertOk()->assertSee('Configura un dispositivo');
         $this->get('/ayuda/configurar/inventada')->assertNotFound();
     }
