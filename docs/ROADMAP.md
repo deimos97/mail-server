@@ -237,7 +237,7 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 ### E · Avisos a Telegram (D-022)
 - [x] (2026-10-14) Aviso de cada ticket nuevo y de cada respuesta del cliente: número, asunto, quién, adjuntos y el mensaje recortado (`Support::telegramText`, por la cola)
 - [x] (2026-10-14) Resumen diario: `report:daily-stats` (web) + `mail-daily-report` y su timer (servidor) + muestras de CPU/RAM en `mail-monitor`. Probado con `--dry-run` en producción
-- [ ] Instalar en el servidor (script, timer y `mail-monitor`) y copiar el token del bot al `.env` de la web; desplegar
+- [x] (2026-10-14, `e74c5b3`) Instalado en el servidor (script, timer a las 09:00 y `mail-monitor`), token del bot en el `.env` de la web y desplegado
 
 ## Después del lanzamiento
 
