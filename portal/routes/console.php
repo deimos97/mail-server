@@ -30,5 +30,6 @@ Schedule::call(fn () => app(MailboxExports::class)->collect())
 Schedule::call(fn () => app(MailboxLifecycle::class)->run())
     ->dailyAt('04:45')->name('ciclo-de-vida')->withoutOverlapping();
 
-// Soporte (Fase 7): respuestas de los clientes por email a soporte@ → su ticket
-Schedule::command('support:fetch')->everyMinute()->withoutOverlapping(5)->runInBackground();
+// Soporte (Fase 7): respuestas de los clientes por email a soporte@ → su ticket.
+// Sin runInBackground: portal-schedule es un servicio oneshot y systemd mata lo que queda en segundo plano al terminar.
+Schedule::command('support:fetch')->everyMinute()->withoutOverlapping(5);
