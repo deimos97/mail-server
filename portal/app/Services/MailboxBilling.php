@@ -42,6 +42,18 @@ class MailboxBilling
     }
 
     /** La suscripción ha terminado (cancelada al final del periodo, o impagada hasta el final). */
+    /** Si al acabar su suscripción el buzón puede pasar a gratis (D-009); si no, se trata como un impago. */
+    public function fitsFree(Mailbox $mailbox): bool
+    {
+        $free = Plan::where('is_free', true)->orderBy('sort_order')->first();
+        $user = $mailbox->user;
+
+        return $free
+            && $user && ! $user->mailboxes()->whereKeyNot($mailbox->id)->where('status', '!=', 'deleted')->whereIn('plan_id', Plan::where('is_free', true)->pluck('id'))->exists()
+            && $mailbox->usedBytes() <= $free->quota_bytes
+            && ! NamePriceTier::forLength(mb_strlen($mailbox->local_part));      // los nombres cortos solo van con pago
+    }
+
     public function ended(array $subscription): void
     {
         $mailbox = $this->mailbox($subscription);
@@ -51,12 +63,8 @@ class MailboxBilling
 
         $free = Plan::where('is_free', true)->orderBy('sort_order')->first();
         $user = $mailbox->user;
-        $fitsFree = $free
-            && $user && ! $user->mailboxes()->whereKeyNot($mailbox->id)->where('status', '!=', 'deleted')->whereIn('plan_id', Plan::where('is_free', true)->pluck('id'))->exists()
-            && $mailbox->usedBytes() <= $free->quota_bytes
-            && ! NamePriceTier::forLength(mb_strlen($mailbox->local_part));      // los nombres cortos solo van con pago
 
-        if ($fitsFree) {
+        if ($this->fitsFree($mailbox)) {
             $this->applyPlan($mailbox, $free);
             $mailbox->update(['can_send' => $user->hasVerifiedEmail()]);
             $this->paid($mailbox);

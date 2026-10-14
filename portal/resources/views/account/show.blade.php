@@ -63,10 +63,17 @@
 
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 p-4 text-sm sm:p-5">
                     <div class="min-w-0">
-                        <p class="font-semibold">Plan {{ $mailbox->plan?->name ?? '—' }}</p>
+                        <p class="flex flex-wrap items-center gap-2 font-semibold">
+                            Plan {{ $mailbox->plan?->name ?? '—' }}
+                            @if ($subscription?->onGracePeriod())
+                                <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-300">Cancelado</span>
+                            @endif
+                        </p>
                         <p class="text-stone-500">
                             @if ($subscription?->onGracePeriod())
-                                Cancelado: termina el {{ $subscription->ends_at->timezone('Europe/Madrid')->format('d/m/Y') }}.
+                                Sigues con el plan {{ $mailbox->plan?->name }} hasta el {{ $subscription->ends_at->timezone('Europe/Madrid')->format('d/m/Y') }}
+                                y después {{ app(\App\Services\MailboxBilling::class)->fitsFree($mailbox) ? 'pasa a gratis' : 'se suspende, porque no cabe en el plan gratis' }}.
+                                Puedes deshacerlo en «Cambiar de plan».
                             @elseif ($subscription)
                                 Se renueva solo. Puedes cambiarlo o cancelarlo cuando quieras.
                             @elseif ($mailbox->plan?->is_free)

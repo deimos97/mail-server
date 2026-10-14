@@ -137,7 +137,7 @@ class PlanChangeTest extends TestCase
         $this->assertTrue($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);
         $this->assertSame('basic', $mailbox->fresh()->tier);                      // hasta el final del periodo
         $this->get("/cuenta/plan/{$mailbox->id}")->assertSee('Deshacer y seguir con mi plan');
-        $this->get('/cuenta')->assertSee('Cancelado: termina el');
+        $this->get('/cuenta')->assertSee('Cancelado')->assertSee('Sigues con el plan Básico hasta el')->assertSee('y después pasa a gratis');
 
         $this->post("/cuenta/plan/{$mailbox->id}/deshacer")->assertRedirect('/cuenta');
         $this->assertFalse($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);
