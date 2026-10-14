@@ -40,5 +40,7 @@ systemctl --failed
 /usr/local/sbin/mail-monitor            # el mismo chequeo que corre cada 10 min
 mysql mailserver -e "SELECT d.name, m.local_part, m.tier, m.active FROM mailboxes m JOIN domains d ON d.id=m.domain_id"
 mailq | tail -1
+/usr/local/sbin/mail-daily-report --dry-run   # el resumen diario de Telegram, sin enviarlo
+cd /var/www/portal/current && sudo -u portal php8.3 artisan support:fetch   # OJO, no es solo lectura: procesa soporte@ (mueve correos a los tickets); ya lo hace el scheduler cada minuto
 iptables -S INPUT
 ```

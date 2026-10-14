@@ -46,10 +46,16 @@ Nada más en el onboarding: ni nombre, ni dirección, ni teléfono. Los datos de
 Una vez dentro:
 
 - **Mis buzones:** lista (normalmente uno), con plan, uso de cuota y estado. Por buzón: abrir webmail (SSO), dispositivos conectados (añadir, revocar), configuración de clientes, cambiar de plan, cancelar.
+  - Cada buzón es su propia tarjeta (cabecera con la @ roja), debajo del bloque de la cuenta y con el título "Tus N buzones", para distinguirlos cuando hay varios.
+  - Sin dispositivos, las dos acciones principales van igual de grandes y con subtítulo: **Configura un dispositivo** ("Recomendado: en tu móvil u ordenador, como Gmail o iCloud", rojo relleno, arriba) y **Abrir mi correo** ("En el navegador web", en blanco). Con dispositivos, "Abrir mi correo" es la principal y los dispositivos van plegados: número + "Añadir".
 - **Añadir otro buzón:** mismo flujo que el onboarding, sin el paso de email.
 - **Facturación:** tarjetas, facturas y suscripciones → **Stripe Customer Portal** (lo da Stripe hecho).
 - **Seguridad:** contraseña del portal, 2FA (TOTP) y passkeys (fase posterior), sesiones abiertas.
 - **Datos:** cambiar email de recuperación, exportar correo, borrar cuenta.
+
+## Ayuda y contacto
+
+`/soporte` es a la vez contacto y soporte: email (si no hay sesión), asunto, descripción y hasta 3 capturas (8 MB); para otros ficheros, `transfer.tibletech.com`. Se llega desde el icono "Ayuda" arriba a la derecha, el pie de página y un botón flotante en la home al bajar. Respondemos por email desde `soporte@` y el cliente puede contestar al correo. Detalle técnico en [ARCHITECTURE.md § Soporte](ARCHITECTURE.md#soporte-por-tickets-y-avisos).
 
 ## Login único
 

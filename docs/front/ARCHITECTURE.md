@@ -154,6 +154,10 @@ Bajar de plan con más correo que la nueva cuota: no se borra nada; se bloquea l
 
 Desde `noreply@unagrandeylibre.es` por el propio Postfix (submission autenticado). **Ojo:** el límite de Rspamd de 40/h por usuario también se aplica a `noreply`; hay que excluirlo o darle su propio límite. Si en el futuro la reputación se resiente, se puede pasar a Postmark/SES/Brevo.
 
+### Soporte por tickets y avisos
+
+Fase 7 (D-018 a D-022). Tablas `support_tickets`, `support_messages` y `support_attachments` (imágenes en el disco privado), y `settings` para el interruptor de tickets sin sesión. Los correos al cliente salen de `soporte@` con `[#NNNN]` en el asunto, por su propio mailer (`SUPPORT_MAILER=support`). `support:fetch` lee `soporte@` por IMAP cada minuto (librería `directorytree/imapengine`, PHP puro) y engancha las respuestas a su ticket. Cada mensaje del cliente avisa a `javier@` por email y a Telegram, y cada mañana llega a Telegram un resumen (`mail-daily-report` en el servidor + `report:daily-stats` en la web). Operación y trampas en el [README](../../README.md#soporte-soporte).
+
 ### Cuota y uso
 
 Para mostrar "usados 120 MB de 1 GB" sin root, configurar en Dovecot el **dict de cuota en MariaDB** (tabla `quota` con `username, bytes, messages`) además del límite. La web la lee con `SELECT`.

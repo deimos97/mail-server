@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Fase 7 · Soporte por tickets — EN CURSO** (código, desde el 2026-10-14). **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
+Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Fase 7 · Soporte por tickets — EN CURSO** (desde el 2026-10-14; el código está hecho y en producción, queda lo del dueño: la gestoría y probar el aviso de Telegram). **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
 **Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
@@ -176,6 +176,8 @@ Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Pasar a
 Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté terminado, lo haya probado todo y haya pasado su feedback con ajustes. El orden de los bloques es el recomendado; el último bloque abre altas.
 
 ### Probar y dar feedback
+- [x] (2026-10-14, `eb477e1`…`beaaa12`) Feedback de Mi cuenta: cada buzón en su propia tarjeta con cabecera marcada (@ roja) y título "Tus N buzones"; en móvil la dirección parte por la @; dispositivos plegables (número + "Añadir"); sin dispositivos, "Configura un dispositivo" (recomendado) va arriba e igual de grande que "Abrir mi correo", los dos con icono y subtítulo
+- [x] (2026-10-14, `ba6bcd7`) Textos legales: tres frases de condiciones y uso aceptable mostraban `@{{ $l['brand'] }}` en vez de la dirección (en Blade, `@{{` escribe las llaves tal cual). El test de legales ahora falla si aparece `{{`
 - [ ] Probar la web entera y pasar el feedback (alta gratis y de pago, Mi cuenta, configurar dispositivos, webmail, admin)
 - [ ] Probar en dispositivos reales: el perfil en un iPhone (entrando a la web desde Safari en el iPhone) y la autoconfiguración en Thunderbird y Outlook
 - [ ] Pagos en el sandbox de Stripe: el alta de pago (hecha el 2026-10-08 con `varela@`, plan Básico); falta cancelar en Checkout, "Cambiar de plan" (subir a Pro, bajar y pasar a gratis, con "Deshacer") y "Gestionar pago y facturas". Tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y CVC
@@ -206,7 +208,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 - [x] `SIGNUP_OPEN=true`, `APP_INDEXABLE=true` y sitemap con la ayuda, los textos legales y `/estado`. Se abrió antes de terminar el calentamiento: los amigos que prueban ayudan a calentar el dominio
 - [x] Quitada de `AGENTS.md` (regla 4) y de la skill `mail-server-ops` la nota de "todavía no hay usuarios reales": **en producción con usuarios reales desde el 2026-10-09**
 
-## Fase 7 · Soporte por tickets — EN CURSO (código)
+## Fase 7 · Soporte por tickets — EN CURSO (queda lo del dueño)
 
 Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por separado.
 
@@ -226,7 +228,10 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 - [x] (2026-10-14, desplegado `b66e816`) Buzón `soporte@` en el servidor (id 10, 1 GB) (`tier=system`, como `noreply@`) y un mailer propio en Laravel con sus credenciales (Postfix no deja enviar como otro: `reject_sender_login_mismatch`). Cambio en producción: con confirmación
 - [x] (2026-10-14, `ecadc9d`) Lector IMAP cada minuto (`support:fetch`): los correos con `[#NNNN]` del cliente se añaden al hilo (sin la cita del correo anterior, con sus imágenes) y reabren el ticket; los demás se quedan en el buzón y se avisa a `javier@` con "Responder a" al remitente
 - [x] Desplegado el 2026-10-14 (`b66e816`); `support:fetch` entra en `soporte@` por IMAP
-- [ ] Probar en producción un ticket de punta a punta (formulario → confirmación → respuesta desde el admin → respuesta del cliente por email)
+- [x] (2026-10-14) Probado en producción de punta a punta con los tickets #0002 y #0003 (formulario → confirmación → respuesta desde el admin → respuesta del cliente por email). Hubo que arreglar tres cosas al estrenarlo (las tres en el README):
+  - `storage/app` es de root y la web no podía crear `app/private` para las imágenes: 500 al adjuntar. Creada a mano
+  - Los correos al cliente salían autenticados como `noreply@` y Postfix los rechazaba: Laravel pisa el mailer del Mailable al encolar (`c87cc04`)
+  - `support:fetch` con `runInBackground` moría al terminar el scheduler oneshot y no entraban las respuestas (`03cb69b`)
 
 ### D · Privacidad
 - [x] (2026-10-14) Borrador de los cambios en la política de privacidad: [docs/legal/borrador-privacidad-soporte.md](legal/borrador-privacidad-soporte.md). Propone guardar las consultas 2 años desde el último mensaje y borrarlas con la cuenta
@@ -237,6 +242,8 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 ### E · Avisos a Telegram (D-022)
 - [x] (2026-10-14) Aviso de cada ticket nuevo y de cada respuesta del cliente: número, asunto, quién, adjuntos y el mensaje recortado (`Support::telegramText`, por la cola)
 - [x] (2026-10-14) Resumen diario: `report:daily-stats` (web) + `mail-daily-report` y su timer (servidor) + muestras de CPU/RAM en `mail-monitor`. Probado con `--dry-run` en producción
+- [x] (2026-10-14) Resumen de prueba enviado y recibido (17:06); el primero de verdad, el 2026-10-15 a las 09:00
+- [ ] **Dueño:** comprobar que llega el aviso de Telegram al abrir un ticket o responder a uno por email
 - [x] (2026-10-14, `e74c5b3`) Instalado en el servidor (script, timer a las 09:00 y `mail-monitor`), token del bot en el `.env` de la web y desplegado
 
 ## Después del lanzamiento
