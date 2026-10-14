@@ -227,6 +227,11 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 - [x] Desplegado el 2026-10-14 (`b66e816`); `support:fetch` entra en `soporte@` por IMAP
 - [ ] Probar en producción un ticket de punta a punta (formulario → confirmación → respuesta desde el admin → respuesta del cliente por email)
 
+### D · Privacidad
+- [x] (2026-10-14) Borrador de los cambios en la política de privacidad: [docs/legal/borrador-privacidad-soporte.md](legal/borrador-privacidad-soporte.md). Propone guardar las consultas 2 años desde el último mensaje y borrarlas con la cuenta
+- [ ] **Dueño:** pasarlo a la gestoría y validar el plazo
+- [ ] Al validarlo: aplicar el texto en `privacidad.blade.php` (y la fecha en `config/legal.php`), borrar los tickets al borrar la cuenta (`AccountDeletion`) y una tarea diaria que borre los caducados con sus imágenes
+
 ## Después del lanzamiento
 
 - [ ] Dashboard de embudo en PostHog; revisar mapas de calor y grabaciones de las primeras campañas
