@@ -29,3 +29,6 @@ Schedule::call(fn () => app(MailboxExports::class)->collect())
 // Ciclo de vida de los buzones (D-009): impagos, cancelaciones y gratis sin uso
 Schedule::call(fn () => app(MailboxLifecycle::class)->run())
     ->dailyAt('04:45')->name('ciclo-de-vida')->withoutOverlapping();
+
+// Soporte (Fase 7): respuestas de los clientes por email a soporte@ → su ticket
+Schedule::command('support:fetch')->everyMinute()->withoutOverlapping(5)->runInBackground();
