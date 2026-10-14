@@ -187,6 +187,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [x] (2026-10-14) "Cambiar de plan" marca de entrada el plan actual; el botón dice "Elige otro plan" y se activa al elegir otro
 - [x] (2026-10-14) Subir de plan daba 500: Cashier manda `items[][tax_rates]` vacío y Stripe no lo admite con `pending_if_incomplete`. El IVA ya va en la suscripción (`default_tax_rates`), así que `App\Models\Subscription` lo quita; y un error de Stripe al cambiar de plan ya no da 500, sino un aviso sin cambiar nada
 - [x] (2026-10-14) Subir de Básico a Pro (`javier-checkout@`): plan y 50 GB al momento, factura de 4,00 € (−0,99 de Básico sin usar con la oferta + 4,99 de Pro) con 0,69 € de IVA incluido, webhooks 200
+- [x] (2026-10-14) Bajar de Pro a Básico: plan y 10 GB al momento, sin cobro; la diferencia (−4,99 + 0,99) queda para la próxima factura (14/11: −3,01 €, se paga 0 y sobra saldo). La oferta del 50 % del Básico se mantiene (cupón hasta el 14/01/2027)
 - [ ] Pagos en el sandbox de Stripe: el alta de pago (hecha el 2026-10-08 con `varela@`, plan Básico); falta "Cambiar de plan" (subir a Pro, bajar y pasar a gratis, con "Deshacer") y "Gestionar pago y facturas". Tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y CVC
 
 ### Contenido
