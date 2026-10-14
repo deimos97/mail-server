@@ -2,6 +2,7 @@
     use App\Support\Money;
     $hasSubscription = (bool) $subscription;
     $choices = $options->reject(fn ($o) => $o['current'] || $o['reason']);
+    $current = $options->firstWhere('current', true)['plan']->id ?? null;
     $meta = $options->mapWithKeys(fn ($o) => [$o['plan']->id => ['free' => $o['plan']->is_free]]);
 @endphp
 
@@ -18,7 +19,7 @@
     @endif
 
     <form method="POST" action="{{ route('account.plan.store', $mailbox->id) }}" class="mt-6"
-          x-data="{ plan: @js(old('plan', $choices->first()['plan']->id ?? null)), meta: @js($meta), sub: @js($hasSubscription) }">
+          x-data="{ plan: @js(old('plan', $current ?? $choices->first()['plan']->id ?? null)), current: @js($current), meta: @js($meta), sub: @js($hasSubscription) }">
         @csrf
         <fieldset class="space-y-3">
             <legend class="sr-only">Plan</legend>
@@ -51,21 +52,22 @@
         <x-form-error name="plan" />
 
         @if ($choices->isNotEmpty())
-            <div x-show="plan && ! meta[plan]?.free && ! sub" x-cloak class="mt-5 rounded-2xl bg-stone-50 p-4 text-sm">
+            <div x-show="plan != current && ! meta[plan]?.free && ! sub" x-cloak class="mt-5 rounded-2xl bg-stone-50 p-4 text-sm">
                 <label class="flex items-start gap-3">
                     <input type="checkbox" name="immediate_start" value="1" class="mt-0.5 size-5 accent-rojo">
                     <span>Quiero que el nuevo plan empiece en cuanto pague. Sé que puedo desistir en los 14 días siguientes y que, si lo hago, solo pagaré la parte usada.</span>
                 </label>
                 <p class="mt-3 text-stone-500">El pago se hace en Stripe; nosotros nunca vemos tu tarjeta.</p>
             </div>
-            <p x-show="plan && ! meta[plan]?.free && sub" x-cloak class="mt-5 text-sm text-stone-500">
+            <p x-show="plan != current && ! meta[plan]?.free && sub" x-cloak class="mt-5 text-sm text-stone-500">
                 El cambio es inmediato. Si subes de plan, cobramos ahora la diferencia hasta tu próxima renovación; si bajas, la diferencia se descuenta de tus próximos pagos.
             </p>
-            <p x-show="plan && meta[plan]?.free && sub" x-cloak class="mt-5 text-sm text-stone-500">
+            <p x-show="plan != current && meta[plan]?.free && sub" x-cloak class="mt-5 text-sm text-stone-500">
                 Seguirás con tu plan actual hasta el final del periodo que ya has pagado; después pasarás a gratis. Puedes deshacerlo hasta entonces.
             </p>
-            <button type="submit" class="mt-6 w-full rounded-2xl bg-rojo px-6 py-4 text-lg font-bold text-white transition hover:bg-rojo-oscuro"
-                    x-text="meta[plan]?.free ? 'Pasar a gratis' : (sub ? 'Cambiar de plan' : 'Ir al pago')">Cambiar de plan</button>
+            {{-- De entrada está marcado el plan actual (más claro); el botón se activa al elegir otro --}}
+            <button type="submit" :disabled="plan == current" class="mt-6 w-full rounded-2xl bg-rojo px-6 py-4 text-lg font-bold text-white transition hover:bg-rojo-oscuro disabled:cursor-not-allowed disabled:opacity-50"
+                    x-text="plan == current ? 'Elige otro plan' : (meta[plan]?.free ? 'Pasar a gratis' : (sub ? 'Cambiar de plan' : 'Ir al pago'))">Cambiar de plan</button>
         @endif
     </form>
 

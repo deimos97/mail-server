@@ -69,7 +69,9 @@ class PlanChangeTest extends TestCase
     {
         $free = $this->mailbox('gratis', 'anagratis');
         $this->actingAs($this->user)->get('/cuenta')->assertSee('Cambiar de plan')->assertDontSee('Gestionar pago y facturas');
-        $this->get("/cuenta/plan/{$free->id}")->assertOk()->assertSee('Tu plan actual')->assertSee('Básico');
+        $this->get("/cuenta/plan/{$free->id}")->assertOk()->assertSee('Tu plan actual')->assertSee('Básico')
+            ->assertSee('plan: '.$free->plan_id.', current: '.$free->plan_id, false)   // de entrada, el plan actual
+            ->assertSee('Elige otro plan');
     }
 
     public function test_free_to_paid_goes_through_checkout(): void
