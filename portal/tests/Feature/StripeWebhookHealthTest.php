@@ -43,9 +43,17 @@ class StripeWebhookHealthTest extends TestCase
     public function test_reports_undelivered_events(): void
     {
         $this->endpoint();
-        $this->stripe->objects['events']['evt_1'] = ['id' => 'evt_1', 'object' => 'event', 'type' => 'invoice.payment_failed', 'pending_webhooks' => 1, 'created' => now()->timestamp];
+        $this->stripe->objects['events']['evt_1'] = ['id' => 'evt_1', 'object' => 'event', 'type' => 'invoice.payment_failed', 'pending_webhooks' => 1, 'created' => now()->subMinutes(20)->timestamp];
 
         $this->artisan('stripe:webhook-health')->expectsOutputToContain('1 eventos sin entregar')->assertExitCode(1);
+    }
+
+    public function test_events_still_being_delivered_are_not_a_problem(): void
+    {
+        $this->endpoint();
+        $this->stripe->objects['events']['evt_1'] = ['id' => 'evt_1', 'object' => 'event', 'type' => 'invoice.paid', 'pending_webhooks' => 1, 'created' => now()->subSeconds(2)->timestamp];
+
+        $this->artisan('stripe:webhook-health')->assertExitCode(0);
     }
 
     public function test_silent_without_stripe(): void

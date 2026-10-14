@@ -11,11 +11,15 @@ use Throwable;
  * Salud de los webhooks de Stripe, para mail-monitor (que avisa por Telegram). Sin salida y código 0 si todo
  * va bien; si no, una línea con el problema y código 1.
  * - El endpoint `/stripe/webhook` existe en Stripe y está activo (Stripe lo desactiva si falla muchos días).
- * - No hay eventos de las últimas 24 h que Stripe no haya conseguido entregar (ni los reintentos).
+ * - No hay eventos de las últimas 24 h que Stripe no haya conseguido entregar (ni los reintentos). Los de los
+ *   últimos minutos no cuentan: aún se están entregando (un aviso falso del 2026-10-14 cogió un pago a medias).
  */
 class StripeWebhookHealth extends Command
 {
     protected $signature = 'stripe:webhook-health {--hours=24 : Ventana de eventos a revisar}';
+
+    /** Margen para que Stripe entregue (y reintente) un evento recién creado antes de darlo por perdido. */
+    private const GRACE_MINUTES = 15;
 
     protected $description = 'Comprueba que el webhook de Stripe está activo y que no hay eventos sin entregar (para mail-monitor)';
 
@@ -50,8 +54,9 @@ class StripeWebhookHealth extends Command
                 'created' => ['gte' => now()->subHours((int) $this->option('hours'))->timestamp],
                 'limit' => 100,
             ]);
+            $settled = now()->subMinutes(self::GRACE_MINUTES)->timestamp;
             foreach ($events->autoPagingIterator() as $event) {
-                if (($event->pending_webhooks ?? 0) > 0) {
+                if (($event->pending_webhooks ?? 0) > 0 && $event->created <= $settled) {
                     $failed++;
                     $types[$event->type] = true;
                 }
