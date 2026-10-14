@@ -129,6 +129,7 @@ Buzón `tier=system` (como `noreply@`, 1 GB) del que salen las respuestas de los
 - Las respuestas con `[#NNNN]` en el asunto que vienen del email del cliente (o de sus buzones) entran en el ticket y se mueven a la carpeta `Tickets`. El resto se queda en la bandeja de entrada sin leer, con la etiqueta IMAP `UglChecked` para no volver a procesarlo, y se reenvía un aviso a `javier@` con "Responder a" al remitente.
 - El certificado no vale para `127.0.0.1`: la conexión IMAP no valida el certificado (`SUPPORT_IMAP_VALIDATE_CERT=false`), y no sale del servidor.
 - Si Rspamd manda una respuesta a `Junk`, no se lee: solo se mira la bandeja de entrada.
+- **Laravel pisa el mailer de un Mailable al encolarlo** (`Mail::to()->queue()` le pone el de por defecto). Por eso los correos de soporte se encolan con `Mail::mailer('support')` (`Support::mailer()`); si no, salen autenticados como `noreply@` y Postfix los rechaza: `553 5.7.1 <soporte@…>: Sender address rejected: not owned by user noreply@…` (pasó el 2026-10-14).
 - Las imágenes de los tickets van a `/var/www/portal/shared/storage/app/private/support/` (entran en la copia, que incluye `shared/`). **`shared/storage/app` es de root**: la web no puede crear carpetas nuevas ahí y Laravel da un 500 ("Unable to create a directory"). `app/private` se creó a mano el 2026-10-14 (`install -d -o portal -g portal -m 750`); si algún día se usa otro disco o carpeta bajo `storage/app`, hay que crearla igual.
 
 ### Dovecot: orden de configuración

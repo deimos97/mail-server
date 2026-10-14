@@ -14,17 +14,13 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Correos al cliente de un ticket: salen de soporte@ (D-019) con "[#0042]" en el asunto, que es
  * lo que usa `support:fetch` para enganchar su respuesta al ticket. Responder va a soporte@.
+ * Se envían con Support::mailer(): Laravel pisa el mailer del Mailable al encolarlo.
  */
 abstract class SupportMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public SupportTicket $ticket)
-    {
-        if ($mailer = config('support.mailer')) {
-            $this->mailer($mailer);
-        }
-    }
+    public function __construct(public SupportTicket $ticket) {}
 
     public function envelope(): Envelope
     {

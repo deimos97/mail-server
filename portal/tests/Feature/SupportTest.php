@@ -74,6 +74,18 @@ class SupportTest extends TestCase
         $this->get('/soporte/enviado')->assertOk()->assertSee('#0001');
     }
 
+    public function test_customer_emails_go_through_the_support_mailer_and_staff_notices_do_not(): void
+    {
+        // En producción, soporte@ solo puede enviar autenticado como soporte@ (reject_sender_login_mismatch)
+        config(['support.mailer' => 'support']);
+        $ticket = app(Support::class)->open(null, 'lucia@gmail.com', 'Duda', 'Hola');
+        app(Support::class)->reply($ticket, $this->admin(), 'Respuesta');
+
+        Mail::assertQueued(TicketReceived::class, fn ($mail) => $mail->mailer === 'support');
+        Mail::assertQueued(TicketReply::class, fn ($mail) => $mail->mailer === 'support');
+        Mail::assertQueued(StaffNotice::class, fn ($mail) => $mail->mailer !== 'support');
+    }
+
     public function test_the_sent_page_needs_the_session(): void
     {
         $this->get('/soporte/enviado')->assertRedirect('/soporte');

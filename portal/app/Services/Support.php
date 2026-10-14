@@ -53,7 +53,7 @@ class Support
             return [$ticket, $message];
         });
 
-        Mail::to($ticket->email)->queue(new TicketReceived($ticket, $message));
+        $this->mailer()->to($ticket->email)->queue(new TicketReceived($ticket, $message));
         $this->notifyStaff($ticket, $message, isNew: true);
 
         return $ticket;
@@ -65,7 +65,7 @@ class Support
         $message = $ticket->messages()->create(['author' => 'staff', 'source' => 'admin', 'staff_id' => $staff->id, 'body' => trim($body)]);
         $ticket->update(['last_message_at' => now()] + ($close ? ['status' => 'closed', 'closed_at' => now()] : []));
 
-        Mail::to($ticket->email)->queue(new TicketReply($ticket, $message));
+        $this->mailer()->to($ticket->email)->queue(new TicketReply($ticket, $message));
 
         return $message;
     }
@@ -140,6 +140,15 @@ class Support
             'mime' => Str::limit($mime, 100, ''),
             'size' => strlen($content),
         ]);
+    }
+
+    /**
+     * Mailer de soporte@ (D-019). Hay que elegirlo aquí: al encolar, Laravel pone en el Mailable el
+     * mailer con el que se encola, y por el de siempre (noreply@) Postfix rechaza el remitente soporte@.
+     */
+    private function mailer(): \Illuminate\Contracts\Mail\Mailer
+    {
+        return Mail::mailer(config('support.mailer') ?: null);
     }
 
     private function notifyStaff(SupportTicket $ticket, SupportMessage $message, bool $isNew): void
