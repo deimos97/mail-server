@@ -222,9 +222,10 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 - [x] Aviso de ticket nuevo a `javier@`
 
 ### C · Respuestas por email
-- [ ] Buzón `soporte@` en el servidor (`tier=system`, como `noreply@`) y un mailer propio en Laravel con sus credenciales (Postfix no deja enviar como otro: `reject_sender_login_mismatch`). Cambio en producción: con confirmación
+- [x] (2026-10-14, desplegado `b66e816`) Buzón `soporte@` en el servidor (id 10, 1 GB) (`tier=system`, como `noreply@`) y un mailer propio en Laravel con sus credenciales (Postfix no deja enviar como otro: `reject_sender_login_mismatch`). Cambio en producción: con confirmación
 - [x] (2026-10-14, `ecadc9d`) Lector IMAP cada minuto (`support:fetch`): los correos con `[#NNNN]` del cliente se añaden al hilo (sin la cita del correo anterior, con sus imágenes) y reabren el ticket; los demás se quedan en el buzón y se avisa a `javier@` con "Responder a" al remitente
-- [ ] Desplegar y probar en producción: un ticket de punta a punta (formulario → confirmación → respuesta desde el admin → respuesta del cliente por email)
+- [x] Desplegado el 2026-10-14 (`b66e816`); `support:fetch` entra en `soporte@` por IMAP
+- [ ] Probar en producción un ticket de punta a punta (formulario → confirmación → respuesta desde el admin → respuesta del cliente por email)
 
 ## Después del lanzamiento
 
