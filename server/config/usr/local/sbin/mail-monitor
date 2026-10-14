@@ -117,6 +117,10 @@ printf '{"checked_at":%s,"problems":[%s]}\n' "$now" "$probs" > /var/www/portal/s
     && chmod 644 /var/www/portal/shared/status.json.tmp && mv /var/www/portal/shared/status.json.tmp /var/www/portal/shared/status.json
 date +%s > "$STATE/last-run"
 
+# Muestra de carga y RAM usada (%) para la media y el pico del resumen diario (mail-daily-report); 3 días
+echo "$now $(cut -d' ' -f1 /proc/loadavg) $(awk '/^MemTotal:/ {t=$2} /^MemAvailable:/ {a=$2} END {printf "%.1f", (t-a)/t*100}' /proc/meminfo)" >> "$STATE/samples"
+tail -n 432 "$STATE/samples" > "$STATE/samples.tmp" && mv "$STATE/samples.tmp" "$STATE/samples"
+
 # Dead-man's switch: an external service alerts if these pings stop arriving
 . /etc/mail-monitor/healthchecks.env
 [ -n "${HC_PING_URL:-}" ] && curl -fsS --max-time 10 --retry 3 -o /dev/null "$HC_PING_URL" || true

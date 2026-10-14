@@ -86,6 +86,37 @@ class SupportTest extends TestCase
         Mail::assertQueued(StaffNotice::class, fn ($mail) => $mail->mailer !== 'support');
     }
 
+    public function test_customer_messages_are_sent_to_telegram(): void
+    {
+        config(['services.telegram.bot_token' => 'x', 'services.telegram.chat_id' => '42']);
+        Http::fake([
+            'challenges.cloudflare.com/*' => Http::response(['success' => true]),
+            'api.telegram.org/*' => Http::response(['ok' => true]),
+        ]);
+
+        $this->post('/soporte', $this->form([
+            'subject' => 'Ayuda <urgente>',
+            'body' => str_repeat('largo ', 400),
+            'images' => [UploadedFile::fake()->image('c.png')],
+        ]));
+        app(Support::class)->reply(SupportTicket::sole(), $this->admin(), 'Nuestra respuesta');
+
+        Http::assertSentCount(2);   // Turnstile y un único aviso: nuestra respuesta no avisa
+        Http::assertSent(function ($request) {
+            if (! str_contains($request->url(), 'api.telegram.org')) {
+                return false;
+            }
+            $text = $request['text'];
+
+            return $request['chat_id'] === '42' && $request['parse_mode'] === 'HTML'
+                && str_contains($text, 'Ticket nuevo #0001')
+                && str_contains($text, 'Ayuda &lt;urgente&gt;')
+                && str_contains($text, '1 imagen')
+                && str_contains($text, ' […]')
+                && mb_strlen($text) < 1600;
+        });
+    }
+
     public function test_the_sent_page_needs_the_session(): void
     {
         $this->get('/soporte/enviado')->assertRedirect('/soporte');

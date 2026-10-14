@@ -1,0 +1,7 @@
+[Unit]
+Description=Resumen diario al Telegram del dueño
+After=network-online.target mariadb.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mail-daily-report

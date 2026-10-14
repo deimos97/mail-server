@@ -1,0 +1,9 @@
+[Unit]
+Description=Resumen diario al Telegram a las 09:00 (hora de Madrid)
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 Europe/Madrid
+Persistent=true
+
+[Install]
+WantedBy=timers.target

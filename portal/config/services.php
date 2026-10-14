@@ -24,6 +24,13 @@ return [
         'secret_key' => env('TURNSTILE_SECRET_KEY') ?: '1x0000000000000000000000000000000AA',
     ],
 
+    // Avisos de soporte al Telegram del dueño (el mismo bot y chat que las alertas de mail-monitor).
+    // Sin token (local, tests) no se envía nada.
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id' => env('TELEGRAM_CHAT_ID'),
+    ],
+
     // Analítica. La clave de proyecto (phc_) es pública por diseño; va al navegador.
     'posthog' => [
         'key' => env('POSTHOG_KEY'),

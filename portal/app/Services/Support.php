@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Filament\Resources\SupportTickets\SupportTicketResource;
+use App\Jobs\SendTelegramMessage;
 use App\Mail\Support\StaffNotice;
 use App\Mail\Support\TicketReceived;
 use App\Mail\Support\TicketReply;
@@ -156,5 +158,27 @@ class Support
         if ($to = config('support.notify')) {
             Mail::to($to)->queue(new StaffNotice($ticket, $message, $isNew));
         }
+        if (app(Telegram::class)->enabled()) {
+            SendTelegramMessage::dispatch($this->telegramText($ticket, $message, $isNew));
+        }
+    }
+
+    /** Aviso de Telegram: número, asunto, quién, adjuntos y el mensaje (recortado). */
+    public function telegramText(SupportTicket $ticket, SupportMessage $message, bool $isNew): string
+    {
+        $e = fn (?string $text) => Telegram::e($text);
+        $attachments = $message->attachments()->count();
+        $url = SupportTicketResource::getUrl('view', ['record' => $ticket], panel: 'admin');
+
+        return implode("\n", [
+            ($isNew ? '🎫 <b>Ticket nuevo '.$ticket->number().'</b>' : '💬 <b>Respuesta en '.$ticket->number().'</b>').($message->source === 'email' ? ' (por email)' : ''),
+            '<b>Asunto:</b> '.$e($ticket->subject),
+            '<b>De:</b> '.$e($ticket->email).($ticket->user_id ? '' : ' · sin sesión'),
+            '<b>Adjuntos:</b> '.($attachments ? trans_choice('{1} 1 imagen|[2,*] :count imágenes', $attachments) : 'ninguno'),
+            '',
+            $e(Str::limit($message->body, 1200, ' […]')),
+            '',
+            '<a href="'.$e($url).'">Abrir en el admin</a>',
+        ]);
     }
 }

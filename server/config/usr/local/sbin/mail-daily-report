@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+"""Resumen diario al Telegram del dueño (mail-daily-report.timer, 09:00 hora de Madrid).
+
+Cubre desde el último resumen enviado (o 24 h si no hay ninguno):
+visitas (log de nginx, sin bots ni estáticos), altas y dinero, bajas, soporte, cuotas
+(estos, de la web: `php artisan report:daily-stats`), correo enviado y recibido con su top 3,
+salud del correo (rechazos, rebotes, cola, fail2ban, copias), disco y CPU/RAM (muestras de mail-monitor).
+
+    mail-daily-report            envía el resumen y guarda la hora
+    mail-daily-report --dry-run  lo imprime sin enviarlo ni guardar nada
+"""
+import collections
+import datetime as dt
+import gzip
+import html
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+
+STATE = '/var/lib/mail-monitor'
+LAST = f'{STATE}/daily-report.last'
+SAMPLES = f'{STATE}/samples'
+DOMAIN = 'unagrandeylibre.es'
+SERVER_IP = '128.140.5.221'
+PORTAL = '/var/www/portal/current'
+EXCLUDE_TOP = {f'soporte@{DOMAIN}', f'javier@{DOMAIN}'}   # y los buzones tier=system (noreply@…)
+
+DRY = '--dry-run' in sys.argv
+now = dt.datetime.now().astimezone()
+since = now - dt.timedelta(days=1)
+if os.path.exists(LAST):
+    try:
+        since = dt.datetime.fromtimestamp(int(open(LAST).read().strip())).astimezone()
+    except ValueError:
+        pass
+
+
+def lines(path):
+    """Las líneas del log y de su rotación anterior (.1 o .1.gz), por si el periodo cruza la rotación."""
+    for p in (path + '.1', path + '.1.gz', path):
+        if not os.path.exists(p):
+            continue
+        opener = gzip.open if p.endswith('.gz') else open
+        with opener(p, 'rt', errors='replace') as f:
+            yield from f
+
+
+def sh(*cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=120).stdout
+    except Exception:
+        return ''
+
+
+def e(text):
+    return html.escape(str(text), quote=False)
+
+
+def num(n):
+    return f'{n:,}'.replace(',', '.')
+
+
+def euros(cents):
+    return f'{cents / 100:,.2f} €'.replace(',', 'X').replace('.', ',').replace('X', '.')
+
+
+def top(counter, n=3):
+    return ', '.join(f'{e(k)} ({num(v)})' for k, v in counter.most_common(n)) or '—'
+
+
+# ---------- Visitas (nginx, formato combined) ----------
+NGINX = re.compile(r'^(\S+) \S+ \S+ \[([^\]]+)\] "(\S+) (\S+) [^"]*" (\d{3}) \S+ "([^"]*)" "([^"]*)"')
+# Solo navegadores: agente "Mozilla/…" y sin las marcas de bots y escáneres (que suelen llevar "+https://…")
+BOT = re.compile(r'bot|crawl|spider|slurp|curl|wget|python|httpx|go-http|java/|okhttp|monitor|uptime|headless|preview|'
+                 r'facebookexternalhit|whatsapp|telegram|lighthouse|rspamd|scan|axios|node-fetch|php|research|\+https?://', re.I)
+STATIC = re.compile(r'^/(build|img|fonts|api|up|internal|stripe|livewire|admin|filament|storage|vendor|\.well-known)(/|$)|'
+                    r'\.(js|css|png|jpe?g|gif|svg|ico|webp|avif|woff2?|ttf|map|xml|txt|json|webmanifest|mobileconfig)(\?|$)', re.I)
+pageviews = 0
+visitors = set()
+sources = collections.Counter()
+seen_source = set()
+for line in lines('/var/log/nginx/access.log'):
+    m = NGINX.match(line)
+    if not m:
+        continue
+    ip, when, method, path, status, ref, ua = m.groups()
+    try:
+        t = dt.datetime.strptime(when, '%d/%b/%Y:%H:%M:%S %z')
+    except ValueError:
+        continue
+    if not (since <= t < now) or method != 'GET' or status != '200' or ip == SERVER_IP or not ua.startswith('Mozilla/') or BOT.search(ua) or STATIC.search(path):
+        continue
+    pageviews += 1
+    visitor = (ip, ua)
+    visitors.add(visitor)
+    if visitor in seen_source:
+        continue
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)
+    host = (urllib.parse.urlparse(ref).hostname or '').lower().removeprefix('www.')
+    external = host and not host.endswith(DOMAIN) and not re.fullmatch(r'[\d.:]+', host)   # sin IPs (escáneres)
+    source = (query.get('utm_source') or [None])[0] or (host if external else None)
+    if source:
+        sources[source.lower()] += 1
+        seen_source.add(visitor)
+
+# ---------- Correo (Postfix) ----------
+TS = re.compile(r'^(\S+) ')
+QID_FROM = re.compile(r'postfix/qmgr\[\d+\]: (\w+): from=<([^>]*)>')
+DELIVERY = re.compile(r'postfix/(smtp|lmtp)\[\d+\]: (\w+): to=<([^>]*)>.*? status=(\w+)')
+system = set(sh('mysql', '-N', 'mailserver', '-e', "SELECT email FROM mailboxes WHERE tier='system'").split())
+excluded = EXCLUDE_TOP | system
+sender_of = {}
+sent = received = bounced = rejected = 0
+deferred = set()
+top_sent = collections.Counter()
+top_received = collections.Counter()
+for line in lines('/var/log/mail.log'):
+    m = TS.match(line)
+    try:
+        t = dt.datetime.fromisoformat(m.group(1)) if m else None
+    except ValueError:
+        t = None
+    if t is None:
+        continue
+    if (m := QID_FROM.search(line)):
+        sender_of[m.group(1)] = m.group(2).lower()   # el from= va antes que la entrega: también los de antes del periodo
+    if not (since <= t < now):
+        continue
+    if 'NOQUEUE: reject' in line or 'milter-reject' in line:
+        rejected += 1
+        continue
+    if not (m := DELIVERY.search(line)):
+        continue
+    kind, qid, rcpt, status = m.group(1), m.group(2), m.group(3).lower(), m.group(4)
+    if status == 'bounced':
+        bounced += 1
+    elif status == 'deferred':
+        deferred.add(qid)
+    elif status == 'sent' and kind == 'smtp':
+        sent += 1
+        sender = sender_of.get(qid, '')
+        if sender.endswith('@' + DOMAIN) and sender not in excluded:
+            top_sent[sender] += 1
+    elif status == 'sent' and kind == 'lmtp':
+        received += 1
+        if rcpt not in excluded:
+            top_received[rcpt] += 1
+queue = len([l for l in sh('postqueue', '-j').splitlines() if l.strip()])
+
+# ---------- fail2ban ----------
+bans = 0
+for line in lines('/var/log/fail2ban.log'):
+    if ' Ban ' not in line:
+        continue
+    try:
+        t = dt.datetime.strptime(line[:19], '%Y-%m-%d %H:%M:%S').astimezone()
+    except ValueError:
+        continue
+    if since <= t < now:
+        bans += 1
+
+
+def backup_age(path):
+    try:
+        return (now.timestamp() - int(open(path).read().strip())) / 3600
+    except (OSError, ValueError):
+        return None
+
+
+# ---------- Sistema ----------
+disk = shutil.disk_usage('/')
+vmail = sh('du', '-sb', '/var/vmail').split()
+cpus = os.cpu_count() or 1
+loads, mems = [], []
+if os.path.exists(SAMPLES):
+    for line in open(SAMPLES):
+        parts = line.split()
+        if len(parts) == 3 and since.timestamp() <= float(parts[0]) < now.timestamp():
+            loads.append(float(parts[1]))
+            mems.append(float(parts[2]))
+if not loads:   # aún sin muestras: el dato de ahora
+    loads = [float(open('/proc/loadavg').read().split()[0])]
+    meminfo = dict(l.split(':') for l in open('/proc/meminfo'))
+    total, avail = (int(meminfo[k].split()[0]) for k in ('MemTotal', 'MemAvailable'))
+    mems = [(total - avail) / total * 100]
+
+# ---------- Negocio (la web) ----------
+biz = {}
+out = sh('runuser', '-u', 'portal', '--', '/usr/bin/php8.3', f'{PORTAL}/artisan', 'report:daily-stats', f'--since={since.isoformat()}')
+try:
+    biz = json.loads(out.strip().splitlines()[-1])
+except (ValueError, IndexError):
+    pass
+
+# ---------- Mensaje ----------
+hours = round((now - since).total_seconds() / 3600)
+period = f'desde el {since:%d/%m %H:%M}' + (f' ({hours} h)' if hours != 24 else '')
+msg = [f'☀️ <b>Resumen diario</b> · {period}', '']
+
+msg.append(f'👀 <b>Visitas (aprox.):</b> {num(len(visitors))} visitantes · {num(pageviews)} páginas vistas')
+if sources:
+    msg.append(f'   Origen: {top(sources)}')
+
+if biz:
+    s = biz['signups']
+    line = f'🆕 <b>Altas:</b> {num(s["mailboxes"])} buzones'
+    if s['mailboxes']:
+        parts = []
+        if s['free']:
+            parts.append(f'{num(s["free"])} gratis')
+        if s['paid']:
+            parts.append(f'{num(s["paid"])} de pago, +{euros(s["paid_monthly_cents"])}/mes')
+        line += ' (' + ' · '.join(parts) + ')'
+    msg.append(line)
+    if visitors:
+        msg.append(f'   Conversión: {s["users"] / len(visitors) * 100:.1f} % ({num(s["users"])} cuentas nuevas / visitantes)')
+    if s['sources']:
+        msg.append('   De dónde vienen: ' + ', '.join(f'{e(k)} ({v})' for k, v in s['sources'].items()))
+    r = biz['revenue']
+    msg.append(f'💶 <b>Ingresos:</b> {euros(r["monthly_cents"])}/mes de {num(r["paid_mailboxes"])} buzones de pago (precio de lista, sin ofertas)')
+    c = biz['churn']
+    if any(c.values()):
+        msg.append(f'📉 <b>Bajas:</b> {c["deleted_mailboxes"]} buzones borrados · {c["cancelled_plans"]} planes cancelados · '
+                   f'{c["new_unpaid"]} impagos nuevos ({c["unpaid_now"]} en total)')
+    t = biz['support']
+    msg.append(f'🎫 <b>Soporte:</b> {t["new_tickets"]} tickets nuevos · {t["customer_replies"]} respuestas por email · '
+               f'{t["open"]} abiertos' + (f' · ⚠️ {t["waiting_over_24h"]} esperando más de 24 h' if t['waiting_over_24h'] else ''))
+    q = biz['quota']
+    msg.append(f'📦 <b>Cuotas:</b> {q["over_90"]} buzones por encima del 90 % · {q["over_100"]} llenos (100 %)')
+else:
+    msg.append('⚠️ No se han podido leer los datos de la web (report:daily-stats).')
+
+msg += ['', f'✉️ <b>Correo:</b> {num(sent)} enviados fuera · {num(received)} entregados en buzones']
+msg.append(f'   Más envían: {top(top_sent)}')
+msg.append(f'   Más reciben: {top(top_received)}')
+health = f'🛡 <b>Salud:</b> {num(rejected)} rechazados al entrar (spam, listas negras…) · {num(bounced)} rebotes · ' \
+         f'{len(deferred)} reintentando · {queue} en cola · {num(bans)} IPs baneadas'
+msg.append(health)
+local, offsite = backup_age('/var/lib/mail-backup/last-success'), backup_age('/var/lib/mail-backup/last-offsite')
+fmt = lambda h: 'nunca' if h is None else (f'hace {h:.0f} h' + (' ⚠️' if h > 26 else ''))
+msg.append(f'💾 <b>Copias:</b> local {fmt(local)} · externa {fmt(offsite)}')
+
+used_pct = disk.used / disk.total * 100
+vmail_gb = f' · correo {int(vmail[0]) / 1e9:.1f} GB' if vmail else ''
+msg += ['', f'🖥 <b>Disco:</b> {used_pct:.0f} % ({disk.used / 1e9:.1f} de {disk.total / 1e9:.0f} GB){vmail_gb}']
+msg.append(f'   CPU: media {sum(loads) / len(loads) / cpus * 100:.0f} %, pico {max(loads) / cpus * 100:.0f} % · '
+           f'RAM: media {sum(mems) / len(mems):.0f} %, pico {max(mems):.0f} %')
+
+text = '\n'.join(msg)
+if DRY:
+    print(text)
+    sys.exit(0)
+
+env = {}
+for line in open('/etc/mail-monitor/telegram.env'):
+    if '=' in line and not line.lstrip().startswith('#'):
+        k, v = line.strip().split('=', 1)
+        env[k.removeprefix('export ').strip()] = v.strip().strip('"\'')
+if not env.get('TELEGRAM_BOT_TOKEN') or not env.get('TELEGRAM_CHAT_ID'):
+    sys.exit('Sin TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID en /etc/mail-monitor/telegram.env')
+data = urllib.parse.urlencode({'chat_id': env['TELEGRAM_CHAT_ID'], 'text': text[:4096], 'parse_mode': 'HTML',
+                               'disable_web_page_preview': 'true'}).encode()
+urllib.request.urlopen(f'https://api.telegram.org/bot{env["TELEGRAM_BOT_TOKEN"]}/sendMessage', data, timeout=20)
+with open(LAST, 'w') as f:
+    f.write(str(int(now.timestamp())))

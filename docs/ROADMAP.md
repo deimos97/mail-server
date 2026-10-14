@@ -30,6 +30,7 @@ Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del d
 | D-018 | **Soporte por tickets** propio en la web (`/soporte`), sin herramientas externas. Las respuestas del usuario por email **entran solas en el ticket**: la web lee el buzón de soporte cada minuto y engancha los correos con `[#NNNN]` en el asunto (reabre el ticket si estaba cerrado). | 2026-10-14 |
 | D-019 | Respuestas y autoconfirmaciones salen de un buzón propio **`soporte@unagrandeylibre.es`** mostrado como "Javier · Una Grande y Libre" (no de `javier@`): la web solo lee ese buzón, nunca el personal, y sirve igual si un día atiende más gente. | 2026-10-14 |
 | D-020 | Adjuntos del ticket: **solo imágenes, hasta 3 y 8 MB en total**, dentro de los límites actuales de nginx/PHP (12 MB por petición). Para otros ficheros o más pesados, el formulario remite a `https://transfer.tibletech.com/`. | 2026-10-14 |
+| D-022 | **Avisos a Telegram** (mismo bot y chat que `mail-monitor`): cada mensaje del cliente en soporte (no nuestras respuestas), y un **resumen diario a las 09:00** desde el último enviado: visitas, altas (gratis/de pago y €/mes), ingresos recurrentes, bajas e impagos, soporte, conversión y origen, correo enviado/recibido con top 3 (sin `soporte@`, `javier@` ni los de sistema), cuotas >90 % y >100 %, salud del correo (rechazos, rebotes, cola, fail2ban, copias), disco y CPU/RAM. | 2026-10-14 |
 | D-021 | Abrir tickets **sin sesión: activado** de entrada (con Turnstile y límite por IP), con un interruptor en el admin para cerrarlo. | 2026-10-14 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
@@ -232,6 +233,11 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 - [ ] **Dueño:** pasarlo a la gestoría y validar el plazo
 - [x] (2026-10-14) Al borrar la cuenta se borran sus tickets con sus imágenes, también los que abrió sin sesión con su email de recuperación (`Support::deleteForUser`, desde `AccountDeletion`). Así se cumple lo que ya promete la política. La página de borrar cuenta lo avisa
 - [ ] Al validarlo: aplicar el texto en `privacidad.blade.php` (y la fecha en `config/legal.php`) y una tarea diaria que borre los tickets caducados con sus imágenes
+
+### E · Avisos a Telegram (D-022)
+- [x] (2026-10-14) Aviso de cada ticket nuevo y de cada respuesta del cliente: número, asunto, quién, adjuntos y el mensaje recortado (`Support::telegramText`, por la cola)
+- [x] (2026-10-14) Resumen diario: `report:daily-stats` (web) + `mail-daily-report` y su timer (servidor) + muestras de CPU/RAM en `mail-monitor`. Probado con `--dry-run` en producción
+- [ ] Instalar en el servidor (script, timer y `mail-monitor`) y copiar el token del bot al `.env` de la web; desplegar
 
 ## Después del lanzamiento
 
