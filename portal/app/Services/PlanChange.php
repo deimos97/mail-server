@@ -116,6 +116,9 @@ class PlanChange
             $upgrade ? $subscription->pendingIfPaymentFails()->swapAndInvoice($prices) : $subscription->swap($prices);
         } catch (IncompletePayment) {
             throw new RuntimeException('No hemos podido cobrar la diferencia, así que no hemos cambiado nada. Revisa tu tarjeta en "Pago y facturas".');
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            report($e);   // un fallo de Stripe no debe acabar en un 500: se avisa y no se cambia nada
+            throw new RuntimeException('No hemos podido cambiar el plan, así que no hemos cambiado nada. Inténtalo de nuevo en unos minutos.');
         }
         $this->billing->applyPlan($mailbox, $target);
 

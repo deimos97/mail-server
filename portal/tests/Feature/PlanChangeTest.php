@@ -111,6 +111,9 @@ class PlanChangeTest extends TestCase
         $this->assertSame('pro', $mailbox->fresh()->tier);
         $update = collect($this->stripe->sent('POST', 'subscriptions/sub_1'))->last();
         $this->assertSame('always_invoice', $update['proration_behavior']);
+        $this->assertSame('pending_if_incomplete', $update['payment_behavior']);
+        // Stripe no admite tax_rates en un cambio pending_if_incomplete: el IVA va en la suscripción
+        $this->assertArrayNotHasKey('tax_rates', $update['items'][0]);
         $prices = array_map(fn ($item) => $item['price']['id'], $this->stripe->objects['subscriptions']['sub_1']['items']['data']);
         $this->assertSame([$pro->stripe_price_id], $prices);
     }
