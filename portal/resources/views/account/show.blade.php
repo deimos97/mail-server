@@ -104,7 +104,7 @@
                     {{-- Sin dispositivos, configurar uno es tan importante como abrir el correo: van los dos igual de grandes, configurar primero --}}
                     <div @class(['p-4 sm:p-5', 'border-b border-stone-100' => $mailbox->appPasswords->isNotEmpty()])>
                         @if ($mailbox->appPasswords->isEmpty())
-                            <a href="{{ route('setup', $mailbox->id) }}" class="mb-3 flex items-center justify-center gap-3 rounded-2xl bg-rojo px-5 py-3 text-white ring-2 ring-rojo transition hover:bg-rojo-oscuro hover:ring-rojo-oscuro">
+                            <a href="{{ route('setup', $mailbox->id) }}" class="mb-3 flex items-center gap-3 rounded-2xl bg-rojo px-5 py-3 text-white ring-2 ring-rojo transition hover:bg-rojo-oscuro hover:ring-rojo-oscuro">
                                 <x-icon.phone class="size-7 shrink-0" />
                                 <span class="text-left">
                                     <span class="block text-lg font-bold leading-tight">Configura un dispositivo</span>
@@ -114,21 +114,21 @@
                         @endif
                         {{-- Con dispositivos es la acción principal (relleno); sin ellos, mismo tamaño pero en blanco, para distinguirlo del recomendado --}}
                         <a href="{{ route('account.webmail', $mailbox->id) }}" @class([
-                            'flex items-center justify-center gap-3 rounded-2xl px-5 py-3 ring-2 ring-rojo transition',
+                            'flex items-center gap-3 rounded-2xl px-5 py-3 ring-2 ring-rojo transition',
                             'bg-rojo text-white hover:bg-rojo-oscuro hover:ring-rojo-oscuro' => $mailbox->appPasswords->isNotEmpty(),
                             'bg-white text-rojo hover:bg-rojo/5' => $mailbox->appPasswords->isEmpty(),
                         ])>
-                            <x-icon.browser class="size-7 shrink-0" />
+                            <x-icon.mail class="size-7 shrink-0" />
                             <span class="text-left">
                                 <span class="block text-lg font-bold leading-tight">Abrir mi correo</span>
                                 <span @class(['block text-sm font-medium', 'text-white/85' => $mailbox->appPasswords->isNotEmpty(), 'text-stone-600' => $mailbox->appPasswords->isEmpty()])>En el navegador web</span>
                             </span>
                         </a>
                         @if ($mailbox->appPasswords->isEmpty())
-                            <p class="mt-2 text-center text-sm text-stone-500">Todavía no has conectado ningún dispositivo. Cada móvil, ordenador o app de correo tiene su propia contraseña.</p>
+                            <p class="mt-2 text-sm text-stone-500">Todavía no has conectado ningún dispositivo. Cada móvil, ordenador o app de correo tiene su propia contraseña.</p>
                         @endif
                         @if ($webmailAt = $mailbox->lastLoginOf(0))
-                            <p class="mt-2 text-center text-sm text-stone-500">Último acceso al webmail: {{ $webmailAt->locale(app()->getLocale())->diffForHumans() }}</p>
+                            <p class="mt-2 text-sm text-stone-500">Último acceso al webmail: {{ $webmailAt->locale(app()->getLocale())->diffForHumans() }}</p>
                         @endif
                     </div>
                 @endif
