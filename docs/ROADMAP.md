@@ -33,6 +33,7 @@ Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del d
 | D-022 | **Avisos a Telegram** (mismo bot y chat que `mail-monitor`): cada mensaje del cliente en soporte (no nuestras respuestas), y un **resumen diario a las 09:00** desde el último enviado: visitas, altas (gratis/de pago y €/mes), ingresos recurrentes, bajas e impagos, soporte, conversión y origen, correo enviado/recibido con top 3 (sin `soporte@`, `javier@` ni los de sistema), cuotas >90 % y >100 %, salud del correo (rechazos, rebotes, cola, fail2ban, copias), disco y CPU/RAM. | 2026-10-14 |
 | D-023 | **Sin calentamiento formal del dominio** como requisito para lanzar publicidad: se quitan de la Fase 6 las semanas de uso con `javier@` y el criterio de salida de Postmaster Tools. Postmaster Tools y SNDS siguen dados de alta para vigilar la reputación. | 2026-10-14 |
 | D-024 | Consultas de soporte: se guardan **2 años desde el último mensaje** y se borran con la cuenta (validado por la gestoría). | 2026-10-14 |
+| D-025 | Recargo por nombre corto también en el tramo **5–7 caracteres (0,50 €/mes)**, además de 1–2 y 3–4 (amplía D-005, que dejaba 5+ sin recargo). Como todo nombre con recargo, solo va con plan de pago. | 2026-10-14 |
 | D-021 | Abrir tickets **sin sesión: activado** de entrada (con Turnstile y límite por IP), con un interruptor en el admin para cerrarlo. | 2026-10-14 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
