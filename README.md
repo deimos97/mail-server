@@ -15,7 +15,7 @@ Servicio de hosting de correo con un front PHP + Stripe (pendiente) para el alta
 | **Rspamd + Redis** | Antispam, firma DKIM (selector `mail`) y límite de envío por usuario. |
 | **unbound** | Resolver DNS local para Rspamd y las comprobaciones de blacklists. |
 | **Roundcube 1.6** | Webmail sobre nginx + PHP-FPM 8.3 (pool `webmail`). |
-| **Let's Encrypt** | Un certificado con SAN  |
+| **Let's Encrypt** | Correo (IMAP, SMTP, webmail): `--cert-name mail.unagrandeylibre.es` con `mail.`, `webmail.` y el dominio a secas (`unagrandeylibre.es`, desde el 2026-10-14). La web tiene el suyo |
 | **fail2ban** | Jails para SSH, Postfix SASL, Dovecot y Roundcube. |
 | **iptables** | Firewall (iptables-persistent). |
 | **restic** | Backups diarios en un repositorio local y copia al VPS de copias (`37.27.5.15`). |
@@ -168,6 +168,8 @@ Un `return 301` suelto en un bloque `server {}` se ejecuta antes que cualquier `
 ### Certificados
 
 El hook `/etc/letsencrypt/renewal-hooks/deploy/reload-mail.sh` recarga nginx, Dovecot y Postfix tras cada renovación. La monitorización comprueba el certificado que **sirve** cada puerto, no el del disco, así que también detecta si algún servicio no se recargó.
+
+El certificado del correo incluye `unagrandeylibre.es` a secas porque la app de Gmail rellena el servidor IMAP/SMTP con el dominio de la dirección y, sin ese nombre, avisaba de "certificado no válido" (2026-10-14). Si se añade otro dominio de correo, hay que añadirlo también aquí. Ampliarlo: `certbot certonly --cert-name mail.unagrandeylibre.es --webroot -w /var/www/mail -d mail.unagrandeylibre.es -d webmail.unagrandeylibre.es -d unagrandeylibre.es --expand` (el hook recarga los servicios).
 
 ### Rspamd viene de su propio repositorio, compilado para cada versión de Ubuntu
 
