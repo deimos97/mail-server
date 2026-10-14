@@ -18,5 +18,5 @@
     <p>Según la gravedad, podemos avisarte, bloquear el envío, suspender el buzón o cerrar la cuenta. En casos graves o ilegales podemos actuar sin aviso previo y colaborar con las autoridades. Si tu cuenta ha sido comprometida (por ejemplo, alguien ha usado una contraseña robada para mandar spam), te ayudaremos a recuperarla.</p>
 
     <h2>Denunciar un abuso</h2>
-    <p>Si recibes spam o un correo fraudulento desde una dirección @{{ $l['brand'] }}, escríbenos a <a href="mailto:{{ $l['abuse'] }}">{{ $l['abuse'] }}</a> con el mensaje completo (con sus cabeceras).</p>
+    <p>Si recibes spam o un correo fraudulento desde una dirección {{ '@'.$l['brand'] }}, escríbenos a <a href="mailto:{{ $l['abuse'] }}">{{ $l['abuse'] }}</a> con el mensaje completo (con sus cabeceras).</p>
 </x-legal-page>

@@ -3,7 +3,7 @@
     <p>Estas condiciones regulan el uso del servicio de correo {{ $l['brand'] }}, que presta {{ $l['company'] }} (NIF {{ $l['nif'] }}, {{ $l['address'] }}). Al crear una cuenta las aceptas, junto con la <a href="{{ route('legal', 'uso-aceptable') }}">política de uso aceptable</a> y la <a href="{{ route('legal', 'privacidad') }}">política de privacidad</a>.</p>
 
     <h2>1. El servicio</h2>
-    <p>Te damos una dirección de correo @{{ $l['brand'] }} con su buzón, acceso por webmail y por aplicaciones de correo (IMAP y SMTP), y un área «Mi cuenta» para gestionarla. Lo que incluye cada plan (espacio, envíos por hora y demás) se indica en la web en el momento de contratarlo.</p>
+    <p>Te damos una dirección de correo {{ '@'.$l['brand'] }} con su buzón, acceso por webmail y por aplicaciones de correo (IMAP y SMTP), y un área «Mi cuenta» para gestionarla. Lo que incluye cada plan (espacio, envíos por hora y demás) se indica en la web en el momento de contratarlo.</p>
 
     <h2>2. Tu cuenta</h2>
     <ul>
@@ -37,7 +37,7 @@
 
     <h2>6. Derecho de desistimiento</h2>
     <p>Si eres consumidor, puedes desistir del contrato de un plan de pago en los <strong>14 días naturales</strong> siguientes a contratarlo, sin dar explicaciones. Al contratar nos pides que el servicio empiece a funcionar de inmediato; por eso, si desistes, te devolvemos lo pagado descontando la parte proporcional al tiempo que hayas tenido el servicio.</p>
-    <p>Para desistir, escríbenos a <a href="mailto:{{ $l['email'] }}">{{ $l['email'] }}</a> desde tu email de recuperación indicando tu dirección @{{ $l['brand'] }}; si lo prefieres, puedes usar este modelo: «Por la presente le comunico que desisto de mi contrato del plan [plan] del buzón [dirección], contratado el [fecha]. Nombre, fecha». Te devolveremos el importe en un máximo de 14 días por el mismo medio de pago.</p>
+    <p>Para desistir, escríbenos a <a href="mailto:{{ $l['email'] }}">{{ $l['email'] }}</a> desde tu email de recuperación indicando tu dirección {{ '@'.$l['brand'] }}; si lo prefieres, puedes usar este modelo: «Por la presente le comunico que desisto de mi contrato del plan [plan] del buzón [dirección], contratado el [fecha]. Nombre, fecha». Te devolveremos el importe en un máximo de 14 días por el mismo medio de pago.</p>
 
     <h2>7. Impagos</h2>
     <p>Si un cobro falla, te avisaremos y Stripe lo reintentará durante unos días. Si sigue sin pagarse:</p>

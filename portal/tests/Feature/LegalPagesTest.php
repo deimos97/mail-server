@@ -9,7 +9,8 @@ class LegalPagesTest extends TestCase
     public function test_all_legal_pages_render_with_the_company_data(): void
     {
         foreach (array_keys(config('landing.legal')) as $page) {
-            $this->get("/legal/{$page}")->assertOk()->assertSee(config('landing.legal')[$page]);
+            // Sin Blade sin interpretar (p. ej. "@{{ $x }}" escribe las llaves tal cual)
+            $this->get("/legal/{$page}")->assertOk()->assertSee(config('landing.legal')[$page])->assertDontSee('{{', false);
         }
 
         $this->get('/legal/aviso-legal')->assertSee('Tible Technologies, S.L.')->assertSee('B87456554')->assertSee('M-615786');
