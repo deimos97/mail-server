@@ -122,6 +122,14 @@ La web no corre como root. Lo que lo necesita (firmar el perfil de Apple con la 
 
 La web envía como `noreply@unagrandeylibre.es` por el 587 (la contraseña solo está en `/var/www/portal/shared/.env`, `MAIL_PASSWORD`). Está en `whitelisted_user` de `/etc/rspamd/local.d/ratelimit.conf` para que el límite de 40/h por usuario no frene las verificaciones. Los rebotes llegan a ese buzón.
 
+### Soporte (`soporte@`)
+
+Buzón `tier=system` (como `noreply@`, 1 GB) del que salen las respuestas de los tickets y las autoconfirmaciones, como "Javier · Una Grande y Libre" (D-019). La web lo usa dos veces con la misma contraseña, que solo está en `/var/www/portal/shared/.env`: para enviar por el 587 (`SUPPORT_MAILER=support`; Postfix no deja a `noreply@` enviar como otra dirección, `reject_sender_login_mismatch`) y para leerlo por IMAP en `127.0.0.1:993` cada minuto (`php artisan support:fetch`).
+
+- Las respuestas con `[#NNNN]` en el asunto que vienen del email del cliente (o de sus buzones) entran en el ticket y se mueven a la carpeta `Tickets`. El resto se queda en la bandeja de entrada sin leer, con la etiqueta IMAP `UglChecked` para no volver a procesarlo, y se reenvía un aviso a `javier@` con "Responder a" al remitente.
+- El certificado no vale para `127.0.0.1`: la conexión IMAP no valida el certificado (`SUPPORT_IMAP_VALIDATE_CERT=false`), y no sale del servidor.
+- Si Rspamd manda una respuesta a `Junk`, no se lee: solo se mira la bandeja de entrada.
+
 ### Dovecot: orden de configuración
 
 La configuración global está en `/etc/dovecot/local.conf`, que se carga **después** de `conf.d/`. Cualquier bloque `protocol lmtp { mail_plugins = ... }` tiene que ir en `local.conf` detrás de la línea global `mail_plugins = $mail_plugins quota`; si no, LMTP pierde el plugin de cuota sin avisar.

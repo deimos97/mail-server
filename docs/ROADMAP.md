@@ -210,7 +210,7 @@ Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté te
 Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por separado.
 
 ### A · Formulario y tickets
-- [x] Tablas `support_tickets` (número `#NNNN`, usuario o email, asunto, estado abierto/cerrado), `support_messages` (hilo: del cliente o nuestro, origen web/email) y adjuntos en disco privado
+- [x] (2026-10-14, `d5b22dc`) Tablas `support_tickets` (número `#NNNN`, usuario o email, asunto, estado abierto/cerrado), `support_messages` (hilo: del cliente o nuestro, origen web/email) y adjuntos en disco privado
 - [x] Página `/soporte` (contacto y soporte son lo mismo): email si no hay sesión (con sesión, el de recuperación), asunto, descripción, hasta 3 imágenes (8 MB en total; JPG, PNG, WebP, HEIC) con el aviso de `transfer.tibletech.com` para lo demás, Turnstile y límite por IP
 - [x] Interruptor "Tickets sin sesión" en el admin (activado de entrada); apagado, `/soporte` pide entrar
 - [x] Autoconfirmación al cliente con `[#NNNN]` en el asunto
@@ -223,7 +223,8 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 
 ### C · Respuestas por email
 - [ ] Buzón `soporte@` en el servidor (`tier=system`, como `noreply@`) y un mailer propio en Laravel con sus credenciales (Postfix no deja enviar como otro: `reject_sender_login_mismatch`). Cambio en producción: con confirmación
-- [ ] Lector IMAP cada minuto: los correos con `[#NNNN]` se añaden al hilo (sin la cita del correo anterior) y reabren el ticket; los demás se quedan en el buzón para leerlos a mano
+- [x] (2026-10-14, `ecadc9d`) Lector IMAP cada minuto (`support:fetch`): los correos con `[#NNNN]` del cliente se añaden al hilo (sin la cita del correo anterior, con sus imágenes) y reabren el ticket; los demás se quedan en el buzón y se avisa a `javier@` con "Responder a" al remitente
+- [ ] Desplegar y probar en producción: un ticket de punta a punta (formulario → confirmación → respuesta desde el admin → respuesta del cliente por email)
 
 ## Después del lanzamiento
 
