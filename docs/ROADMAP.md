@@ -178,12 +178,10 @@ Todo en el **sandbox** de la cuenta "Servicio Correo Minorista" (D-016). Pasar a
 Lo que solo puede hacer el dueño. Lo hará al final, cuando el código esté terminado, lo haya probado todo y haya pasado su feedback con ajustes. El orden de los bloques es el recomendado; el último bloque abre altas.
 
 ### Probar y dar feedback
+Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el feedback es continuo y lo lleva el dueño: no se apunta aquí como tarea (2026-10-14).
 - [x] (2026-10-14, `eb477e1`…`beaaa12`) Feedback de Mi cuenta: cada buzón en su propia tarjeta con cabecera marcada (@ roja) y título "Tus N buzones"; en móvil la dirección parte por la @; dispositivos plegables (número + "Añadir"); sin dispositivos, "Configura un dispositivo" (recomendado) va arriba e igual de grande que "Abrir mi correo", los dos con icono y subtítulo
 - [x] (2026-10-14, `ba6bcd7`) Textos legales: tres frases de condiciones y uso aceptable mostraban `@{{ $l['brand'] }}` en vez de la dirección (en Blade, `@{{` escribe las llaves tal cual). El test de legales ahora falla si aparece `{{`
-- [ ] Probar la web entera y pasar el feedback (alta gratis y de pago, Mi cuenta, configurar dispositivos, webmail, admin)
-- [ ] Probar en dispositivos reales: el perfil en un iPhone (entrando a la web desde Safari en el iPhone) y la autoconfiguración en Thunderbird y Outlook
 - [ ] Pagos en el sandbox de Stripe: el alta de pago (hecha el 2026-10-08 con `varela@`, plan Básico); falta cancelar en Checkout, "Cambiar de plan" (subir a Pro, bajar y pasar a gratis, con "Deshacer") y "Gestionar pago y facturas". Tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y CVC
-- [ ] Capturas de pantalla reales para las guías de `/ayuda/configurar` (necesitan los dispositivos)
 
 ### Contenido
 - [x] Gmail web (2026-10-14): gmail.com en el ordenador ya no puede leer otras cuentas (Google lo quitó en enero de 2026). Explicado en la FAQ de la landing ("¿Puedo leerlo dentro de gmail.com?") y en una nota de la guía de Gmail (`setup/steps/android.blade.php`): en el ordenador, webmail, Outlook o Thunderbird
