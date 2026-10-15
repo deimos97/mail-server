@@ -218,7 +218,7 @@
                             <p class="text-stone-600">Con un alias tienes otras direcciones, como <span class="font-medium">{{ 'compras@'.$mailbox->domain->name }}</span>, que llegan a este buzón y desde las que puedes enviar. Van con los planes de pago.</p>
                             <a href="{{ route('account.plan', $mailbox->id) }}" class="mt-3 inline-block font-semibold text-rojo underline">Ver planes</a>
                         @else
-                            <p class="text-stone-500">Otras direcciones que llegan a este buzón. Para enviar desde una, añádela como identidad en el webmail (Ajustes → Identidades) o en tu app de correo.</p>
+                            <p class="text-stone-500">Otras direcciones que llegan a este buzón. En el webmail ya puedes enviar desde ellas: elige la dirección en «De». En tu app de correo, añádelas como identidad.</p>
                             @if ($mailbox->aliases->isNotEmpty())
                                 <ul class="mt-2 divide-y divide-stone-100">
                                     @foreach ($mailbox->aliases as $alias)

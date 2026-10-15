@@ -86,6 +86,10 @@ En Roundcube, el 993 va con `ssl://` (TLS desde el primer byte) y el 587 con `tl
 
 `sudo -E -u portal php8.3 artisan tinker` falla en silencio: con `-E` se queda el `HOME` de root y Tinker no arranca (solo deja un aviso de psysh). Para pasar variables: `sudo -u portal -H env VAR=valor php8.3 artisan tinker --execute='…getenv("VAR")…'`.
 
+### Roundcube: plugin propio
+
+El plugin `unagrandeylibre` (fuente en `server/roundcube/plugins/`) pone el botón "Mi cuenta" y mantiene una identidad por cada alias activo del buzón (para enviar desde él sin crearla a mano). No hay script: se sube con `scp` a `/var/lib/roundcube/plugins/unagrandeylibre/`. Para leer los alias, el usuario `roundcube` de MariaDB tiene `SELECT` sobre columnas de otra BD: `GRANT SELECT (source, active, mailbox_id) ON mailserver.aliases` y `GRANT SELECT (id, email, active) ON mailserver.mailboxes`. Si se recrea el usuario, hay que volver a darlos (sin ellos, el plugin apunta el error en `/var/log/roundcube/errors.log` y el webmail sigue funcionando). Para probarlo desde la consola, `INSTALL_PATH` tiene que ser `/var/lib/roundcube/` (donde está el enlace a `config`) y se ejecuta como `webmail`.
+
 ### Roundcube: skin propia sobre Elastic
 
 La skin `unagrandeylibre` (fuente en `server/roundcube/skins/`) es Elastic con nuestros colores: solo cambia variables (`styles/_variables.less`) y se compila en local con `server/roundcube/build-skin.sh`, que la sube a `/var/lib/roundcube/skins/` (el servidor no tiene Node). Trampas:
