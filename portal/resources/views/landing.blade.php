@@ -78,8 +78,8 @@
                             <div x-show="result.suggestions.length" class="mt-3 flex flex-wrap items-center justify-center gap-2">
                                 <span class="text-sm text-white/75">Prueba con:</span>
                                 <template x-for="suggestion in result.suggestions" :key="suggestion">
-                                    <button type="button" @click="pick(suggestion)" x-text="suggestion"
-                                            class="rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-tinta transition hover:bg-white"></button>
+                                    <button type="button" @click="pick(suggestion)" x-text="suggestion" data-ph-mask
+                                            class="ph-no-capture rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-tinta transition hover:bg-white"></button>
                                 </template>
                             </div>
                         </div>

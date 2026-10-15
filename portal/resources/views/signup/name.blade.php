@@ -33,7 +33,7 @@
                     <p x-show="!result.available" class="font-medium text-rojo" x-text="result.message"></p>
                     <div x-show="result.suggestions.length" class="mt-2 flex flex-wrap gap-2">
                         <template x-for="s in result.suggestions" :key="s">
-                            <button type="button" @click="pick(s)" x-text="s" class="rounded-full bg-stone-100 px-3 py-1 font-semibold hover:bg-stone-200"></button>
+                            <button type="button" @click="pick(s)" x-text="s" data-ph-mask class="ph-no-capture rounded-full bg-stone-100 px-3 py-1 font-semibold hover:bg-stone-200"></button>
                         </template>
                     </div>
                 </div>

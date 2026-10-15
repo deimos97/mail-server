@@ -5,7 +5,7 @@
             <input type="hidden" name="{{ $name }}" value="{{ $value }}">
         @endforeach
         @foreach ($mailboxes as $mailbox)
-            <button name="mailbox" value="{{ $mailbox->id }}" class="block w-full rounded-2xl p-4 text-left font-semibold ring-2 ring-stone-200 transition hover:bg-stone-50 hover:ring-rojo/60" data-ph-mask>
+            <button name="mailbox" value="{{ $mailbox->id }}" class="ph-no-capture block w-full rounded-2xl p-4 text-left font-semibold ring-2 ring-stone-200 transition hover:bg-stone-50 hover:ring-rojo/60" data-ph-mask>
                 {{ $mailbox->email }}
             </button>
         @endforeach

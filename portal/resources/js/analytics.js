@@ -57,6 +57,21 @@ export async function startAnalytics() {
             maskAllInputs: true,
             maskTextSelector: '[data-ph-mask]',
         },
+        // Los clics automáticos guardan el texto del botón: los que muestran nombres o direcciones llevan
+        // `ph-no-capture` (y `data-ph-mask` para las grabaciones). Por si se escapa alguno, fuera todo texto con @.
+        before_send: (event) => {
+            if (event?.event === '$autocapture') {
+                const hasEmail = (text) => typeof text === 'string' && text.includes('@');
+                if (hasEmail(event.properties?.$el_text)) delete event.properties.$el_text;
+                for (const element of event.properties?.$elements ?? []) {
+                    if (hasEmail(element.$el_text)) delete element.$el_text;
+                }
+                if (typeof event.properties?.$elements_chain === 'string') {
+                    event.properties.$elements_chain = event.properties.$elements_chain.replace(/text="[^"]*@[^"]*"/g, '');
+                }
+            }
+            return event;
+        },
     });
     client.opt_in_capturing();
     // Pruebas A/B: la variante de cada experimento va en todos los eventos ($feature/<clave>)

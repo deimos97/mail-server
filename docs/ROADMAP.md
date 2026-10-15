@@ -223,6 +223,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 
 ### Analítica y anuncios
 - [x] (2026-10-15) PostHog: el proyecto estaba creado en la región de EE. UU. y la web manda a EU, así que no llegaba nada. Proyecto nuevo en `eu.posthog.com` y su clave en `POSTHOG_KEY` del `.env` del servidor (copia del `.env` antes)
+- [x] (2026-10-15) PostHog: la captura automática de clics guardaba el texto de las sugerencias de nombre («javier-varela»). Los botones que muestran nombres o direcciones llevan `ph-no-capture` (y `data-ph-mask` para las grabaciones) y `before_send` quita cualquier texto con @ de los clics
 - [ ] PostHog, juntos: activar Session replay y Heatmaps, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel)
 - [ ] Cuentas de anuncios en Meta y Google. Para activar las conversiones de servidor, pasar a la IA las claves de `config/ads.php` (píxel y token de Meta; cliente, developer token, OAuth y acciones de conversión de Google). Al activarlas, la IA añade a la política de privacidad que, con tu consentimiento, comunicamos el alta y el pago a Meta/Google (email cifrado, IP, navegador e identificador del clic)
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político. Si hay problemas, valorar una comunicación más neutra
