@@ -19,7 +19,7 @@ Servicio de correo `@unagrandeylibre.es` (en el futuro, más dominios). Dos part
 - **Back-end de correo** (Postfix, Dovecot, Rspamd, Roundcube; ver README).
 - **Web** en `portal/` (Laravel): landing, alta (gratis o de pago con Stripe), Mi cuenta, ayuda y contacto (tickets) y admin. Ver [portal/AGENTS.md](portal/AGENTS.md).
 
-Altas abiertas desde el 2026-10-09 (Stripe todavía en sandbox). El código de las Fases 0–5 está terminado. La Fase 7 (soporte por tickets en `/soporte` y avisos a Telegram) está en producción desde el 2026-10-14. Fase 7 cerrada el 2026-10-14. Lo pendiente es de la Fase 6 del ROADMAP, casi todo tareas del dueño.
+Altas abiertas desde el 2026-10-09. **Stripe en live (cobros reales) desde el 2026-10-15.** El código de las Fases 0–5 está terminado. La Fase 7 (soporte por tickets en `/soporte` y avisos a Telegram) está en producción desde el 2026-10-14. Fase 7 cerrada el 2026-10-14. Lo pendiente es de la Fase 6 del ROADMAP, casi todo tareas del dueño.
 
 ## Reglas de trabajo
 
@@ -27,5 +27,5 @@ Altas abiertas desde el 2026-10-09 (Stripe todavía en sandbox). El código de l
 2. **Mantén los docs vivos.** Al terminar una tarea: marca la casilla en `docs/ROADMAP.md`. Cuando el usuario cierra una decisión, quítala de `docs/DECISIONS.md`, añade una línea en "Decisiones tomadas" del ROADMAP y refleja sus consecuencias en las tareas y en `docs/front/`. Si descubres un *monkey noise* del servidor, añádelo al README.
 3. **Las decisiones abiertas no se toman en silencio.** Si una tarea depende de una decisión que sigue en `DECISIONS.md`, pregunta al usuario o propón y espera.
 4. **Servidor de producción.** Solo hay uno. Lectura libre; cualquier cambio, con confirmación. Ver la skill de operaciones.
-   - **En producción con usuarios reales desde el 2026-10-09** (altas abiertas; de momento, amigos probando con Stripe en modo sandbox). Cada corte afecta a gente: copia de seguridad antes de cambiar algo, cambios en horas de poco uso (de madrugada, hora de Madrid), probados al momento y con forma de volver atrás.
+   - **En producción con usuarios reales desde el 2026-10-09** (altas abiertas; cobros reales con Stripe live desde el 2026-10-15). Cada corte afecta a gente: copia de seguridad antes de cambiar algo, cambios en horas de poco uso (de madrugada, hora de Madrid), probados al momento y con forma de volver atrás.
 5. **Nunca** pegues secretos (contraseñas, claves de Stripe, `des_key`, tokens) en docs, commits ni chat.

@@ -2,7 +2,7 @@
 
 Cada fase deja algo que funciona en producción. Marca las casillas al terminar y mueve la etiqueta **EN CURSO** a la fase activa. Las referencias `D-NNN` están en [DECISIONS.md](DECISIONS.md); el detalle técnico, en [front/ARCHITECTURE.md](front/ARCHITECTURE.md).
 
-Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Fase 7 · Soporte por tickets — cerrada el 2026-10-14**. **Altas abiertas e indexación activada el 2026-10-09**, con Stripe aún en sandbox mientras lo prueban amigos. Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
+Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del dueño). **Fase 7 · Soporte por tickets — cerrada el 2026-10-14**. **Altas abiertas e indexación activada el 2026-10-09**, **Stripe en live (cobros reales) desde el 2026-10-15.** Fases 4 y 5 cerradas el 2026-10-09. Fase 0 cerrada el 2026-10-05; Fase 1, el 2026-10-06; Fases 2 y 3, el 2026-10-08.
 
 **Todo lo que solo puede hacer el dueño está en la [Fase 6 · Pre-lanzamiento](#fase-6--pre-lanzamiento)**, la última antes de abrir altas: la hará cuando el código esté terminado, probado y ajustado con su feedback. Una IA que retome el proyecto no lo hace por él; como mucho, lo prepara y se lo recuerda.
 
@@ -222,8 +222,9 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [x] (2026-10-15) Gestoría: valen las facturas de Stripe (Tibletech ya factura con Stripe); no hace falta nada más
 - [x] (2026-10-15, D-029) Planes antes de live: Gratis 500 MB y 20 envíos al día (cubo diario en Rspamd), alias 3/10, planes `basico-anual` (19,90 €) y `pro-anual` (49,90 €) con el selector Mensual / Anual en la portada, el alta y "Cambiar de plan", y avisos de espacio al 80 % y al 100 % (`QuotaWarnings`, cada hora)
 - [x] (2026-10-15) Alias desde Mi cuenta: añadir y borrar, hasta `max_aliases` del plan (Básico 3, Pro 10, internos 50), mismas reglas que los nombres y sin nombres cortos con recargo. Se puede enviar desde ellos (Postfix `sender-login.cf` mira también los alias con dueño). Al borrarlos, o al borrar su buzón, quedan en cuarentena (`release_at`) y `mail-purge` los quita. Columnas nuevas en `mailserver.aliases` (`server/sql/2026-10-15-aliases-dueno-y-cuarentena.sql`)
+- [ ] **Dueño:** compra real de prueba (Básico, 0,99 € con la oferta) y reembolsarla desde Stripe, para ver el pago, el recibo y el webhook en live
 - [ ] **Dueño:** probar los alias (crear uno en `javier@`, recibir y enviar desde él en el webmail, borrarlo)
-- [ ] **Dueño:** pasar a live con el script (cuando la cuenta esté activada): `ssh -t root@128.140.5.221 stripe-go-live`. Pide las claves `pk_live_`/`sk_live_` sin enseñarlas y hace el resto: copia, limpieza del sandbox, `stripe:sync`, webhook de producción y su secreto. Ya no queda ningún buzón pagado en el sandbox (2026-10-15)
+- [x] (2026-10-15) **Stripe en live** con el script (copia en `/root/stripe-go-live-2026-10-15-180150/`). Revisado: los 4 precios (1,99 €/mes, 19,90 €/año, 4,99 €/mes, 49,90 €/año), los recargos de nombre corto (mensual y anual), la oferta −50 % 3 meses, el IVA 21 % incluido, el portal (sin cancelar ni cambiar de plan) y el webhook activo con 14 eventos, todo en `livemode`. Antes: `ssh -t root@128.140.5.221 stripe-go-live`. Pide las claves `pk_live_`/`sk_live_` sin enseñarlas y hace el resto: copia, limpieza del sandbox, `stripe:sync`, webhook de producción y su secreto. Ya no queda ningún buzón pagado en el sandbox (2026-10-15)
 
 ### Analítica y anuncios
 - [x] (2026-10-15) PostHog: el proyecto estaba creado en la región de EE. UU. y la web manda a EU, así que no llegaba nada. Proyecto nuevo en `eu.posthog.com` y su clave en `POSTHOG_KEY` del `.env` del servidor (copia del `.env` antes)
