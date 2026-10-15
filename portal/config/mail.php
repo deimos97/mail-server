@@ -131,6 +131,6 @@ return [
     | Adonde se escribe si algo va mal (aviso de cambio de email de recuperación, etc.).
     */
 
-    'support_address' => env('MAIL_SUPPORT_ADDRESS', 'postmaster@unagrandeylibre.es'),
+    'support_address' => env('MAIL_SUPPORT_ADDRESS', 'soporte@unagrandeylibre.es'),   // lo que se escriba ahí abre un ticket
 
 ];

@@ -39,17 +39,36 @@ class Support
     /** @param  list<UploadedFile>  $images */
     public function open(?User $user, string $email, string $subject, string $body, array $images = [], ?string $ip = null): SupportTicket
     {
-        [$ticket, $message] = DB::transaction(function () use ($user, $email, $subject, $body, $images, $ip) {
+        $images = array_map(fn (UploadedFile $f) => ['content' => $f->getContent(), 'name' => $f->getClientOriginalName(), 'mime' => (string) $f->getMimeType()], $images);
+
+        return $this->create($user, $email, $subject, $body, $images, $ip, 'web', null);
+    }
+
+    /**
+     * Correo nuevo a soporte@ (sin "[#NNNN]"): abre un ticket como el formulario (D-028).
+     *
+     * @param  list<array{content: string, name: string, mime: string}>  $images
+     */
+    public function openFromEmail(?User $user, string $email, string $subject, string $body, array $images, ?string $emailMessageId): SupportTicket
+    {
+        return $this->create($user, $email, $subject, $body, $images, null, 'email', $emailMessageId);
+    }
+
+    /** @param  list<array{content: string, name: string, mime: string}>  $images */
+    private function create(?User $user, string $email, string $subject, string $body, array $images, ?string $ip, string $source, ?string $emailMessageId): SupportTicket
+    {
+        [$ticket, $message] = DB::transaction(function () use ($user, $email, $subject, $body, $images, $ip, $source, $emailMessageId) {
             $ticket = SupportTicket::create([
                 'user_id' => $user?->id,
                 'email' => Str::lower(trim($email)),
-                'subject' => Str::limit(trim($subject), 150, ''),
+                'subject' => Str::limit(trim($subject), 150, '') ?: '(Sin asunto)',
                 'ip' => $ip,
                 'last_message_at' => now(),
             ]);
-            $message = $ticket->messages()->create(['author' => 'customer', 'source' => 'web', 'body' => trim($body)]);
+            $message = $ticket->messages()->create(['author' => 'customer', 'source' => $source, 'body' => trim($body) ?: '(Sin texto)',
+                'email_message_id' => $emailMessageId]);
             foreach ($images as $image) {
-                $this->attach($message, $image->getContent(), $image->getClientOriginalName(), (string) $image->getMimeType());
+                $this->attach($message, $image['content'], $image['name'], $image['mime']);
             }
 
             return [$ticket, $message];

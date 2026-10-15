@@ -36,6 +36,7 @@ Estado: **Fase 6 — EN CURSO** (desde el 2026-10-09: todo lo que queda es del d
 | D-025 | Recargo por nombre corto también en el tramo **5–7 caracteres (0,50 €/mes)**, además de 1–2 y 3–4 (amplía D-005, que dejaba 5+ sin recargo). Como todo nombre con recargo, solo va con plan de pago. | 2026-10-14 |
 | D-026 | **Cancelar solo desde Mi cuenta** (quitado del portal de Stripe). Si el buzón no puede pasar a gratis, «Cancelar mi plan» avisa antes de que se pierde, con las fechas (fin, suspensión, borrado), y manda un email. «Cambiar de nombre y pasar a gratis», quizá después del lanzamiento. | 2026-10-14 |
 | D-027 | **SendGrid como salida del correo a Microsoft** (hotmail, outlook, live, msn) mientras dure su bloqueo S3150 del rango de Hetzner; el resto sale por nuestro Postfix. Seguimiento de aperturas y clics desactivado. Se añade a la política de privacidad como encargado (EE. UU., Data Privacy Framework). | 2026-10-15 |
+| D-028 | **Los correos nuevos a `soporte@` abren un ticket** (antes solo entraban las respuestas con `[#NNNN]`), con su autoconfirmación y aviso a Telegram; filtros contra respuestas automáticas, rebotes, listas, spam, remitentes del sistema y bucles (3 por remitente y hora). Los correos automáticos de la web dan `soporte@` como contacto en vez de `postmaster@`. | 2026-10-15 |
 | D-021 | Abrir tickets **sin sesión: activado** de entrada (con Turnstile y límite por IP), con un interruptor en el admin para cerrarlo. | 2026-10-14 |
 
 No hay decisiones abiertas ahora mismo ([DECISIONS.md](DECISIONS.md)).
@@ -259,6 +260,9 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 - [x] (2026-10-14) **Dueño:** validado por la gestoría, con el plazo de 2 años (D-024)
 - [x] (2026-10-14) Al borrar la cuenta se borran sus tickets con sus imágenes, también los que abrió sin sesión con su email de recuperación (`Support::deleteForUser`, desde `AccountDeletion`). Así se cumple lo que ya promete la política. La página de borrar cuenta lo avisa
 - [x] (2026-10-14) Texto aplicado en `privacidad.blade.php` (fila de soporte, Turnstile y Cloudflare también en el formulario, plazo en el punto 3; fecha en `config/legal.php`) y tarea diaria `limpiar-soporte` (04:50) que borra las consultas caducadas con sus imágenes (`Support::deleteExpired`, `support.retention_months`)
+
+### F · Correos nuevos a soporte@ (D-028)
+- [x] (2026-10-15) Un correo a `soporte@` sin `[#NNNN]` abre un ticket (`SupportInbox::newTicket`, `Support::openFromEmail`); si el remitente es cliente, va a su cuenta. Respeta el interruptor de tickets sin sesión. Los correos de la web («Si tienes dudas, escríbenos a…») dan `soporte@`
 
 ### E · Avisos a Telegram (D-022)
 - [x] (2026-10-14) Aviso de cada ticket nuevo y de cada respuesta del cliente: número, asunto, quién, adjuntos y el mensaje recortado (`Support::telegramText`, por la cola)

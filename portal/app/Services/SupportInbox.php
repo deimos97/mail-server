@@ -16,13 +16,21 @@ use Throwable;
 
 /**
  * Parte C del soporte (D-018): lee el buzón soporte@ cada minuto (`support:fetch`) y añade al
- * ticket las respuestas del cliente que llevan "[#0042]" en el asunto. Las enganchadas se mueven a la
- * carpeta "Tickets"; las demás se quedan en la bandeja de entrada sin leer, para mirarlas a mano,
- * marcadas con la etiqueta UglChecked para no volver a procesarlas.
+ * ticket las respuestas del cliente que llevan "[#0042]" en el asunto. Los correos nuevos (sin número)
+ * abren un ticket como el formulario (D-028), salvo respuestas automáticas, rebotes, listas, spam,
+ * remitentes del sistema o más de NEW_PER_HOUR por remitente (evita bucles con autorespondedores).
+ * Los procesados se mueven a la carpeta "Tickets"; los demás se quedan en la bandeja de entrada sin
+ * leer, para mirarlos a mano, marcados con la etiqueta UglChecked para no volver a procesarlos.
  */
 class SupportInbox
 {
     public const CHECKED = 'UglChecked';
+
+    /** Tickets nuevos por email de un mismo remitente en una hora; a partir de ahí, a mano. */
+    public const NEW_PER_HOUR = 3;
+
+    /** Remitentes que nunca abren ticket (rebotes y sistemas). */
+    private const SYSTEM_SENDERS = ['mailer-daemon', 'postmaster', 'noreply', 'no-reply', 'donotreply', 'do-not-reply', 'bounce', 'bounces'];
 
     public function __construct(private Support $support) {}
 
@@ -82,19 +90,19 @@ class SupportInbox
     }
 
     /**
-     * Decide qué hacer con un correo ya leído. Devuelve el mensaje añadido al ticket, o null si no es
-     * una respuesta de un ticket (se queda en el buzón).
+     * Decide qué hacer con un correo ya leído. Devuelve el mensaje añadido a un ticket (respuesta o ticket
+     * nuevo), o null si se queda en el buzón para mirarlo a mano.
      *
      * @param  array{message_id: ?string, from: ?string, subject: ?string, text: ?string, html: ?string, auto_submitted: ?string, images: list<array{content: string, name: string, mime: string}>}  $email
      */
     public function handle(array $email): ?SupportMessage
     {
-        if (! preg_match('/\[#0*(\d{1,9})\]/', (string) $email['subject'], $match)) {
-            return null;
-        }
-        // Respuestas automáticas (fuera de la oficina, rebotes): no reabren el ticket
+        // Respuestas automáticas (fuera de la oficina, rebotes): ni reabren ni abren tickets
         if (filled($email['auto_submitted']) && Str::lower((string) $email['auto_submitted']) !== 'no') {
             return null;
+        }
+        if (! preg_match('/\[#0*(\d{1,9})\]/', (string) $email['subject'], $match)) {
+            return $this->newTicket($email);
         }
 
         $ticket = SupportTicket::find((int) $match[1]);
@@ -109,6 +117,46 @@ class SupportInbox
         $text = filled($email['text']) ? (string) $email['text'] : EmailReplyText::fromHtml((string) $email['html']);
 
         return $this->support->addCustomerEmail($ticket, EmailReplyText::clean($text), $email['message_id'], $this->allowedImages($email['images']));
+    }
+
+    /** Correo nuevo (sin número de ticket): abre uno, si pasa los filtros. Devuelve su primer mensaje. */
+    private function newTicket(array $email): ?SupportMessage
+    {
+        $from = Str::lower(trim((string) $email['from']));
+        if (! filter_var($from, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+        [$local, $domain] = explode('@', $from, 2);
+        $ownDomains = \App\Models\Domain::query()->pluck('name')->map(fn ($d) => Str::lower($d))->all();
+        $ownSystem = in_array($domain, $ownDomains, true)
+            && MailAccount::where('email', $from)->where('tier', 'system')->whereNull('user_id')->exists();   // soporte@, noreply@
+        if (in_array($local, self::SYSTEM_SENDERS, true) || $ownSystem) {
+            return null;
+        }
+        $precedence = Str::lower((string) ($email['precedence'] ?? ''));
+        if (in_array($precedence, ['bulk', 'list', 'junk'], true) || filled($email['list_id'] ?? null)
+            || Str::startsWith(Str::lower((string) ($email['spam'] ?? '')), 'yes')) {
+            return null;
+        }
+        if ($email['message_id'] && SupportMessage::where('email_message_id', $email['message_id'])->exists()) {
+            return null;
+        }
+        if (SupportTicket::where('email', $from)->where('created_at', '>=', now()->subHour())->count() >= self::NEW_PER_HOUR) {
+            return null;
+        }
+
+        // Si es de un cliente (por su email de recuperación o uno de sus buzones), el ticket va a su cuenta
+        $user = \App\Models\User::where('email', $from)->first()
+            ?? MailAccount::where('email', $from)->whereNotNull('user_id')->first()?->user;
+        if (! $user && ! $this->support->guestsAllowed()) {
+            return null;   // tickets sin cuenta desactivados en el admin (D-021)
+        }
+
+        $text = filled($email['text']) ? (string) $email['text'] : EmailReplyText::fromHtml((string) $email['html']);
+        $ticket = $this->support->openFromEmail($user, $from, (string) $email['subject'], EmailReplyText::clean($text),
+            $this->allowedImages($email['images']), $email['message_id']);
+
+        return $ticket->messages()->first();
     }
 
     /** Aviso a SUPPORT_NOTIFY de un correo que no es de ningún ticket (una sola vez: luego lleva la etiqueta). */
@@ -171,6 +219,9 @@ class SupportInbox
             'text' => $message->text(),
             'html' => $message->html(),
             'auto_submitted' => $message->header('Auto-Submitted')?->getValue(),
+            'precedence' => $message->header('Precedence')?->getValue(),
+            'list_id' => $message->header('List-Id')?->getValue(),
+            'spam' => $message->header('X-Spam')?->getValue(),
             'images' => $images,
         ];
     }

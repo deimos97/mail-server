@@ -67,11 +67,59 @@ class SupportInboxTest extends TestCase
         $this->assertSame(2, $this->ticket->messages()->count());
     }
 
-    public function test_emails_that_are_not_ticket_replies_stay_in_the_mailbox(): void
+    public function test_new_emails_open_a_ticket(): void
+    {
+        $user = User::factory()->create(['email' => 'pepe@gmail.com']);
+
+        $message = app(SupportInbox::class)->handle($this->email(['from' => 'Pepe@Gmail.com', 'subject' => 'Hola, una pregunta',
+            'text' => 'No sé configurar el móvil.', 'message_id' => '<nuevo@mail.gmail.com>']));
+
+        $ticket = $message->ticket;
+        $this->assertSame('pepe@gmail.com', $ticket->email);
+        $this->assertSame($user->id, $ticket->user_id);                       // es cliente: va a su cuenta
+        $this->assertSame('Hola, una pregunta', $ticket->subject);
+        $this->assertSame('email', $message->source);
+        $this->assertSame('No sé configurar el móvil.', $message->body);
+        Mail::assertQueued(\App\Mail\Support\TicketReceived::class, fn ($mail) => $mail->hasTo('pepe@gmail.com'));
+        Mail::assertQueued(StaffNotice::class, fn ($mail) => $mail->isNew);
+
+        // El mismo correo dos veces, no
+        $this->assertNull(app(SupportInbox::class)->handle($this->email(['from' => 'pepe@gmail.com', 'subject' => 'Hola, una pregunta', 'message_id' => '<nuevo@mail.gmail.com>'])));
+    }
+
+    public function test_new_emails_that_should_not_open_a_ticket(): void
+    {
+        $inbox = app(SupportInbox::class);
+        $new = fn (array $o) => $this->email($o + ['subject' => 'Hola', 'message_id' => null]);
+
+        $this->assertNull($inbox->handle($new(['from' => 'MAILER-DAEMON@gmail.com'])));
+        $this->assertNull($inbox->handle($new(['from' => 'noreply@tienda.es'])));
+        $this->assertNull($inbox->handle($new(['from' => 'pepe@gmail.com', 'auto_submitted' => 'auto-replied'])));
+        $this->assertNull($inbox->handle($new(['from' => 'pepe@gmail.com', 'precedence' => 'bulk'])));
+        $this->assertNull($inbox->handle($new(['from' => 'pepe@gmail.com', 'list_id' => '<news.tienda.es>'])));
+        $this->assertNull($inbox->handle($new(['from' => 'pepe@gmail.com', 'spam' => 'Yes'])));
+        $this->assertNull($inbox->handle($new(['from' => 'no es un email'])));
+        $this->assertSame(1, SupportTicket::count());
+
+        // Un autorespondedor que no se identifica: como mucho NEW_PER_HOUR tickets por hora
+        foreach (range(1, SupportInbox::NEW_PER_HOUR + 2) as $i) {
+            $inbox->handle($new(['from' => 'bucle@ejemplo.es']));
+        }
+        $this->assertSame(SupportInbox::NEW_PER_HOUR, SupportTicket::where('email', 'bucle@ejemplo.es')->count());
+    }
+
+    public function test_new_emails_from_guests_respect_the_admin_switch(): void
+    {
+        app(Support::class)->setGuestsAllowed(false);
+
+        $this->assertNull(app(SupportInbox::class)->handle($this->email(['from' => 'pepe@gmail.com', 'subject' => 'Hola', 'message_id' => null])));
+        $this->assertSame(1, SupportTicket::count());
+    }
+
+    public function test_replies_that_do_not_match_stay_in_the_mailbox(): void
     {
         $inbox = app(SupportInbox::class);
 
-        $this->assertNull($inbox->handle($this->email(['subject' => 'Hola, una pregunta'])));
         $this->assertNull($inbox->handle($this->email(['subject' => 'Re: [#0099] No existe'])));
         $this->assertNull($inbox->handle($this->email(['from' => 'otro@gmail.com'])));
         $this->assertNull($inbox->handle($this->email(['auto_submitted' => 'auto-replied'])));
