@@ -26,14 +26,14 @@
             <template x-if="state === 'done' && result">
                 <div>
                     <p x-show="result.available" class="font-medium text-green-700">
-                        <span x-text="result.email"></span> está libre
+                        <span class="break-all" x-text="result.email"></span> está libre
                         <span x-show="result.requires_paid_plan" class="block font-normal text-stone-600"
                               x-text="'Nombre corto: +' + euros(result.surcharge_cents) + '/mes, con un plan de pago'"></span>
                     </p>
                     <p x-show="!result.available" class="font-medium text-rojo" x-text="result.message"></p>
                     <div x-show="result.suggestions.length" class="mt-2 flex flex-wrap gap-2">
                         <template x-for="s in result.suggestions" :key="s">
-                            <button type="button" @click="pick(s)" x-text="s" data-ph-mask class="ph-no-capture rounded-full bg-stone-100 px-3 py-1 font-semibold hover:bg-stone-200"></button>
+                            <button type="button" @click="pick(s)" x-text="s" data-ph-mask class="ph-no-capture max-w-full break-all rounded-full bg-stone-100 px-3 py-1 font-semibold hover:bg-stone-200"></button>
                         </template>
                     </div>
                 </div>

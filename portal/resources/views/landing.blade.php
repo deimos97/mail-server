@@ -70,7 +70,7 @@
                         <div>
                             <p x-show="result.available" class="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full bg-white/15 px-4 py-2 font-medium backdrop-blur-sm">
                                 <x-icon.check class="size-5 text-amarillo" />
-                                <span><strong x-text="result.email"></strong> está libre</span>
+                                <span class="min-w-0"><strong class="break-all" x-text="result.email"></strong> está libre</span>
                                 <span x-show="result.requires_paid_plan" class="w-full text-sm text-amarillo-claro"
                                       x-text="'Nombre corto: +' + euros(result.surcharge_cents) + '/mes, con un plan de pago'"></span>
                             </p>
@@ -79,7 +79,7 @@
                                 <span class="text-sm text-white/75">Prueba con:</span>
                                 <template x-for="suggestion in result.suggestions" :key="suggestion">
                                     <button type="button" @click="pick(suggestion)" x-text="suggestion" data-ph-mask
-                                            class="ph-no-capture rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-tinta transition hover:bg-white"></button>
+                                            class="ph-no-capture max-w-full break-all rounded-full bg-white/90 px-3 py-1 text-sm font-semibold text-tinta transition hover:bg-white"></button>
                                 </template>
                             </div>
                         </div>
@@ -100,7 +100,7 @@
     {{-- ASÍ TE VERÁN: bandeja de entrada con la dirección elegida arriba, y el alta en 3 pasos (config/landing.php) --}}
     @php $preview = config('landing.preview'); @endphp
     <section class="bg-white px-4 py-20 sm:px-6 sm:py-24">
-        <div class="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2 md:gap-16">
+        <div class="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16">
             <div>
                 <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $preview['title'] }}</h2>
                 <p class="mt-3 text-lg text-stone-600 text-pretty">{{ $preview['subtitle'] }}</p>
@@ -209,9 +209,9 @@
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ config('landing.plans.title') }}</h2>
                 <p class="mt-3 text-lg text-stone-600">{{ config('landing.plans.subtitle') }}</p>
-                <p x-cloak x-show="$store.signup.email" data-ph-mask class="mt-6 inline-flex items-center gap-2 rounded-full bg-amarillo/25 px-4 py-2 font-medium">
-                    <x-icon.check class="size-5 text-rojo" />
-                    Tu dirección: <strong x-text="$store.signup.email"></strong>
+                <p x-cloak x-show="$store.signup.email" data-ph-mask class="mt-6 inline-flex max-w-full items-center gap-2 rounded-3xl bg-amarillo/25 px-4 py-2 font-medium">
+                    <x-icon.check class="size-5 shrink-0 text-rojo" />
+                    <span class="min-w-0">Tu dirección: <strong class="break-all" x-text="$store.signup.email"></strong></span>
                 </p>
             </div>
 
