@@ -202,6 +202,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [x] (2026-10-14) Gratis → pago (`javier@` a Básico por Checkout): buzón en Básico al volver, factura de 1,49 € (1,99 + 0,50 de nombre corto de 5–7 caracteres − 50 % de la oferta sobre el Básico) con IVA. Ojo: `javier@` ya no puede volver a gratis (nombre corto); no cancelarlo, se decide al pasar a live
 - [x] (2026-10-14) Aviso falso de `mail-monitor` "2 eventos sin entregar al webhook": comprobó Stripe 2 s después del pago, con los eventos aún entregándose. `stripe:webhook-health` ignora ahora los eventos de los últimos 15 minutos
 - [x] (2026-10-14, D-026) Cancelar se quita del portal de Stripe y se hace en "Cambiar de plan": los buzones que no pueden pasar a gratis tienen «Cancelar mi plan» con confirmación (se pierde, con fechas), email `cancelled` con las fechas y el aviso "perderás este buzón" mientras se puede deshacer. Tras desplegar, `php artisan stripe:sync` para actualizar el portal en Stripe
+- [x] (2026-10-15) `javier@` y `varela@` (del dueño) pasan a **cuenta interna** (`tier=system`, sin plan), como `soporte@` y `noreply@`: sin cobros, ciclo de vida ni "Cambiar de plan", 10 GB y el límite de envío del Pro. Sus suscripciones del sandbox, canceladas (la web ignora los webhooks de los internos). En Mi cuenta salen como "Cuenta interna · Sin plan"
 - [x] Pagos en el sandbox de Stripe: alta de pago (2026-10-08, `varela@`), cancelar en Checkout, cambiar de plan, portal y gratis → pago (2026-10-14) Tarjeta de prueba `4242 4242 4242 4242`, cualquier fecha futura y CVC
 
 ### Contenido
@@ -217,7 +218,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [ ] Activar la cuenta "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte
 - [ ] Recibos por email (Settings → Customer emails) y marca (logo y `#AA151B`), en el sandbox y en live
 - [x] (2026-10-15) Gestoría: valen las facturas de Stripe (Tibletech ya factura con Stripe); no hace falta nada más
-- [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción. Los buzones pagados con la tarjeta de prueba **pasan a gratis** (decidido el 2026-10-15): sus suscripciones del sandbox no existen en live. Hoy son `javier@`, `varela@` (cuenta del dueño) y `javier-checkout@`; la IA vuelve a listarlos ese día
+- [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción. Los buzones pagados con la tarjeta de prueba **pasan a gratis** (decidido el 2026-10-15): sus suscripciones del sandbox no existen en live. Hoy solo queda `javier-checkout@`; la IA vuelve a listarlos ese día
 
 ### Analítica y anuncios
 - [ ] PostHog, juntos: activar Session replay y Heatmaps, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel)

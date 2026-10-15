@@ -34,7 +34,7 @@ class MailboxLifecycle
 
         foreach (MailboxState::whereNotNull('unpaid_since')->get() as $state) {
             $mailbox = Mailbox::find($state->mailbox_id);
-            if (! $mailbox || $mailbox->status === 'deleted') {
+            if (! $mailbox || $mailbox->status === 'deleted' || $mailbox->isInternal()) {
                 continue;
             }
             $since = $state->unpaid_since;

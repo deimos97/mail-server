@@ -94,7 +94,7 @@ class PlanController extends Controller
 
     private function mailbox(Request $request, int $id): Mailbox
     {
-        return Mailbox::where('user_id', $request->user()->id)->whereIn('status', ['active', 'suspended'])
+        return Mailbox::where('user_id', $request->user()->id)->whereIn('status', ['active', 'suspended'])->where('tier', '!=', 'system')
             ->with('plan', 'user', 'usage')->findOrFail($id);
     }
 }

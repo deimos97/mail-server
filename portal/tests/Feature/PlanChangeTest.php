@@ -190,6 +190,15 @@ class PlanChangeTest extends TestCase
         $this->assertFalse($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);
     }
 
+    public function test_internal_mailboxes_have_no_plan_to_change(): void
+    {
+        $mailbox = $this->mailbox('basico');
+        $mailbox->update(['tier' => 'system', 'plan_id' => null]);
+
+        $this->actingAs($this->user)->get('/cuenta')->assertSee('Cuenta interna')->assertDontSee('Cambiar de plan');
+        $this->get("/cuenta/plan/{$mailbox->id}")->assertNotFound();
+    }
+
     public function test_cannot_change_someone_elses_plan(): void
     {
         $mailbox = $this->mailbox('gratis');

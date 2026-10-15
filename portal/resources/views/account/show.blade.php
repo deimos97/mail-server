@@ -61,6 +61,15 @@
                     </div>
                 @endif
 
+                @if ($mailbox->isInternal())
+                    <div class="border-b border-stone-100 p-4 text-sm sm:p-5">
+                        <p class="flex flex-wrap items-center gap-2 font-semibold">
+                            Cuenta interna
+                            <span class="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700 ring-1 ring-stone-300">Sin plan</span>
+                        </p>
+                        <p class="text-stone-500">Buzón del servicio: sin plan, sin pagos y sin caducidad.</p>
+                    </div>
+                @else
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 p-4 text-sm sm:p-5">
                     <div class="min-w-0">
                         <p class="flex flex-wrap items-center gap-2 font-semibold">
@@ -90,6 +99,7 @@
                         @endif
                     </div>
                 </div>
+                @endif
 
                 @php($percent = $mailbox->usedPercent())
                 <div class="border-b border-stone-100 p-4 sm:p-5">

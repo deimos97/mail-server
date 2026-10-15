@@ -15,8 +15,10 @@ class RspamdMapController extends Controller
         $tiers = config('mail_limits.paid_tiers');
         abort_unless($tier === 'paid' || in_array($tier, $tiers, true), 404);
 
+        // Los internos (tier=system) van con el límite del plan más alto
+        $wanted = $tier === 'paid' ? [...$tiers, 'system'] : ($tier === end($tiers) ? [$tier, 'system'] : [$tier]);
         $emails = Mailbox::whereIn('status', ['active', 'suspended'])
-            ->whereIn('tier', $tier === 'paid' ? $tiers : [$tier])
+            ->whereIn('tier', $wanted)
             ->orderBy('email')->pluck('email');
 
         return response($emails->map(fn ($e) => mb_strtolower($e))->implode("\n")."\n", 200, [

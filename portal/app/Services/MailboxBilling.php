@@ -23,8 +23,8 @@ class MailboxBilling
     public function sync(array $subscription): void
     {
         $mailbox = $this->mailbox($subscription);
-        if (! $mailbox || $mailbox->status === 'deleted') {
-            return;
+        if (! $mailbox || $mailbox->status === 'deleted' || $mailbox->isInternal()) {
+            return;   // los internos no tienen plan: una suscripción vieja (p. ej. del sandbox) no les afecta
         }
 
         $plan = collect($subscription['items']['data'] ?? [])
@@ -57,8 +57,8 @@ class MailboxBilling
     public function ended(array $subscription): void
     {
         $mailbox = $this->mailbox($subscription);
-        if (! $mailbox || $mailbox->status === 'deleted') {
-            return;
+        if (! $mailbox || $mailbox->status === 'deleted' || $mailbox->isInternal()) {
+            return;   // los internos no tienen plan: una suscripción vieja (p. ej. del sandbox) no les afecta
         }
 
         $free = Plan::where('is_free', true)->orderBy('sort_order')->first();
@@ -80,7 +80,7 @@ class MailboxBilling
     /** Un pago ha fallado: avisamos para que actualice la tarjeta (Stripe reintenta solo). */
     public function paymentFailed(?Mailbox $mailbox): void
     {
-        if ($mailbox && $mailbox->status !== 'deleted') {
+        if ($mailbox && $mailbox->status !== 'deleted' && ! $mailbox->isInternal()) {
             $this->unpaid($mailbox);
         }
     }

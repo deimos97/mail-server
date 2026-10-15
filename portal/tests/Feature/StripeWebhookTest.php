@@ -148,6 +148,21 @@ class StripeWebhookTest extends TestCase
         Mail::assertQueued(LifecycleNotice::class, fn ($m) => $m->type === 'downgraded');
     }
 
+    public function test_internal_mailboxes_ignore_their_old_subscriptions(): void
+    {
+        $mailbox = $this->activePaidMailbox();
+        $mailbox->update(['tier' => 'system', 'plan_id' => null]);   // cuenta interna (p. ej. la del dueño)
+
+        $this->event('customer.subscription.deleted', $this->subscription($mailbox, 'canceled'))->assertOk();
+        $this->event('customer.subscription.updated', $this->subscription($mailbox, 'past_due'))->assertOk();
+
+        $mailbox->refresh();
+        $this->assertSame('system', $mailbox->tier);
+        $this->assertNull($mailbox->plan_id);
+        $this->assertNull(\App\Models\MailboxState::find($mailbox->id)?->unpaid_since);
+        Mail::assertNotQueued(LifecycleNotice::class);
+    }
+
     public function test_cancelled_subscription_without_room_for_free_goes_unpaid(): void
     {
         $mailbox = $this->activePaidMailbox();

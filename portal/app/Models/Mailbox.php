@@ -65,6 +65,15 @@ class Mailbox extends Model
     }
 
     /** Bytes usados. Sin fila todavía (Dovecot la crea con el primer cambio en el buzón) = vacío. */
+    /**
+     * Buzón interno del servicio (`tier=system`): noreply@, soporte@ y los del dueño (javier@, varela@).
+     * Sin plan ni suscripción: no entran en cobros, ciclo de vida ni "Cambiar de plan". Límite de envío del Pro.
+     */
+    public function isInternal(): bool
+    {
+        return $this->tier === 'system';
+    }
+
     public function usedBytes(): int
     {
         return $this->usage?->bytes ?? 0;

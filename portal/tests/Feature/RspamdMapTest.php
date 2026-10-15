@@ -23,7 +23,9 @@ class RspamdMapTest extends TestCase
     public function test_maps_list_active_mailboxes_per_paid_tier(): void
     {
         $this->get('/internal/rspamd/basic.map')->assertOk()->assertSeeText("ana@unagrandeylibre.es\n", false)->assertDontSee('eva@');
-        $this->assertSame("ana@unagrandeylibre.es\npepe@unagrandeylibre.es\n", $this->get('/internal/rspamd/paid.map')->getContent());
+        $this->assertSame("ana@unagrandeylibre.es\npepe@unagrandeylibre.es\nsys@unagrandeylibre.es\n", $this->get('/internal/rspamd/paid.map')->getContent());
+        $this->get('/internal/rspamd/pro.map')->assertSeeText('sys@unagrandeylibre.es');           // internos: límite del Pro
+        $this->get('/internal/rspamd/basic.map')->assertDontSee('sys@');
         $this->get('/internal/rspamd/free.map')->assertNotFound();
     }
 
