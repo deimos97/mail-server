@@ -166,28 +166,34 @@
                             <rect x="0" y="-3" width="28" height="4.5" fill="#fff"/>
                         </svg>
                     </div>
-                    <svg viewBox="0 0 400 170" class="-mt-1 w-full" aria-hidden="true">
-                        <rect x="0" y="0" width="400" height="170" rx="24" fill="#f3ede4"/>
-                        {{-- Cartel --}}
-                        <rect x="232" y="16" width="148" height="22" rx="4" fill="var(--color-tinta)"/>
-                        <text x="306" y="31" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="1" fill="#fff" font-family="inherit">ATENCIÓN AL CIUDADANO</text>
-                        {{-- Funcionario y ordenador --}}
-                        <circle cx="330" cy="66" r="15" fill="#e3b08a"/>
-                        <path d="M315 62 q15 -18 30 0 q-2 -12 -15 -13 q-13 1 -15 13z" fill="#4a3b31"/>
-                        <rect x="308" y="83" width="44" height="40" rx="14" fill="#6b7d8f"/>
-                        <rect x="252" y="76" width="44" height="30" rx="4" fill="#3d3a36"/>
-                        <rect x="256" y="80" width="36" height="22" rx="2" fill="#9fb4c7"/>
-                        <rect x="270" y="106" width="8" height="10" fill="#3d3a36"/>
-                        {{-- Mostrador --}}
-                        <rect x="214" y="112" width="186" height="9" rx="3" fill="#a8a29e"/>
-                        <rect x="222" y="121" width="178" height="49" fill="#d6d3d1"/>
-                        <rect x="236" y="104" width="34" height="8" rx="1" fill="#fff" stroke="#d6d3d1"/>
-                        {{-- Ciudadano --}}
-                        <circle cx="96" cy="58" r="17" fill="#d9a07a"/>
-                        <path d="M79 56 q2 -21 20 -18 q14 2 14 16 q-8 -8 -20 -6 q-9 1 -14 8z" fill="#2b2523"/>
-                        <rect x="68" y="78" width="56" height="92" rx="20" fill="var(--color-rojo)"/>
-                        <path d="M118 96 q30 4 46 -6" stroke="var(--color-rojo)" stroke-width="13" stroke-linecap="round" fill="none"/>
-                        <circle cx="166" cy="89" r="7" fill="#d9a07a"/>
+                    {{-- Vista desde detrás de quien da el correo: su cabeza en primer plano y la ventanilla al fondo --}}
+                    <svg viewBox="0 0 400 140" class="-mt-1 w-full" aria-hidden="true">
+                        <defs><clipPath id="ventanilla"><rect width="400" height="140" rx="24"/></clipPath></defs>
+                        <g clip-path="url(#ventanilla)">
+                            <rect width="400" height="140" fill="#f3ede4"/>
+                            {{-- Cartel --}}
+                            <rect x="214" y="12" width="152" height="22" rx="4" fill="var(--color-tinta)"/>
+                            <text x="290" y="27" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="1" fill="#fff" font-family="inherit">ATENCIÓN AL CIUDADANO</text>
+                            {{-- Funcionario: redondo y con el pelo rosa --}}
+                            <ellipse cx="290" cy="112" rx="48" ry="40" fill="#6b7d8f"/>
+                            <circle cx="290" cy="60" r="20" fill="#e3b08a"/>
+                            <path d="M266 70 q-8 -38 24 -38 q32 0 24 38 q-5 -3 -6 -12 q-2 -10 -9 -15 q-12 7 -27 4 q-5 7 -6 23z" fill="#f472b6"/>
+                            <circle cx="283" cy="62" r="2" fill="var(--color-tinta)"/>
+                            <circle cx="297" cy="62" r="2" fill="var(--color-tinta)"/>
+                            <path d="M284 70 q6 5 12 0" stroke="var(--color-tinta)" stroke-width="2" stroke-linecap="round" fill="none"/>
+                            {{-- Ordenador (de espaldas) --}}
+                            <rect x="196" y="72" width="46" height="32" rx="4" fill="#3d3a36"/>
+                            <rect x="214" y="104" width="10" height="8" fill="#3d3a36"/>
+                            {{-- Mostrador --}}
+                            <rect x="150" y="110" width="250" height="8" rx="3" fill="#a8a29e"/>
+                            <rect x="158" y="118" width="242" height="22" fill="#d6d3d1"/>
+                            {{-- Quien da el correo, de espaldas: orejas, pelo y un poco de jersey --}}
+                            <ellipse cx="96" cy="164" rx="88" ry="32" fill="var(--color-rojo)"/>
+                            <ellipse cx="50" cy="108" rx="9" ry="13" fill="#d9a07a"/>
+                            <ellipse cx="142" cy="108" rx="9" ry="13" fill="#d9a07a"/>
+                            <circle cx="96" cy="104" r="46" fill="#2b2523"/>
+                            <path d="M66 78 q30 -18 60 0" stroke="#4a3b31" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        </g>
                     </svg>
                 </figure>
             </div>
