@@ -108,12 +108,18 @@ class SupportInboxTest extends TestCase
         $this->assertSame(SupportInbox::NEW_PER_HOUR, SupportTicket::where('email', 'bucle@ejemplo.es')->count());
     }
 
-    public function test_new_emails_from_guests_respect_the_admin_switch(): void
+    public function test_new_emails_from_strangers_have_their_own_switch(): void
     {
-        app(Support::class)->setGuestsAllowed(false);
+        $inbox = app(SupportInbox::class);
+        $new = fn (string $from) => $this->email(['from' => $from, 'subject' => 'Hola', 'message_id' => null]);
 
-        $this->assertNull(app(SupportInbox::class)->handle($this->email(['from' => 'pepe@gmail.com', 'subject' => 'Hola', 'message_id' => null])));
-        $this->assertSame(1, SupportTicket::count());
+        app(Support::class)->setGuestsAllowed(false);                 // el del formulario no afecta al email
+        $this->assertNotNull($inbox->handle($new('pepe@gmail.com')));
+
+        app(Support::class)->setEmailGuestsAllowed(false);
+        $this->assertNull($inbox->handle($new('ana@gmail.com')));
+        User::factory()->create(['email' => 'cliente@gmail.com']);
+        $this->assertNotNull($inbox->handle($new('cliente@gmail.com')));   // los clientes, siempre
     }
 
     public function test_replies_that_do_not_match_stay_in_the_mailbox(): void

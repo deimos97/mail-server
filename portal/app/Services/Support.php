@@ -36,6 +36,19 @@ class Support
         Setting::set(self::GUESTS_SETTING, $allowed);
     }
 
+    /** Segundo interruptor (D-028): correos nuevos a soporte@ de quien no es cliente. Independiente del formulario. */
+    public const EMAIL_GUESTS_SETTING = 'support.email_guests';
+
+    public function emailGuestsAllowed(): bool
+    {
+        return (bool) Setting::get(self::EMAIL_GUESTS_SETTING, config('support.email_guests_default'));
+    }
+
+    public function setEmailGuestsAllowed(bool $allowed): void
+    {
+        Setting::set(self::EMAIL_GUESTS_SETTING, $allowed);
+    }
+
     /** @param  list<UploadedFile>  $images */
     public function open(?User $user, string $email, string $subject, string $body, array $images = [], ?string $ip = null): SupportTicket
     {

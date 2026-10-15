@@ -208,9 +208,11 @@ class SupportTest extends TestCase
 
         Livewire::actingAs($admin)->test(ListSupportTickets::class)
             ->assertSee('Duda abierta')
-            ->callAction('guests');
+            ->callAction('guests')
+            ->callAction('emailGuests');
 
         $this->assertFalse(app(Support::class)->guestsAllowed());
+        $this->assertFalse(app(Support::class)->emailGuestsAllowed());
     }
 
     public function test_attachments_are_only_for_admins(): void

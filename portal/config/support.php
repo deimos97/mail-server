@@ -30,6 +30,9 @@ return [
     // D-021: tickets sin sesión. Se cambia desde el admin (ajuste support.guests); esto es el valor de partida.
     'guests_default' => true,
 
+    // D-028: correos nuevos a soporte@ de quien no es cliente → ticket. Otro ajuste del admin (support.email_guests).
+    'email_guests_default' => true,
+
     // Parte C: buzón que lee `support:fetch` cada minuto. Sin usuario, no se lee nada.
     'imap' => [
         'host' => env('SUPPORT_IMAP_HOST', '127.0.0.1'),

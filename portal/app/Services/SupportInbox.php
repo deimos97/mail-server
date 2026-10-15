@@ -148,8 +148,8 @@ class SupportInbox
         // Si es de un cliente (por su email de recuperación o uno de sus buzones), el ticket va a su cuenta
         $user = \App\Models\User::where('email', $from)->first()
             ?? MailAccount::where('email', $from)->whereNotNull('user_id')->first()?->user;
-        if (! $user && ! $this->support->guestsAllowed()) {
-            return null;   // tickets sin cuenta desactivados en el admin (D-021)
+        if (! $user && ! $this->support->emailGuestsAllowed()) {
+            return null;   // desconocidos por email desactivados en el admin (D-028; el del formulario es otro)
         }
 
         $text = filled($email['text']) ? (string) $email['text'] : EmailReplyText::fromHtml((string) $email['html']);

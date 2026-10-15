@@ -262,7 +262,7 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 - [x] (2026-10-14) Texto aplicado en `privacidad.blade.php` (fila de soporte, Turnstile y Cloudflare también en el formulario, plazo en el punto 3; fecha en `config/legal.php`) y tarea diaria `limpiar-soporte` (04:50) que borra las consultas caducadas con sus imágenes (`Support::deleteExpired`, `support.retention_months`)
 
 ### F · Correos nuevos a soporte@ (D-028)
-- [x] (2026-10-15) Un correo a `soporte@` sin `[#NNNN]` abre un ticket (`SupportInbox::newTicket`, `Support::openFromEmail`); si el remitente es cliente, va a su cuenta. Respeta el interruptor de tickets sin sesión. Los correos de la web («Si tienes dudas, escríbenos a…») dan `soporte@`
+- [x] (2026-10-15) Un correo a `soporte@` sin `[#NNNN]` abre un ticket (`SupportInbox::newTicket`, `Support::openFromEmail`); si el remitente es cliente, va a su cuenta. Dos interruptores independientes en el admin (Tickets): «Formulario sin sesión» (D-021) y «Email de desconocidos» (los clientes siempre pueden); los dos, activados de entrada. Los correos de la web («Si tienes dudas, escríbenos a…») dan `soporte@`
 
 ### E · Avisos a Telegram (D-022)
 - [x] (2026-10-14) Aviso de cada ticket nuevo y de cada respuesta del cliente: número, asunto, quién, adjuntos y el mensaje recortado (`Support::telegramText`, por la cola)
