@@ -16,14 +16,20 @@ De arriba abajo:
    - Comprobación de disponibilidad en vivo mientras escribe (✓ disponible / ✗ cogido / ✗ no permitido), con sugerencias si está cogido (`tunombre1`, `tu.nombre`…).
    - **Nombres cortos con sobrecoste:** si el nombre es corto (1–2 o 3–4 caracteres), sale disponible con "+X €/mes" y **solo con planes de pago**. Es una cuota periódica: siempre se paga más por ese nombre. Tramos, precios y reglas se cambian desde el admin. Algunos nombres premium (`hola@`, `madrid@`…) quedan reservados para una futura tienda.
    - El sufijo `@unagrandeylibre.es` es un selector cuando haya más de un dominio; mientras haya uno, se ve como texto fijo.
-2. **Planes** (al hacer scroll). Tarjetas `x,xx €/mes` con sus características. **Salen de la BD**, nada escrito a mano en la plantilla. Cada plan puede ser:
+2. **Así te verán + Listo en un minuto:** una bandeja de entrada de ejemplo con un correo de la dirección que el visitante haya elegido arriba (si no, `tunombre@…`), y el alta en 3 pasos. En el hero, bajo el buscador, "Ya somos N con dirección @…" (buzones activos de clientes, sin los internos), solo a partir de `landing.counter.min` (100).
+3. **Planes** (al hacer scroll). Tarjetas `x,xx €/mes` con sus características. **Salen de la BD**, nada escrito a mano en la plantilla. Cada plan puede ser:
    - gratis o de pago;
    - activo o inactivo, de forma absoluta o programada (desde/hasta);
    - con descuento (oferta), también programable: precio tachado + etiqueta ("-50 % lanzamiento", "hasta el 31/12").
    - Un plan puede marcarse como destacado ("el más elegido").
    - Precios siempre **con IVA incluido** (obligatorio en B2C en España).
-3. **Bloques informativos** (contenido pendiente): por qué nosotros, privacidad, sin publicidad, servidores en la UE, FAQ… El contenido lo pone el usuario más adelante; la estructura debe permitir añadir bloques fácilmente.
-4. **Footer:** aviso legal, privacidad, cookies, condiciones, política de uso aceptable, contacto, estado del servicio (opcional).
+4. **Bloques informativos:** por qué nosotros (producto nacional, privacidad, todos los dispositivos).
+5. **Pasarte es fácil:** reenviar el correo de siempre (pasos para Gmail y Outlook), cambiar el correo poco a poco y avisar a los contactos.
+6. **Preguntas frecuentes** (también van como `FAQPage` en los datos estructurados).
+
+Tono **neutro** (2026-10-15): correo español, privado y sin anuncios; la marca y la bandera hacen el resto. Todos los textos están en `portal/config/landing.php`.
+
+7. **Footer:** aviso legal, privacidad, cookies, condiciones, política de uso aceptable, contacto, estado del servicio (opcional).
 
 ## Onboarding (lo mínimo posible)
 

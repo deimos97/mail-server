@@ -86,11 +86,70 @@
                     </template>
                 </div>
             </form>
+
+            @if ($mailboxCount)
+                <p class="mt-2 text-sm font-medium text-white/80">{{ __(config('landing.counter.text'), ['count' => number_format($mailboxCount, 0, ',', '.'), 'domain' => $mainDomain]) }}</p>
+            @endif
         </div>
 
         <a href="#planes" class="absolute inset-x-0 bottom-6 mx-auto w-fit text-sm font-medium text-white/80 transition hover:text-white">
             Ver planes ↓
         </a>
+    </section>
+
+    {{-- ASÍ TE VERÁN: bandeja de entrada con la dirección elegida arriba, y el alta en 3 pasos (config/landing.php) --}}
+    @php $preview = config('landing.preview'); @endphp
+    <section class="bg-white px-4 py-20 sm:px-6 sm:py-24">
+        <div class="mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-2 md:gap-16">
+            <div>
+                <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $preview['title'] }}</h2>
+                <p class="mt-3 text-lg text-stone-600 text-pretty">{{ $preview['subtitle'] }}</p>
+
+                <h3 class="mt-10 text-sm font-bold uppercase tracking-[0.15em] text-rojo">{{ $preview['steps_title'] }}</h3>
+                <ol class="mt-5 space-y-6">
+                    @foreach ($preview['steps'] as $step)
+                        <li class="flex gap-4">
+                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-rojo font-bold text-white">{{ $loop->iteration }}</span>
+                            <div>
+                                <p class="font-bold">{{ $step['title'] }}</p>
+                                <p class="mt-1 text-stone-600">{{ $step['text'] }}</p>
+                            </div>
+                        </li>
+                    @endforeach
+                </ol>
+            </div>
+
+            {{-- Con la dirección que haya elegido el visitante (por eso ph-no-capture y data-ph-mask) --}}
+            <div x-data="{ example: @js($preview['example'].'@'.$mainDomain),
+                           get address() { return $store.signup.email || this.example },
+                           get name() { return this.address.split('@')[0].split(/[.\-_]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') } }"
+                 class="ph-no-capture overflow-hidden rounded-3xl bg-white shadow-2xl shadow-stone-300/50 ring-1 ring-stone-200"
+                 role="img" :aria-label="'Ejemplo de bandeja de entrada con un correo de ' + address">
+                <div class="flex items-center gap-2 border-b border-stone-200 bg-stone-50 px-5 py-3" aria-hidden="true">
+                    <span class="size-3 rounded-full bg-stone-300"></span><span class="size-3 rounded-full bg-stone-300"></span><span class="size-3 rounded-full bg-stone-300"></span>
+                    <span class="ml-3 text-sm font-semibold text-stone-500">Recibidos</span>
+                </div>
+                <ul class="divide-y divide-stone-100" aria-hidden="true">
+                    @foreach ($preview['inbox'] as $mail)
+                        @php $mine = $loop->first; @endphp
+                        <li @class(['flex gap-4 px-5 py-4', 'border-l-4 border-rojo bg-amarillo/10' => $mine, 'opacity-60' => ! $mine])>
+                            <span @class(['flex size-10 shrink-0 items-center justify-center rounded-full font-bold',
+                                          'bg-rojo text-white' => $mine, 'bg-stone-200 text-stone-500' => ! $mine])
+                                  @if ($mine) x-text="name.charAt(0)" data-ph-mask @endif>{{ $mine ? '' : mb_substr($mail['from'], 0, 1) }}</span>
+                            <div class="min-w-0 flex-1">
+                                @if ($mine)
+                                    <p class="truncate" data-ph-mask><strong x-text="name"></strong> <span class="text-sm text-stone-500" x-text="'<' + address + '>'"></span></p>
+                                @else
+                                    <p class="truncate font-semibold">{{ $mail['from'] }}</p>
+                                @endif
+                                <p @class(['truncate', 'font-bold' => $mine])>{{ $mail['subject'] }}</p>
+                                <p class="truncate text-sm text-stone-500">{{ $mail['snippet'] }}</p>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
     </section>
 
     {{-- PLANES (salen de la BD) --}}
@@ -217,8 +276,41 @@
         </div>
     </section>
 
-    {{-- PREGUNTAS FRECUENTES --}}
+    {{-- PASARTE ES FÁCIL (config/landing.php) --}}
+    @php $switch = config('landing.switch'); @endphp
     <section class="px-4 py-20 sm:px-6 sm:py-24">
+        <div class="mx-auto max-w-6xl">
+            <div class="mx-auto max-w-2xl text-center">
+                <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ $switch['title'] }}</h2>
+                <p class="mt-3 text-lg text-stone-600 text-pretty">{{ $switch['subtitle'] }}</p>
+            </div>
+            <div class="mt-12 grid items-start gap-6 md:grid-cols-3">
+                @foreach ($switch['items'] as $item)
+                    <div class="rounded-3xl bg-white p-7 ring-1 ring-stone-200">
+                        <span class="flex size-9 items-center justify-center rounded-full bg-rojo/10 font-bold text-rojo">{{ $loop->iteration }}</span>
+                        <h3 class="mt-4 text-lg font-bold">{{ $item['title'] }}</h3>
+                        <p class="mt-2 text-stone-600">{{ $item['text'] }}</p>
+                        @foreach ($item['guides'] ?? [] as $guide)
+                            <details class="group mt-4 rounded-2xl bg-stone-50 px-4 py-3">
+                                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold">
+                                    {{ $guide['name'] }}
+                                    <span class="text-xl text-rojo transition group-open:rotate-45" aria-hidden="true">+</span>
+                                </summary>
+                                <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-stone-600">
+                                    @foreach ($guide['steps'] as $step)
+                                        <li>{{ $step }}</li>
+                                    @endforeach
+                                </ol>
+                            </details>
+                        @endforeach
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- PREGUNTAS FRECUENTES --}}
+    <section class="bg-white px-4 py-20 sm:px-6 sm:py-24">
         <div class="mx-auto max-w-3xl">
             <h2 class="text-center text-3xl font-extrabold tracking-tight">Preguntas frecuentes</h2>
             <div class="mt-10 divide-y divide-stone-200 rounded-3xl bg-white px-6 ring-1 ring-stone-200">

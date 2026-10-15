@@ -209,7 +209,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 
 ### Contenido
 - [x] Gmail web (2026-10-14): gmail.com en el ordenador ya no puede leer otras cuentas (Google lo quitó en enero de 2026). Explicado en la FAQ de la landing ("¿Puedo leerlo dentro de gmail.com?") y en una nota de la guía de Gmail (`setup/steps/android.blade.php`): en el ordenador, webmail, Outlook o Thunderbird
-- [ ] Textos definitivos de la landing: hero, bloques informativos y FAQ (también cuentan para el SEO). Van en `portal/config/landing.php`, o pasárselos a la IA
+- [ ] Textos definitivos de la landing: hero, bloques informativos y FAQ (también cuentan para el SEO). Van en `portal/config/landing.php`. (2026-10-15) Secciones nuevas con tono neutro: "Así te verán" (bandeja de ejemplo con la dirección elegida) + alta en 3 pasos, "Pasarte es fácil" (reenvío desde Gmail y Outlook), contador "Ya somos N" (desde 100) y FAQ ampliada (gratis, alias, el +, anual, desistimiento). Falta: revisar el hero y los bloques con el dueño
 - [x] Textos legales validados por la gestoría (2026-10-09); aviso de borrador quitado (`LEGAL_DRAFT=false`)
 
 ### Correo y reputación

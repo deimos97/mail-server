@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Domain;
+use App\Models\Mailbox;
 use App\Models\Plan;
 use App\Services\Experiments;
 use App\Support\StructuredData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class LandingController extends Controller
@@ -32,8 +34,13 @@ class LandingController extends Controller
             'offer' => $plan->currentOffer(),
         ]);
 
+        // "Ya somos N": buzones activos de clientes (sin los internos), solo a partir de un mínimo
+        $count = Cache::remember('landing.mailbox_count', 600,
+            fn () => Mailbox::where('status', 'active')->where('tier', '!=', 'system')->count());
+
         return view('landing', [
             'domains' => Domain::signup()->pluck('name')->all(),
+            'mailboxCount' => $count >= config('landing.counter.min') ? $count : null,
             'plans' => $plans,
             'structuredData' => StructuredData::landing($models),
         ]);
