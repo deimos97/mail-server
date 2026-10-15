@@ -216,8 +216,8 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 ### Cobrar de verdad (Stripe)
 - [ ] Activar la cuenta "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte
 - [ ] Recibos por email (Settings → Customer emails) y marca (logo y `#AA151B`), en el sandbox y en live
-- [ ] Gestoría: si valen las facturas de Stripe, la serie de facturas propia de esta cuenta y Verifactu
-- [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción. **Antes**, decidir qué pasa con los buzones que los amigos pagaron con la tarjeta de prueba: sus suscripciones del sandbox no existen en live (la IA puede listarlas y pasarlos a gratis o regalarles un tiempo)
+- [x] (2026-10-15) Gestoría: valen las facturas de Stripe (Tibletech ya factura con Stripe); no hace falta nada más
+- [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción. Los buzones pagados con la tarjeta de prueba **pasan a gratis** (decidido el 2026-10-15): sus suscripciones del sandbox no existen en live. Hoy son `javier@`, `varela@` (cuenta del dueño) y `javier-checkout@`; la IA vuelve a listarlos ese día
 
 ### Analítica y anuncios
 - [ ] PostHog, juntos: activar Session replay y Heatmaps, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel)
