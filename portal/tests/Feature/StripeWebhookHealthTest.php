@@ -56,6 +56,19 @@ class StripeWebhookHealthTest extends TestCase
         $this->artisan('stripe:webhook-health')->assertExitCode(0);
     }
 
+    public function test_creating_the_webhook_replaces_the_old_one_and_prints_only_its_secret(): void
+    {
+        $this->endpoint();   // el de antes (p. ej. a medias): se borra y se crea de nuevo
+
+        $this->artisan('stripe:webhook-create')->expectsOutputToContain('whsec_')->assertExitCode(0);
+
+        $endpoints = array_values($this->stripe->objects['webhook_endpoints']);
+        $this->assertCount(1, $endpoints);
+        $this->assertSame(route('cashier.webhook'), $endpoints[0]['url']);
+        $this->assertContains('checkout.session.completed', $endpoints[0]['enabled_events']);
+        $this->assertContains('invoice.payment_failed', $endpoints[0]['enabled_events']);
+    }
+
     public function test_silent_without_stripe(): void
     {
         config(['cashier.secret' => null]);

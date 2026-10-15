@@ -115,6 +115,7 @@ La web no corre como root. Lo que lo necesita (firmar el perfil de Apple con la 
 
 - El webhook es `https://unagrandeylibre.es/stripe/webhook`, con los eventos de `portal/config/cashier.php`. Si se añade un evento, hay que añadirlo también al endpoint en Stripe (Developers → Webhooks). El secreto (`STRIPE_WEBHOOK_SECRET`) es distinto en sandbox y en live.
 - Tras cambiar de claves (p. ej. de sandbox a live): `php artisan stripe:sync` crea en la cuenta nueva los productos, precios, cupones, el IVA y la configuración del portal de cliente. Los IDs viejos de la BD dejan de valer: limpiar antes `stripe_*` de `plans`, `plan_offers` y `name_price_tiers`.
+- **Pasar a live:** `ssh -t root@128.140.5.221 bash /var/www/portal/repo/server/bin/stripe-go-live`. Pide las claves sin enseñarlas, hace copia del `.env` y de las tablas de cobros, limpia lo del sandbox, ejecuta `stripe:sync`, crea el webhook (`stripe:webhook-create`) y guarda su secreto. Al terminar imprime cómo volver atrás.
 - El scheduler y el worker corren con `NoNewPrivileges` (no pueden usar sudo): el ciclo de vida solo **marca** los buzones como borrados y el correo lo borra `mail-purge` (root) esa noche.
 - Rspamd lee de la web las listas de buzones de pago (`/etc/rspamd/rspamd.local.lua`, mapas `ugl_*`). Si la web no responde, se queda con la última lista que bajó; si nunca la bajó, todos van al cubo del plan gratis. Si un tier no tiene cubo en `ratelimit.conf`, también va al gratis.
 

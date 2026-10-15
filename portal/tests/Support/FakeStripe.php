@@ -108,6 +108,9 @@ class FakeStripe implements ClientInterface
         if ($resource === 'tax_rates') {
             $object['active'] = true;
         }
+        if ($resource === 'webhook_endpoints') {
+            $object += ['secret' => 'whsec_'.Str::random(24), 'status' => 'enabled'];   // Stripe solo lo da al crearlo
+        }
 
         return $this->objects[$resource][$id] = $object;
     }

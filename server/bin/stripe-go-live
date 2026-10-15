@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# Pasa la web de Stripe sandbox a Stripe live (cobro real). Se ejecuta en el servidor como root, a mano:
+#
+#   ssh -t root@128.140.5.221 bash /var/www/portal/repo/server/bin/stripe-go-live
+#
+# Pide las claves live sin enseñarlas (pk_live_… y sk_live_…; también valen las restringidas rk_live_…),
+# y entonces:
+#   1. Copia de seguridad del .env y de las tablas de cobros (en /root/stripe-go-live-<fecha>/).
+#   2. Pone las claves en el .env y vacía STRIPE_WEBHOOK_SECRET.
+#   3. Quita de la BD todo lo del sandbox, que en live no existe: IDs de productos, precios y cupones
+#      (plans, plan_offers, name_price_tiers, plan_prices), clientes de Stripe de los usuarios y
+#      suscripciones canceladas. Se niega si queda alguna suscripción del sandbox sin cancelar.
+#   4. `stripe:sync`: crea en live productos, precios, cupones, el IVA y la configuración del portal.
+#   5. `stripe:webhook-create`: crea el webhook de producción y guarda su secreto en el .env.
+#   6. Recarga la web y comprueba el webhook (`stripe:webhook-health`).
+# Volver atrás: el propio script imprime los comandos al terminar (restaurar .env y tablas de la copia).
+set -euo pipefail
+
+BASE=/var/www/portal
+ENV="$BASE/shared/.env"
+CURRENT="$BASE/current"
+BACKUP="/root/stripe-go-live-$(date +%F-%H%M%S)"
+TABLES="plans plan_offers name_price_tiers plan_prices subscriptions subscription_items users checkouts stripe_events"
+
+artisan() { (cd "$CURRENT" && sudo -u portal php8.3 artisan "$@"); }
+# Cambia (o añade) una variable del .env sin pasar el valor por la línea de comandos (no sale en `ps`)
+set_env() {
+    KEY="$1" VALUE="$2" python3 - "$ENV" <<'PY'
+import os, re, sys
+path, key, value = sys.argv[1], os.environ["KEY"], os.environ["VALUE"]
+text = open(path).read()
+line = f'{key}="{value}"'
+text, n = re.subn(rf'^{re.escape(key)}=.*$', lambda m: line, text, flags=re.M)
+if not n:
+    text = text.rstrip("\n") + "\n" + line + "\n"
+open(path, "w").write(text)
+PY
+}
+
+[ "$(id -u)" = 0 ] || { echo "Ejecútalo como root." >&2; exit 1; }
+[ -f "$ENV" ] || { echo "No existe $ENV" >&2; exit 1; }
+
+# Nada de suscripciones del sandbox vivas: en live no existirían y esos buzones se quedarían sin cobrar
+alive=$(mysql -N -B portal -e "SELECT COUNT(*) FROM subscriptions WHERE stripe_status <> 'canceled'")
+if [ "$alive" != 0 ]; then
+    echo "Hay $alive suscripciones del sandbox sin cancelar. Pásalas antes a gratis (o cancélalas):" >&2
+    mysql portal -e "SELECT id, user_id, type, stripe_status FROM subscriptions WHERE stripe_status <> 'canceled'" >&2
+    exit 1
+fi
+
+echo "Pasar la web a Stripe LIVE (cobros reales)."
+read -rs -p "Publishable key (pk_live_…): " PK; echo
+read -rs -p "Secret key (sk_live_… o rk_live_…): " SK; echo
+[[ "$PK" =~ ^pk_live_[A-Za-z0-9]{20,}$ ]] || { echo "La publishable key no parece una pk_live_." >&2; exit 1; }
+[[ "$SK" =~ ^(sk|rk)_live_[A-Za-z0-9]{20,}$ ]] || { echo "La secret key no parece una sk_live_ ni rk_live_." >&2; exit 1; }
+
+# Que las claves funcionen antes de tocar nada
+# (la clave va a curl por la entrada estándar, no en la línea de comandos: así no sale en `ps`)
+code=$(printf 'user = "%s:"\n' "$SK" | curl -s -K - -o /dev/null -w '%{http_code}' https://api.stripe.com/v1/balance || true)
+[ "$code" = 200 ] || { echo "Stripe no acepta la secret key (HTTP $code). No se ha cambiado nada." >&2; exit 1; }
+
+read -r -p "Escribe LIVE para continuar: " ok
+[ "$ok" = LIVE ] || { echo "Cancelado. No se ha cambiado nada."; exit 1; }
+
+echo "1/6 Copia de seguridad en $BACKUP"
+mkdir -m 700 "$BACKUP"
+cp -p "$ENV" "$BACKUP/.env"
+mysqldump portal $TABLES > "$BACKUP/tablas.sql"
+
+echo "2/6 Claves live en el .env"
+set_env STRIPE_KEY "$PK"
+set_env STRIPE_SECRET "$SK"
+set_env STRIPE_WEBHOOK_SECRET ""
+unset PK SK
+
+echo "3/6 Fuera los datos del sandbox"
+mysql portal <<'SQL'
+UPDATE plans SET stripe_product_id = NULL, stripe_price_id = NULL;
+UPDATE plan_offers SET stripe_coupon_id = NULL;
+UPDATE name_price_tiers SET stripe_product_id = NULL, stripe_price_id = NULL, stripe_price_year_id = NULL;
+DELETE FROM plan_prices;
+DELETE FROM subscription_items;
+DELETE FROM subscriptions;
+UPDATE users SET stripe_id = NULL, pm_type = NULL, pm_last_four = NULL, trial_ends_at = NULL;
+SQL
+artisan config:cache >/dev/null
+artisan cache:clear >/dev/null
+
+echo "4/6 Catálogo en live (stripe:sync)"
+artisan stripe:sync
+
+echo "5/6 Webhook de producción"
+WHSEC=$(artisan stripe:webhook-create | tail -1)
+[[ "$WHSEC" =~ ^whsec_ ]] || { echo "No se ha podido crear el webhook. Revisa y vuelve atrás (abajo)." >&2; exit 1; }
+set_env STRIPE_WEBHOOK_SECRET "$WHSEC"
+unset WHSEC
+
+echo "6/6 Recargar la web y comprobar"
+artisan config:cache >/dev/null
+systemctl reload php8.3-fpm
+artisan queue:restart >/dev/null
+if artisan stripe:webhook-health; then
+    echo "Webhook de Stripe: bien."
+fi
+mysql portal -e "SELECT slug, stripe_price_id FROM plans WHERE is_free = 0"
+
+cat <<EOF
+
+Listo: la web cobra en Stripe LIVE.
+Para volver atrás (al sandbox):
+  cp -p $BACKUP/.env $ENV && mysql portal < $BACKUP/tablas.sql
+  cd $CURRENT && sudo -u portal php8.3 artisan config:cache && sudo -u portal php8.3 artisan stripe:sync
+  systemctl reload php8.3-fpm && sudo -u portal php8.3 artisan queue:restart
+(El webhook creado en live se queda; bórralo en Stripe → Developers → Webhooks si vuelves atrás.)
+EOF
