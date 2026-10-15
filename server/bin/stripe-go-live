@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Pasa la web de Stripe sandbox a Stripe live (cobro real). Se ejecuta en el servidor como root, a mano:
 #
-#   ssh -t root@128.140.5.221 bash /var/www/portal/repo/server/bin/stripe-go-live
+#   ssh -t root@128.140.5.221 stripe-go-live
 #
 # Pide las claves live sin enseñarlas (pk_live_… y sk_live_…; también valen las restringidas rk_live_…),
 # y entonces:

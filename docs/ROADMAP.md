@@ -219,7 +219,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [ ] Activar la cuenta "Servicio Correo Minorista" (datos de Tibletech, NIF, banco) y su información pública: nombre `unagrandeylibre.es`, descriptor `UNAGRANDEYLIBRE.ES`, web, email de soporte
 - [x] (2026-10-15) Marca en la cuenta live (`acct_1UOL3pCWFy2ysxHN`): icono (la @ sobre la bandera) y colores `#AA151B`; recibos por email de pagos y devoluciones, en español. Sin logo alargado (no hay). La información pública (nombre `unagrandeylibre.es`, email de soporte, hoy `info@tibletech.com`) va con la activación
 - [x] (2026-10-15) Gestoría: valen las facturas de Stripe (Tibletech ya factura con Stripe); no hace falta nada más
-- [ ] **Dueño:** pasar a live con el script (cuando la cuenta esté activada): `ssh -t root@128.140.5.221 bash /var/www/portal/repo/server/bin/stripe-go-live`. Pide las claves `pk_live_`/`sk_live_` sin enseñarlas y hace el resto: copia, limpieza del sandbox, `stripe:sync`, webhook de producción y su secreto. Ya no queda ningún buzón pagado en el sandbox (2026-10-15)
+- [ ] **Dueño:** pasar a live con el script (cuando la cuenta esté activada): `ssh -t root@128.140.5.221 stripe-go-live`. Pide las claves `pk_live_`/`sk_live_` sin enseñarlas y hace el resto: copia, limpieza del sandbox, `stripe:sync`, webhook de producción y su secreto. Ya no queda ningún buzón pagado en el sandbox (2026-10-15)
 
 ### Analítica y anuncios
 - [x] (2026-10-15) PostHog: el proyecto estaba creado en la región de EE. UU. y la web manda a EU, así que no llegaba nada. Proyecto nuevo en `eu.posthog.com` y su clave en `POSTHOG_KEY` del `.env` del servidor (copia del `.env` antes)
