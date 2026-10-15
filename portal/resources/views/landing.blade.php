@@ -122,32 +122,74 @@
             {{-- Con la dirección que haya elegido el visitante (por eso ph-no-capture y data-ph-mask) --}}
             <div x-data="{ example: @js($preview['example'].'@'.$mainDomain),
                            get address() { return $store.signup.email || this.example },
-                           get name() { return this.address.split('@')[0].split(/[.\-_]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') } }"
-                 class="ph-no-capture overflow-hidden rounded-3xl bg-white shadow-2xl shadow-stone-300/50 ring-1 ring-stone-200"
-                 role="img" :aria-label="'Ejemplo de bandeja de entrada con un correo de ' + address">
-                <div class="flex items-center gap-2 border-b border-stone-200 bg-stone-50 px-5 py-3" aria-hidden="true">
-                    <span class="size-3 rounded-full bg-stone-300"></span><span class="size-3 rounded-full bg-stone-300"></span><span class="size-3 rounded-full bg-stone-300"></span>
-                    <span class="ml-3 text-sm font-semibold text-stone-500">Recibidos</span>
+                           get local() { return this.address.split('@')[0] },
+                           get name() { return this.local.split(/[.\-_]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') } }"
+                 class="ph-no-capture space-y-8">
+                <div class="overflow-hidden rounded-3xl bg-white shadow-2xl shadow-stone-300/50 ring-1 ring-stone-200"
+                     role="img" :aria-label="'Ejemplo de bandeja de entrada con un correo de ' + address">
+                    <div class="flex items-center gap-2 border-b border-stone-200 bg-stone-50 px-5 py-3" aria-hidden="true">
+                        <span class="size-3 rounded-full bg-stone-300"></span><span class="size-3 rounded-full bg-stone-300"></span><span class="size-3 rounded-full bg-stone-300"></span>
+                        <span class="ml-3 text-sm font-semibold text-stone-500">Recibidos</span>
+                    </div>
+                    <ul class="divide-y divide-stone-100" aria-hidden="true">
+                        @foreach ($preview['inbox'] as $mail)
+                            @php $mine = $loop->first; @endphp
+                            <li @class(['flex gap-4 px-5 py-4', 'border-l-4 border-rojo bg-amarillo/10' => $mine, 'opacity-60' => ! $mine])>
+                                <span @class(['flex size-10 shrink-0 items-center justify-center rounded-full font-bold',
+                                              'bg-rojo text-white' => $mine, 'bg-stone-200 text-stone-500' => ! $mine])
+                                      @if ($mine) x-text="name.charAt(0)" data-ph-mask @endif>{{ $mine ? '' : mb_substr($mail['from'], 0, 1) }}</span>
+                                <div class="min-w-0 flex-1">
+                                    @if ($mine)
+                                        <p class="truncate text-sm font-semibold text-stone-600" data-ph-mask x-text="name"></p>
+                                        <p class="truncate text-base sm:text-lg" data-ph-mask><span class="font-semibold" x-text="local"></span><span class="font-extrabold text-rojo">{{ '@'.$mainDomain }}</span></p>
+                                    @else
+                                        <p class="truncate font-semibold">{{ $mail['from'] }}</p>
+                                    @endif
+                                    <p class="truncate">{{ $mail['subject'] }}</p>
+                                    <p class="truncate text-sm text-stone-500">{{ $mail['snippet'] }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
-                <ul class="divide-y divide-stone-100" aria-hidden="true">
-                    @foreach ($preview['inbox'] as $mail)
-                        @php $mine = $loop->first; @endphp
-                        <li @class(['flex gap-4 px-5 py-4', 'border-l-4 border-rojo bg-amarillo/10' => $mine, 'opacity-60' => ! $mine])>
-                            <span @class(['flex size-10 shrink-0 items-center justify-center rounded-full font-bold',
-                                          'bg-rojo text-white' => $mine, 'bg-stone-200 text-stone-500' => ! $mine])
-                                  @if ($mine) x-text="name.charAt(0)" data-ph-mask @endif>{{ $mine ? '' : mb_substr($mail['from'], 0, 1) }}</span>
-                            <div class="min-w-0 flex-1">
-                                @if ($mine)
-                                    <p class="truncate" data-ph-mask><strong x-text="name"></strong> <span class="text-sm text-stone-500" x-text="'<' + address + '>'"></span></p>
-                                @else
-                                    <p class="truncate font-semibold">{{ $mail['from'] }}</p>
-                                @endif
-                                <p @class(['truncate', 'font-bold' => $mine])>{{ $mail['subject'] }}</p>
-                                <p class="truncate text-sm text-stone-500">{{ $mail['snippet'] }}</p>
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
+
+                {{-- Ilustración: alguien da su correo en una ventanilla de la Administración --}}
+                <figure class="relative" role="img" :aria-label="'Ilustración: una persona da su correo, ' + address + ', en una ventanilla'">
+                    <div class="relative z-10 ml-[4%] w-fit max-w-[92%] rounded-3xl bg-white px-5 py-3.5 shadow-lg ring-2 ring-tinta" aria-hidden="true">
+                        <p class="text-sm font-semibold text-stone-500">{{ $preview['bubble'] }}</p>
+                        <p class="mt-1 flex flex-wrap items-center gap-x-1 gap-y-1 text-lg font-bold leading-tight sm:text-xl" data-ph-mask>
+                            <span class="break-all" x-text="local"></span><span class="flag-label whitespace-nowrap rounded-md px-2 py-1.5 font-extrabold text-rojo-oscuro sm:text-2xl">{{ '@'.$mainDomain }}</span>
+                        </p>
+                        {{-- Rabito del bocadillo, hacia la cabeza de la persona --}}
+                        <svg class="absolute -bottom-[18px] left-[18%] h-5 w-7" viewBox="0 0 28 20" aria-hidden="true">
+                            <path d="M2 0 L14 18 L22 0" fill="#fff" stroke="var(--color-tinta)" stroke-width="2.5" stroke-linejoin="round"/>
+                            <rect x="0" y="-3" width="28" height="4.5" fill="#fff"/>
+                        </svg>
+                    </div>
+                    <svg viewBox="0 0 400 170" class="-mt-1 w-full" aria-hidden="true">
+                        <rect x="0" y="0" width="400" height="170" rx="24" fill="#f3ede4"/>
+                        {{-- Cartel --}}
+                        <rect x="232" y="16" width="148" height="22" rx="4" fill="var(--color-tinta)"/>
+                        <text x="306" y="31" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="1" fill="#fff" font-family="inherit">ATENCIÓN AL CIUDADANO</text>
+                        {{-- Funcionario y ordenador --}}
+                        <circle cx="330" cy="66" r="15" fill="#e3b08a"/>
+                        <path d="M315 62 q15 -18 30 0 q-2 -12 -15 -13 q-13 1 -15 13z" fill="#4a3b31"/>
+                        <rect x="308" y="83" width="44" height="40" rx="14" fill="#6b7d8f"/>
+                        <rect x="252" y="76" width="44" height="30" rx="4" fill="#3d3a36"/>
+                        <rect x="256" y="80" width="36" height="22" rx="2" fill="#9fb4c7"/>
+                        <rect x="270" y="106" width="8" height="10" fill="#3d3a36"/>
+                        {{-- Mostrador --}}
+                        <rect x="214" y="112" width="186" height="9" rx="3" fill="#a8a29e"/>
+                        <rect x="222" y="121" width="178" height="49" fill="#d6d3d1"/>
+                        <rect x="236" y="104" width="34" height="8" rx="1" fill="#fff" stroke="#d6d3d1"/>
+                        {{-- Ciudadano --}}
+                        <circle cx="96" cy="58" r="17" fill="#d9a07a"/>
+                        <path d="M79 56 q2 -21 20 -18 q14 2 14 16 q-8 -8 -20 -6 q-9 1 -14 8z" fill="#2b2523"/>
+                        <rect x="68" y="78" width="56" height="92" rx="20" fill="var(--color-rojo)"/>
+                        <path d="M118 96 q30 4 46 -6" stroke="var(--color-rojo)" stroke-width="13" stroke-linecap="round" fill="none"/>
+                        <circle cx="166" cy="89" r="7" fill="#d9a07a"/>
+                    </svg>
+                </figure>
             </div>
         </div>
     </section>

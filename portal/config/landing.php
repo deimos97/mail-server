@@ -27,6 +27,7 @@ return [
         'title' => 'Así te verán',
         'subtitle' => 'Una dirección corta, fácil de dictar y que se recuerda. Tu nombre, sin números ni puntos de relleno.',
         'example' => 'tunombre',
+        'bubble' => 'Mi correo, apunte:',
         'inbox' => [
             ['subject' => '¿Quedamos el sábado?', 'snippet' => 'Te paso la dirección del sitio y la hora…'],
             ['from' => 'Banco', 'subject' => 'Tu extracto de octubre', 'snippet' => 'Ya puedes consultar los movimientos del mes.'],

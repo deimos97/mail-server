@@ -39,6 +39,16 @@
         );
     }
 
+    /* El @dominio sobre una bandera pequeña (bocadillo de "Así te verán"): franjas rojas finas para que el texto caiga en el amarillo */
+    .flag-label {
+        background: linear-gradient(
+            180deg,
+            var(--color-rojo) 0 16%,
+            var(--color-amarillo) 16% 84%,
+            var(--color-rojo) 84% 100%
+        );
+    }
+
     .flag-canvas {
         opacity: 0;
         transition: opacity 900ms ease;
