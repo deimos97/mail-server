@@ -256,6 +256,9 @@
                                 </p>
                             @endif
                         @endif
+                        <p class="mt-3 rounded-xl bg-stone-50 p-3 text-stone-600">
+                            <strong class="text-tinta">Truco, en todos los planes:</strong> añade <code class="font-semibold">+lo-que-quieras</code> a tu dirección y también te llega, sin crear nada. Por ejemplo, <span class="font-medium break-all" data-ph-mask>{{ $mailbox->local_part.'+compras@'.$mailbox->domain->name }}</span>. Sirve para registrarte en webs y saber quién comparte tu dirección; para enviar desde otra dirección, usa un alias.
+                        </p>
                     </div>
                 </details>
 

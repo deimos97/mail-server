@@ -39,7 +39,7 @@ class AliasesTest extends TestCase
     public function test_paid_mailboxes_add_aliases_up_to_their_plan(): void
     {
         $mailbox = $this->mailbox('basico');
-        $this->actingAs($this->user)->get('/cuenta')->assertSee('Alias')->assertSee('0 de 10')->assertSee('Nuevo alias');
+        $this->actingAs($this->user)->get('/cuenta')->assertSee('Alias')->assertSee('0 de 3')->assertSee('Nuevo alias');
 
         $this->post("/cuenta/buzones/{$mailbox->id}/alias", ['local_part' => 'Compras.Ana'])->assertRedirect()->assertSessionHas('status');
 
@@ -48,7 +48,7 @@ class AliasesTest extends TestCase
         $this->assertSame('anabel@unagrandeylibre.es', $alias->destination);
         $this->assertSame($mailbox->id, $alias->mailbox_id);
         $this->assertTrue($alias->active);
-        $this->get('/cuenta')->assertSee('compras.ana@unagrandeylibre.es')->assertSee('1 de 10');
+        $this->get('/cuenta')->assertSee('compras.ana@unagrandeylibre.es')->assertSee('1 de 3');
 
         // Ya no está libre ni para otro buzón ni para otro alias
         $this->assertSame('taken', app(NameAvailability::class)->check('compras.ana', $mailbox->domain)->status);
@@ -76,7 +76,7 @@ class AliasesTest extends TestCase
         $mailbox = $this->mailbox('gratis');
 
         $this->actingAs($this->user)->get('/cuenta')->assertSee('Van con los planes de pago')->assertDontSee('Nuevo alias')
-            ->assertSee('compras@unagrandeylibre.es')->assertDontSee('{{', false);   // «@{{» en Blade escribe las llaves tal cual
+            ->assertSee('compras@unagrandeylibre.es')->assertSee('anabel+compras@unagrandeylibre.es')->assertDontSee('{{', false);   // «@{{» en Blade escribe las llaves tal cual
         $this->post("/cuenta/buzones/{$mailbox->id}/alias", ['local_part' => 'compras.ana'])
             ->assertSessionHasErrors(["alias_{$mailbox->id}" => 'Los alias van con los planes de pago.']);
     }
@@ -94,7 +94,7 @@ class AliasesTest extends TestCase
         $this->assertNotNull($alias->deleted_at);
         $this->assertTrue($alias->release_at->isAfter(now()->addDays(89)));
         $this->assertSame('taken', app(NameAvailability::class)->check('compras.ana', $mailbox->domain)->status);
-        $this->get('/cuenta')->assertSee('0 de 10');
+        $this->get('/cuenta')->assertSee('0 de 3');
     }
 
     public function test_only_your_own(): void
