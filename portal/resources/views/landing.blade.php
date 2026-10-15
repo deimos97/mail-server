@@ -177,7 +177,7 @@
                             {{-- Funcionario: redondo y con el pelo rosa --}}
                             <ellipse cx="290" cy="112" rx="48" ry="40" fill="#6b7d8f"/>
                             <circle cx="290" cy="60" r="20" fill="#e3b08a"/>
-                            <path d="M266 70 q-8 -38 24 -38 q32 0 24 38 q-5 -3 -6 -12 q-2 -10 -9 -15 q-12 7 -27 4 q-5 7 -6 23z" fill="#f472b6"/>
+                            <path d="M269 66 q-2 -27 21 -28 q23 1 21 28 q-4 -3 -5 -10 q-11 5 -25 1 q-5 3 -7 11z" fill="#f472b6"/>
                             <circle cx="283" cy="62" r="2" fill="var(--color-tinta)"/>
                             <circle cx="297" cy="62" r="2" fill="var(--color-tinta)"/>
                             <path d="M284 70 q6 5 12 0" stroke="var(--color-tinta)" stroke-width="2" stroke-linecap="round" fill="none"/>
