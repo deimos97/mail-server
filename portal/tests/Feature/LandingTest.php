@@ -21,7 +21,7 @@ class LandingTest extends TestCase
 
     public function test_landing_shows_visible_plans_with_their_offer(): void
     {
-        Plan::where('slug', 'pro')->update(['is_active' => false]);
+        Plan::whereIn('slug', ['pro', 'pro-anual'])->update(['is_active' => false]);
 
         $this->get('/')
             ->assertOk()
@@ -31,6 +31,14 @@ class LandingTest extends TestCase
             ->assertSee('1,99 €')          // precio tachado
             ->assertSee('-50 % lanzamiento')
             ->assertDontSee('Espacio de sobra');   // Pro, desactivado
+    }
+
+    public function test_yearly_plans_behind_a_toggle(): void
+    {
+        $this->get('/')
+            ->assertSee('Mensual')->assertSee('2 meses gratis')
+            ->assertSee('19,90 €')->assertSee('Sale a 1,65 €/mes')           // Básico anual
+            ->assertSee('x-show="yearly"', false)->assertSee('x-show="! yearly"', false);
     }
 
     public function test_landing_is_noindex_until_launch(): void

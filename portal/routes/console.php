@@ -5,6 +5,7 @@ use App\Models\OauthCode;
 use App\Models\OauthToken;
 use App\Services\MailboxExports;
 use App\Services\MailboxLifecycle;
+use App\Services\QuotaWarnings;
 use App\Services\Support;
 use Illuminate\Support\Facades\Schedule;
 
@@ -38,3 +39,7 @@ Schedule::command('support:fetch')->everyMinute()->withoutOverlapping(5);
 // Soporte: consultas caducadas (2 años desde el último mensaje, política de privacidad) con sus imágenes
 Schedule::call(fn () => app(Support::class)->deleteExpired())
     ->dailyAt('04:50')->name('limpiar-soporte')->withoutOverlapping();
+
+// Avisos de espacio al 80 % y al 100 % (D-029)
+Schedule::call(fn () => app(QuotaWarnings::class)->run())
+    ->hourlyAt(20)->name('avisos-de-espacio')->withoutOverlapping();

@@ -63,7 +63,7 @@ class SignupTest extends TestCase
         $mailbox = Mailbox::where('email', 'javiervarela@unagrandeylibre.es')->firstOrFail();
         $this->assertSame($user->id, (int) $mailbox->user_id);
         $this->assertSame('free', $mailbox->tier);
-        $this->assertSame(1024 ** 3, $mailbox->quota_bytes);
+        $this->assertSame(500 * 1024 ** 2, $mailbox->quota_bytes);
         $this->assertFalse($mailbox->can_send);                       // no envía hasta verificar
         $this->assertStringStartsWith('{BLF-CRYPT}$2y$', $mailbox->password);
         $this->assertDatabaseMissing('mailbox_reservations', ['local_part' => 'javiervarela']);

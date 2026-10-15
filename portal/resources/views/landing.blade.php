@@ -94,7 +94,10 @@
     </section>
 
     {{-- PLANES (salen de la BD) --}}
-    <section id="planes" class="scroll-mt-4 px-4 py-20 sm:px-6 sm:py-28" x-data>
+    @php
+        $hasYearly = $plans->contains(fn ($p) => ! $p['is_free'] && $p['interval'] === 'year');
+    @endphp
+    <section id="planes" class="scroll-mt-4 px-4 py-20 sm:px-6 sm:py-28" x-data="{ yearly: false, setYearly(v) { this.yearly = v } }">
         <div class="mx-auto max-w-6xl">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ config('landing.plans.title') }}</h2>
@@ -108,18 +111,27 @@
             @if ($plans->isEmpty())
                 <p class="mt-12 text-center text-stone-500">Muy pronto publicaremos los planes.</p>
             @else
+                {{-- Con planes anuales, se ve una tanda u otra (el gratis, siempre): cuentan los de una tanda --}}
+                @php
+                    $perRow = $hasYearly ? $plans->filter(fn ($p) => $p['interval'] !== 'year')->count() : $plans->count();
+                @endphp
+                @if ($hasYearly)
+                    <x-billing-toggle class="mt-10" />
+                @endif
                 <div @class([
-                    'mx-auto mt-14 grid gap-6',
-                    'max-w-md' => $plans->count() === 1,
-                    'max-w-4xl md:grid-cols-2' => $plans->count() === 2,
-                    'md:grid-cols-3' => $plans->count() >= 3,
+                    'mx-auto grid gap-6',
+                    'mt-14' => ! $hasYearly, 'mt-12' => $hasYearly,
+                    'max-w-md' => $perRow === 1,
+                    'max-w-4xl md:grid-cols-2' => $perRow === 2,
+                    'md:grid-cols-3' => $perRow >= 3,
                 ])>
                     @foreach ($plans as $plan)
                         @php
                             $per = $plan['interval'] === 'year' ? '/año' : '/mes';
                             $hasOffer = $plan['offer'] !== null;
+                            $yearlyCard = ! $plan['is_free'] && $plan['interval'] === 'year';
                         @endphp
-                        <article @class([
+                        <article @if ($hasYearly && ! $plan['is_free']) x-show="{{ $yearlyCard ? 'yearly' : '! yearly' }}" @if ($yearlyCard) x-cloak @endif @endif @class([
                             'relative flex flex-col rounded-3xl bg-white p-8 shadow-sm ring-1',
                             'ring-2 ring-rojo shadow-xl shadow-rojo/10 md:-translate-y-2' => $plan['is_highlighted'],
                             'ring-stone-200' => ! $plan['is_highlighted'],
@@ -148,6 +160,9 @@
                                     <p class="text-4xl font-extrabold tracking-tight">
                                         {{ Money::format($plan['effective_price_cents']) }}<span class="text-base font-medium text-stone-500">{{ $per }}</span>
                                     </p>
+                                    @if ($yearlyCard)
+                                        <p class="mt-1 text-sm text-stone-500">Sale a {{ Money::format(intdiv($plan['effective_price_cents'], 12)) }}/mes.</p>
+                                    @endif
                                     @if ($hasOffer && $plan['offer']->duration === 'repeating' && $plan['offer']->duration_months)
                                         <p class="mt-1 text-sm text-stone-500">Los primeros {{ $plan['offer']->duration_months }} meses; después, {{ Money::format($plan['price_cents']) }}{{ $per }}.</p>
                                     @elseif ($hasOffer && $plan['offer']->duration === 'once')

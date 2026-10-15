@@ -3,6 +3,12 @@
     $hasSubscription = (bool) $subscription;
     $choices = $options->reject(fn ($o) => $o['current'] || $o['reason']);
     $current = $options->firstWhere('current', true)['plan']->id ?? null;
+    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo
+    $paidPlans = $options->pluck('plan')->reject->is_free;
+    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year');
+    $twins = $paidPlans->mapWithKeys(fn ($p) => [$p->id => $paidPlans->first(fn ($o) => $o->tier === $p->tier && $o->interval !== $p->interval)?->id]);
+    $currentPlan = $options->firstWhere('current', true)['plan'] ?? null;
+    $initYearly = $currentPlan && ! $currentPlan->is_free && $currentPlan->interval === 'year';
     $meta = $options->mapWithKeys(fn ($o) => [$o['plan']->id => ['free' => $o['plan']->is_free]]);
 @endphp
 
@@ -27,13 +33,17 @@
     @endif
 
     <form method="POST" action="{{ route('account.plan.store', $mailbox->id) }}" class="mt-6"
-          x-data="{ plan: @js(old('plan', $current ?? $choices->first()['plan']->id ?? null)), current: @js($current), meta: @js($meta), sub: @js($hasSubscription) }">
+          x-data="{ plan: @js(old('plan', $current ?? $choices->first()['plan']->id ?? null)), current: @js($current), meta: @js($meta), sub: @js($hasSubscription),
+                    twins: @js($twins), yearly: @js($initYearly), setYearly(v) { if (this.yearly !== v && this.twins[this.plan]) this.plan = this.twins[this.plan]; this.yearly = v } }">
         @csrf
+        @if ($hasYearly)
+            <x-billing-toggle class="mb-5" />
+        @endif
         <fieldset class="space-y-3">
             <legend class="sr-only">Plan</legend>
             @foreach ($options as $option)
                 @php $plan = $option['plan']; $enabled = ! $option['current'] && ! $option['reason']; $per = $plan->interval === 'year' ? '/año' : '/mes'; @endphp
-                <label @class([
+                <label @if ($hasYearly && ! $plan->is_free) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
                     'flex items-start gap-4 rounded-2xl p-4 ring-2 transition',
                     'cursor-pointer hover:bg-stone-50' => $enabled,
                     'cursor-not-allowed' => ! $enabled,

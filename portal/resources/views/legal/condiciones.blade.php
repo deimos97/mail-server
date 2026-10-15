@@ -3,7 +3,7 @@
     <p>Estas condiciones regulan el uso del servicio de correo {{ $l['brand'] }}, que presta {{ $l['company'] }} (NIF {{ $l['nif'] }}, {{ $l['address'] }}). Al crear una cuenta las aceptas, junto con la <a href="{{ route('legal', 'uso-aceptable') }}">política de uso aceptable</a> y la <a href="{{ route('legal', 'privacidad') }}">política de privacidad</a>.</p>
 
     <h2>1. El servicio</h2>
-    <p>Te damos una dirección de correo {{ '@'.$l['brand'] }} con su buzón, acceso por webmail y por aplicaciones de correo (IMAP y SMTP), y un área «Mi cuenta» para gestionarla. Lo que incluye cada plan (espacio, envíos por hora y demás) se indica en la web en el momento de contratarlo.</p>
+    <p>Te damos una dirección de correo {{ '@'.$l['brand'] }} con su buzón, acceso por webmail y por aplicaciones de correo (IMAP y SMTP), y un área «Mi cuenta» para gestionarla. Lo que incluye cada plan (espacio, límite de envíos y demás) se indica en la web en el momento de contratarlo.</p>
 
     <h2>2. Tu cuenta</h2>
     <ul>

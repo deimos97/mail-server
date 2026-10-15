@@ -10,6 +10,11 @@
     // Tras un error (p. ej. sin marcar la casilla), el plan que mandó; si no, el que eligió en la landing o al volver de Stripe
     $selected = old('plan', $selected);
     $default = $plans->first(fn ($p) => $p->slug === $selected && $selectable($p)) ?? $plans->first($selectable);
+    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo
+    $paidPlans = $plans->reject->is_free;
+    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year');
+    $initYearly = $default && ! $default->is_free && $default->interval === 'year';
+    $twins = $paidPlans->mapWithKeys(fn ($p) => [$p->slug => $paidPlans->first(fn ($o) => $o->tier === $p->tier && $o->interval !== $p->interval)?->slug]);
 @endphp
 
 <x-signup-layout :step="$extra ? null : 3" title="Elige tu plan">
@@ -31,13 +36,18 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('signup.plan.store') }}" class="mt-6" x-data="{ plan: @js($default?->slug), paid: @js($paidSlugs) }">
+    <form method="POST" action="{{ route('signup.plan.store') }}" class="mt-6"
+          x-data="{ plan: @js($default?->slug), paid: @js($paidSlugs), twins: @js($twins), yearly: @js($initYearly),
+                    setYearly(v) { if (this.yearly !== v && this.twins[this.plan]) this.plan = this.twins[this.plan]; this.yearly = v } }">
         @csrf
+        @if ($hasYearly)
+            <x-billing-toggle class="mb-5" />
+        @endif
         <fieldset class="space-y-3">
             <legend class="sr-only">Plan</legend>
             @foreach ($plans as $plan)
                 @php $enabled = $selectable($plan); $per = $plan->interval === 'year' ? '/año' : '/mes'; @endphp
-                <label @class([
+                <label @if ($hasYearly && ! $plan->is_free) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
                     'flex items-start gap-4 rounded-2xl p-4 ring-2 transition',
                     'cursor-pointer hover:bg-stone-50' => $enabled,
                     'cursor-not-allowed opacity-50' => ! $enabled,
