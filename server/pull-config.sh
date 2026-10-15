@@ -22,6 +22,7 @@ trap 'rm -rf "$OUT"' EXIT
 # Rutas a revisar. Los directorios se recorren enteros.
 PATHS=(
   /etc/postfix/main.cf /etc/postfix/master.cf /etc/postfix/mysql
+  /etc/postfix/transport_sendgrid /etc/postfix/tls_policy   # D-027 (la clave, sasl_passwd_sendgrid, nunca)
   /etc/dovecot
   /etc/rspamd/local.d /etc/rspamd/override.d /etc/rspamd/rspamd.local.lua
   /etc/roundcube/config.inc.php
@@ -47,7 +48,7 @@ PATHS=(
 )
 
 # Nunca se copian (secretos puros o basura).
-EXCLUDE_RE='(\.env$|\.env\.bak|restic\.pass|\.key$|\.pem$|\.crt$|/dkim/|\.svbin$|\.bak[-.]|\.ucf-|\.dpkg-|\.example$|~$|debian-db\.php$)'
+EXCLUDE_RE='(sasl_passwd|\.db$|\.env$|\.env\.bak|restic\.pass|\.key$|\.pem$|\.crt$|/dkim/|\.svbin$|\.bak[-.]|\.ucf-|\.dpkg-|\.example$|~$|debian-db\.php$)'
 
 # md5 de los conffiles tal y como vienen del paquete.
 # Debian gestiona algunos (p. ej. los conf.d de Dovecot) con ucf en vez de dpkg.
@@ -104,14 +105,14 @@ mkdir -p "$TMP/x"
 tar -C "$TMP/x" -xf "$TMP/config.tar"
 
 # Lo que no debería aparecer nunca, aunque gitleaks no lo detecte.
-FORBIDDEN='BEGIN [A-Z ]*PRIVATE KEY|\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{40}|\{BLF-CRYPT\}\$|bot[0-9]{6,}:[A-Za-z0-9_-]{30}|sk_(live|test)_[A-Za-z0-9]{10}|hc-ping\.com/[0-9a-f]{8}-'
+FORBIDDEN='BEGIN [A-Z ]*PRIVATE KEY|\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{40}|\{BLF-CRYPT\}\$|bot[0-9]{6,}:[A-Za-z0-9_-]{30}|sk_(live|test)_[A-Za-z0-9]{10}|SG\.[A-Za-z0-9_-]{16,}\.|hc-ping\.com/[0-9a-f]{8}-'
 if grep -rEn "$FORBIDDEN" "$TMP/x"; then
   echo "ERROR: patrones prohibidos en la exportación. No se copia nada." >&2
   exit 1
 fi
 # Líneas con pinta de secreto que no hayan quedado redactadas.
 if grep -rEin '^[[:space:]]*[^#;]*(password|passwd|secret|des_key|token)[^=:]*[=:][[:space:]]*["'"'"']?[^_"'"'"'[:space:]$%{]' "$TMP/x" \
-   | grep -v "__REDACTED__" | grep -vE '%[uwdn]|\$\{?[A-Za-z_]+|_file|_query|_scheme|password_query|passdb|default_pass|smtpd_sasl|smtp_sasl|args *=|driver *=|auth_mechanisms|NOPASSWD: /usr/local/sbin/' ; then
+   | grep -v "__REDACTED__" | grep -vE '%[uwdn]|\$\{?[A-Za-z_]+|_file|_query|_scheme|password_query|passdb|default_pass|smtpd_sasl|smtp_sasl|args *=|driver *=|auth_mechanisms|NOPASSWD: /usr/local/sbin/|env\[["'"'"'][A-Z_]+["'"'"']\]' ; then
   echo "ERROR: líneas sospechosas sin redactar (arriba). Revisa el saneado en pull-config.sh." >&2
   exit 1
 fi

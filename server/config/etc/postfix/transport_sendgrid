@@ -1,0 +1,8 @@
+hotmail.com      smtp:[smtp.sendgrid.net]:587
+hotmail.es       smtp:[smtp.sendgrid.net]:587
+outlook.com      smtp:[smtp.sendgrid.net]:587
+outlook.es       smtp:[smtp.sendgrid.net]:587
+live.com         smtp:[smtp.sendgrid.net]:587
+live.es          smtp:[smtp.sendgrid.net]:587
+msn.com          smtp:[smtp.sendgrid.net]:587
+windowslive.com  smtp:[smtp.sendgrid.net]:587

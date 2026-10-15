@@ -188,8 +188,10 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [x] (2026-10-14) Gmail (app del móvil) avisaba de "certificado no válido": rellena el servidor con `unagrandeylibre.es` y el certificado del correo solo tenía `mail.` y `webmail.`. Añadido el dominio a secas al certificado del correo (copia de `/etc/letsencrypt` antes)
 - [x] (2026-10-14) Microsoft bloqueaba la IP `128.140.5.221` (rebote `550 5.7.1 … block list (S3150)`): no llegaba nada nuestro a hotmail/outlook/live. El dueño pidió quitarla en https://sender.office.com con `javier@` y Microsoft la sacó de la lista el mismo día
 - [ ] Microsoft sigue rechazando con S3150 (22:09 del 2026-10-14, tras el desbloqueo): el bloqueo es del rango de red de Hetzner. **Dueño:** caso de soporte de Microsoft `01M4Y0WEKN1RZ145CFTRZFXSA8` (abierto desde `gandalfjavier@hotmail.es`). Comprobar con un reenvío del código de verificación de esa cuenta. Alternativa: sacar por SendGrid solo el correo a dominios de Microsoft (D-027, tareas abajo). **Sin esto no se lanza**
-- [ ] **Dueño:** cuenta de SendGrid, autenticar el dominio (CNAME en Cloudflare), desactivar Open/Click Tracking y guardar la API key (solo "Mail Send") en el servidor (`/etc/postfix/sasl_passwd_sendgrid`)
-- [ ] Postfix: `transport_maps` con los dominios de Microsoft → `[smtp.sendgrid.net]:587` con SASL y TLS obligatorio; SPF con `include:sendgrid.net`; probar con `gandalfjavier@hotmail.es`
+- [ ] **Dueño:** confirmar en SendGrid que Open/Click Tracking están desactivados
+- [x] (2026-10-15) Cuenta de SendGrid con el dominio verificado y la API key en el servidor (dueño)
+- [x] (2026-10-15) Postfix: `transport_maps` (`/etc/postfix/transport_sendgrid`: hotmail, outlook, live .com/.es, msn, windowslive) → `[smtp.sendgrid.net]:587` con SASL y TLS `secure`. Sin cambio de SPF (SendGrid usa su subdominio `em…` autenticado). Copia de `main.cf` antes
+- [ ] Probar con `gandalfjavier@hotmail.es` (reenviar el código de verificación)
 - [ ] Política de privacidad: SendGrid (Twilio, EE. UU., DPF) como encargado para el correo a Microsoft; validar con la gestoría
 - [x] (2026-10-14) "Cambiar de plan" marca de entrada el plan actual; el botón dice "Elige otro plan" y se activa al elegir otro
 - [x] (2026-10-14) Subir de plan daba 500: Cashier manda `items[][tax_rates]` vacío y Stripe no lo admite con `pending_if_incomplete`. El IVA ya va en la suscripción (`default_tax_rates`), así que `App\Models\Subscription` lo quita; y un error de Stripe al cambiar de plan ya no da 500, sino un aviso sin cambiar nada

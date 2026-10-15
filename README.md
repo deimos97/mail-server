@@ -165,6 +165,10 @@ Spamhaus rechaza las consultas que llegan por los resolvers compartidos de Hetzn
 
 Un `return 301` suelto en un bloque `server {}` se ejecuta antes que cualquier `location`, incluso una `^~`, y rompe la validación de certbot. La redirección de HTTP a HTTPS tiene que ir dentro de `location / { return 301 ...; }`.
 
+### Salida por SendGrid (Microsoft)
+
+Desde el 2026-10-15 (D-027), el correo a hotmail, outlook, live y msn sale por SendGrid y no directo: Microsoft bloquea el rango de red de Hetzner (`550 5.7.1 … (S3150)`; el portal de desbloqueo da la IP por quitada, pero el bloqueo del rango sigue; caso de soporte `01M4Y0WEKN1RZ145CFTRZFXSA8`). Los dominios están en `/etc/postfix/transport_sendgrid` (tras editarlo, `postmap` y `postfix reload`); la API key, en `/etc/postfix/sasl_passwd_sendgrid` (solo root, nunca al repo). Comprobar: `grep "relay=smtp.sendgrid.net" /var/log/mail.log`. Para volver a enviar directo cuando Microsoft lo quite: vaciar el fichero de transporte, `postmap` y `reload`.
+
 ### Certificados
 
 El hook `/etc/letsencrypt/renewal-hooks/deploy/reload-mail.sh` recarga nginx, Dovecot y Postfix tras cada renovación. La monitorización comprueba el certificado que **sirve** cada puerto, no el del disco, así que también detecta si algún servicio no se recargó.
