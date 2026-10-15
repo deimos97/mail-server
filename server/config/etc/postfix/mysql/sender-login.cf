@@ -2,4 +2,4 @@ user = mailuser
 password = __REDACTED__
 hosts = 127.0.0.1
 dbname = mailserver
-query = SELECT email FROM mailboxes WHERE email='%s' AND active=1
+query = SELECT email FROM mailboxes WHERE email='%s' AND active=1 UNION SELECT m.email FROM aliases a JOIN mailboxes m ON m.id = a.mailbox_id WHERE a.source='%s' AND a.active=1 AND m.active=1

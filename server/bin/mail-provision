@@ -15,7 +15,8 @@
 #                                      nunca ha recibido correo, así que el nombre queda libre al momento
 #   mail-provision purge-deleted       borra el correo que quede de buzones ya borrados y quita las filas
 #                                      cuya cuarentena ha terminado (release_at, o deleted_at + QUARANTINE_DAYS):
-#                                      el nombre queda libre. Lo lanza el timer mail-purge (root)
+#                                      el nombre queda libre. También los alias borrados al llegar su release_at.
+#                                      Lo lanza el timer mail-purge (root)
 #   mail-provision process-exports     prepara las copias pedidas desde la web: por cada
 #                                      EXPORTS/requests/<id>.req (contiene la dirección) deja
 #                                      EXPORTS/files/<id>.zip (un .mbox por carpeta) o <id>.failed.
@@ -97,6 +98,12 @@ case "${1:-}" in
             fi
             mysql mailserver -e "DELETE FROM mailboxes WHERE email = '$email' AND status = 'deleted'"
             logger -t mail-provision "nombre liberado: $email"
+        done
+        # 3) Alias borrados cuya cuarentena ha terminado (los quita la web de Mi cuenta, D-029)
+        mysql -N -B mailserver -e "SELECT source FROM aliases WHERE active = 0 AND deleted_at IS NOT NULL AND release_at < NOW()" |
+        while read -r source; do
+            mysql mailserver -e "DELETE FROM aliases WHERE source = '$source' AND active = 0 AND deleted_at IS NOT NULL"
+            logger -t mail-provision "alias liberado: $source"
         done
         ;;
     process-exports)

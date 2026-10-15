@@ -101,7 +101,7 @@ class AccountController extends Controller
         return [
             'user' => $request->user(),
             'mailboxes' => Mailbox::where('user_id', $request->user()->id)->whereIn('status', ['active', 'suspended'])
-                ->with(['plan', 'domain', 'usage', 'lastLogins', 'appPasswords' => fn ($q) => $q->whereNull('revoked_at')->latest('id')])
+                ->with(['plan', 'domain', 'usage', 'lastLogins', 'aliases', 'appPasswords' => fn ($q) => $q->whereNull('revoked_at')->latest('id')])
                 ->orderBy('id')->get(),
             'subscriptions' => $request->user()->subscriptions()->get()->keyBy('type'),
             'states' => MailboxState::whereIn('mailbox_id', Mailbox::where('user_id', $request->user()->id)->pluck('id'))->get()->keyBy('mailbox_id'),

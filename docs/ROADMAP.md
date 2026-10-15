@@ -221,6 +221,8 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [x] (2026-10-15) Marca en la cuenta live (`acct_1UOL3pCWFy2ysxHN`): icono (la @ sobre la bandera) y colores `#AA151B`; recibos por email de pagos y devoluciones, en español. Sin logo alargado (no hay). La información pública (nombre `unagrandeylibre.es`, email de soporte, hoy `info@tibletech.com`) va con la activación
 - [x] (2026-10-15) Gestoría: valen las facturas de Stripe (Tibletech ya factura con Stripe); no hace falta nada más
 - [x] (2026-10-15, D-029) Planes antes de live: Gratis 500 MB y 20 envíos al día (cubo diario en Rspamd), alias 10/50, planes `basico-anual` (19,90 €) y `pro-anual` (49,90 €) con el selector Mensual / Anual en la portada, el alta y "Cambiar de plan", y avisos de espacio al 80 % y al 100 % (`QuotaWarnings`, cada hora)
+- [x] (2026-10-15) Alias desde Mi cuenta: añadir y borrar, hasta `max_aliases` del plan (internos: 50), mismas reglas que los nombres y sin nombres cortos con recargo. Se puede enviar desde ellos (Postfix `sender-login.cf` mira también los alias con dueño). Al borrarlos, o al borrar su buzón, quedan en cuarentena (`release_at`) y `mail-purge` los quita. Columnas nuevas en `mailserver.aliases` (`server/sql/2026-10-15-aliases-dueno-y-cuarentena.sql`)
+- [ ] **Dueño:** probar los alias (crear uno en `javier@`, recibir y enviar desde él en el webmail, borrarlo)
 - [ ] **Dueño:** pasar a live con el script (cuando la cuenta esté activada): `ssh -t root@128.140.5.221 stripe-go-live`. Pide las claves `pk_live_`/`sk_live_` sin enseñarlas y hace el resto: copia, limpieza del sandbox, `stripe:sync`, webhook de producción y su secreto. Ya no queda ningún buzón pagado en el sandbox (2026-10-15)
 
 ### Analítica y anuncios
@@ -285,7 +287,7 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 - [ ] Varios dominios en el alta (`domains.public_signup`), con su autoconfig, SRV y DKIM
 - [ ] Store interna de nombres premium y/o dominios (`reserved_names.price_cents`)
 - [ ] Dominios propios del cliente
-- [ ] Alias, reenvíos, respuesta automática y filtros (managesieve) desde el portal
+- [ ] Reenvíos, respuesta automática y filtros (managesieve) desde el portal (los alias ya están, 2026-10-15)
 - [ ] Separar la web a otro servidor
 - [ ] Autoalojar PostHog cuando deje de ser gratis o haya máquina
 - [ ] Programa de referidos

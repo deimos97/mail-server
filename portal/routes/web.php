@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AliasController;
 use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasskeyLoginController;
@@ -69,6 +70,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/salir', [LoginController::class, 'destroy'])->name('logout');
     Route::get('/cuenta', [AccountController::class, 'show'])->name('account');
+    Route::post('/cuenta/buzones/{mailbox}/alias', [AliasController::class, 'store'])->whereNumber('mailbox')->middleware('throttle:20,60')->name('account.aliases.store');
+    Route::post('/cuenta/alias/{alias}/borrar', [AliasController::class, 'destroy'])->whereNumber('alias')->name('account.aliases.destroy');
     Route::post('/cuenta/dispositivos/{device}/revocar', [AccountController::class, 'revokeDevice'])->name('account.devices.revoke');
     Route::post('/cuenta/dispositivos/{device}/nombre', [AccountController::class, 'renameDevice'])->name('account.devices.rename');
     Route::post('/cuenta/copia/{mailbox}', [AccountController::class, 'requestExport'])->middleware('throttle:5,60')->name('account.export');

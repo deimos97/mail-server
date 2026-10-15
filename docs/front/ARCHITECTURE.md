@@ -154,6 +154,10 @@ Bajar de plan con más correo que la nueva cuota: no se borra nada; se bloquea l
 
 Desde `noreply@unagrandeylibre.es` por el propio Postfix (submission autenticado). **Ojo:** el límite de Rspamd de 40/h por usuario también se aplica a `noreply`; hay que excluirlo o darle su propio límite. Si en el futuro la reputación se resiente, se puede pasar a Postmark/SES/Brevo.
 
+### Alias
+
+`mailserver.aliases` (`App\Models\Alias`, `App\Services\Aliases`): `source` → `destination`, con `mailbox_id` del dueño (NULL en los del sistema: `postmaster@`, `abuse@`). Se gestionan en Mi cuenta hasta `plans.max_aliases` (internos: 50), con las reglas de `NameAvailability` y sin nombres cortos con recargo. Postfix entrega por `virtual-aliases.cf` y deja enviar como el alias al dueño (`sender-login.cf`). Borrado = `active=0`, `deleted_at` y `release_at` (90 días, o la del buzón si se borra el buzón); `mail-provision purge-deleted` quita la fila al llegar `release_at`.
+
 ### Buzones internos
 
 `tier=system` (`Mailbox::isInternal()`): `noreply@`, `soporte@` y los del dueño (`javier@`, `varela@`, con su `user_id` para verlos en Mi cuenta). Sin plan (`plan_id` NULL) ni suscripción: los webhooks de Stripe, el ciclo de vida y "Cambiar de plan" los ignoran; `mail-provision` no borra su correo. En los mapas de Rspamd van con el límite del plan más alto.

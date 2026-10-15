@@ -18,10 +18,15 @@ CREATE TABLE `aliases` (
   `domain_id` int(10) unsigned NOT NULL,
   `source` varchar(320) NOT NULL,
   `destination` text NOT NULL,
+  `mailbox_id` int(10) unsigned DEFAULT NULL,
   `active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `release_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `source` (`source`),
   KEY `domain_id` (`domain_id`),
+  KEY `aliases_mailbox_id` (`mailbox_id`),
   CONSTRAINT `aliases_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

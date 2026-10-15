@@ -201,6 +201,64 @@
                     </div>
                 @endif
 
+                {{-- Alias (D-029): otras direcciones que llegan a este buzón y desde las que puede enviar --}}
+                @php($maxAliases = app(\App\Services\Aliases::class)->max($mailbox))
+                <details class="group border-t border-stone-100 text-sm" @if ($errors->has('alias_'.$mailbox->id)) open @endif>
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-bold sm:px-5 [&::-webkit-details-marker]:hidden">
+                        <span class="flex items-center gap-2">
+                            Alias
+                            @if ($maxAliases > 0 || $mailbox->aliases->isNotEmpty())
+                                <span class="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-semibold text-stone-600">{{ $mailbox->aliases->count() }} de {{ $maxAliases }}</span>
+                            @endif
+                        </span>
+                        <svg class="size-5 text-stone-500 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/></svg>
+                    </summary>
+                    <div class="px-4 pb-4 sm:px-5 sm:pb-5">
+                        @if ($maxAliases === 0 && $mailbox->aliases->isEmpty())
+                            <p class="text-stone-600">Con un alias tienes otras direcciones, como <span class="font-medium">{{ 'compras@'.$mailbox->domain->name }}</span>, que llegan a este buzón y desde las que puedes enviar. Van con los planes de pago.</p>
+                            <a href="{{ route('account.plan', $mailbox->id) }}" class="mt-3 inline-block font-semibold text-rojo underline">Ver planes</a>
+                        @else
+                            <p class="text-stone-500">Otras direcciones que llegan a este buzón. Para enviar desde una, añádela como identidad en el webmail (Ajustes → Identidades) o en tu app de correo.</p>
+                            @if ($mailbox->aliases->isNotEmpty())
+                                <ul class="mt-2 divide-y divide-stone-100">
+                                    @foreach ($mailbox->aliases as $alias)
+                                        <li class="flex items-center justify-between gap-3 py-2">
+                                            <span class="min-w-0 break-all font-medium" data-ph-mask>{{ $alias->source }}</span>
+                                            <form method="POST" action="{{ route('account.aliases.destroy', $alias->id) }}"
+                                                  data-confirm="¿Borrar {{ $alias->source }}?" data-confirm-body="Dejará de recibir correo y no podrás enviar desde él. Por seguridad, nadie podrá usar esa dirección durante 90 días." data-confirm-button="Borrar">
+                                                @csrf
+                                                <button class="shrink-0 rounded-xl px-3 py-1.5 font-semibold text-rojo ring-1 ring-rojo/30 hover:bg-rojo/5">Borrar</button>
+                                            </form>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                            @if ($mailbox->status === 'active' && $mailbox->aliases->count() < $maxAliases)
+                                <form method="POST" action="{{ route('account.aliases.store', $mailbox->id) }}" class="mt-3">
+                                    @csrf
+                                    <label for="alias-{{ $mailbox->id }}" class="font-medium">Nuevo alias</label>
+                                    <div class="mt-1 flex flex-wrap items-center gap-2">
+                                        <span class="flex min-w-0 flex-1 items-center rounded-xl ring-1 ring-stone-300 focus-within:ring-2 focus-within:ring-rojo">
+                                            <input id="alias-{{ $mailbox->id }}" name="local_part" maxlength="64" required autocomplete="off" autocapitalize="none" spellcheck="false"
+                                                   value="{{ $errors->has('alias_'.$mailbox->id) ? old('local_part') : '' }}" placeholder="compras" data-ph-mask
+                                                   class="min-w-0 flex-1 rounded-l-xl border-0 bg-transparent px-3 py-1.5 focus:ring-0">
+                                            <span class="shrink-0 pr-3 text-stone-500">{{ '@'.$mailbox->domain->name }}</span>
+                                        </span>
+                                        <button class="rounded-xl bg-rojo px-4 py-1.5 font-semibold text-white hover:bg-rojo-oscuro">Añadir</button>
+                                    </div>
+                                    <x-form-error :name="'alias_'.$mailbox->id" />
+                                </form>
+                            @elseif ($mailbox->aliases->count() >= $maxAliases)
+                                <p class="mt-3 text-stone-500">Tienes los {{ $maxAliases }} alias de tu plan.
+                                    @unless ($mailbox->isInternal())
+                                        <a href="{{ route('account.plan', $mailbox->id) }}" class="font-semibold text-rojo underline">Pasa a un plan con más</a>
+                                    @endunless
+                                </p>
+                            @endif
+                        @endif
+                    </div>
+                </details>
+
                 @php($export = $exports->get($mailbox->id))
                 <details class="group border-t border-stone-100 text-sm" @if ($export?->isDownloadable() || $export?->status === 'pending') open @endif>
                     <summary class="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-bold sm:px-5 [&::-webkit-details-marker]:hidden">

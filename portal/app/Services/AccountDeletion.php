@@ -34,6 +34,7 @@ class AccountDeletion
             $mailbox->update(['status' => 'deleted', 'active' => false, 'can_send' => false, 'deleted_at' => now(),
                 'release_at' => now()->addDays(config('lifecycle.voluntary_release_days'))]);
             AppPassword::where('mailbox_id', $mailbox->id)->whereNull('revoked_at')->update(['revoked_at' => now()]);
+            app(Aliases::class)->retireFor($mailbox, $mailbox->release_at);
         }
         $this->oauth->revokeForUser($user);
 

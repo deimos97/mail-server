@@ -54,6 +54,12 @@ class Mailbox extends Model
         return $this->hasMany(AppPassword::class);
     }
 
+    /** Sus alias vivos (los borrados en cuarentena no cuentan). */
+    public function aliases(): HasMany
+    {
+        return $this->hasMany(Alias::class)->whereNull('deleted_at')->orderBy('source');
+    }
+
     public function usage(): HasOne
     {
         return $this->hasOne(QuotaUsage::class, 'username', 'email');
