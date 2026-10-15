@@ -222,6 +222,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [ ] Pasar las claves `live` a la IA (en el `.env` del servidor): ella vacía los IDs de Stripe del sandbox, ejecuta `php artisan stripe:sync` y crea el webhook de producción. Ya no queda ningún buzón pagado con la tarjeta de prueba (2026-10-15: `javier@` y `varela@`, internos; `javier-checkout@`, a gratis); si aparece alguno nuevo antes de live, pasa a gratis
 
 ### Analítica y anuncios
+- [x] (2026-10-15) PostHog: el proyecto estaba creado en la región de EE. UU. y la web manda a EU, así que no llegaba nada. Proyecto nuevo en `eu.posthog.com` y su clave en `POSTHOG_KEY` del `.env` del servidor (copia del `.env` antes)
 - [ ] PostHog, juntos: activar Session replay y Heatmaps, añadir `https://unagrandeylibre.es` a Authorized URLs y crear el embudo `$pageview → name_checked → name_chosen → plan_selected → … → signup_completed` (Product analytics → New insight → Funnel)
 - [ ] Cuentas de anuncios en Meta y Google. Para activar las conversiones de servidor, pasar a la IA las claves de `config/ads.php` (píxel y token de Meta; cliente, developer token, OAuth y acciones de conversión de Google). Al activarlas, la IA añade a la política de privacidad que, con tu consentimiento, comunicamos el alta y el pago a Meta/Google (email cifrado, IP, navegador e identificador del clic)
 - [ ] Anuncio de prueba en Meta y Google con la marca, el dominio y la bandera, para comprobar que no los clasifican como contenido político. Si hay problemas, valorar una comunicación más neutra
