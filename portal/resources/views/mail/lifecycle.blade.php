@@ -28,7 +28,16 @@ Si quieres conservarlo, vuelve a contratar un plan. Si no, a los 10 días lo sus
 @case('downgraded')
 # Tu correo ha pasado al plan gratis
 
-El plan de pago de **{{ $address }}** ha terminado y el buzón sigue funcionando con el plan gratis. No has perdido nada.
+El plan de pago de **{{ $address }}** ha terminado y el buzón sigue funcionando con el plan gratis, con todo su correo.
+@if ($aliases)
+
+El plan gratis no tiene alias, así que **{{ implode(', ', $aliases) }}** {{ count($aliases) === 1 ? 'ha dejado' : 'han dejado' }} de funcionar. Te guardamos {{ count($aliases) === 1 ? 'el nombre' : 'los nombres' }} unos meses: si vuelves a un plan de pago, puedes recuperarlos desde tu cuenta.
+@endif
+@break
+@case('aliases_trimmed')
+# Algunos alias ya no funcionan
+
+El plan de **{{ $address }}** ahora tiene menos alias, así que **{{ implode(', ', $aliases) }}** {{ count($aliases) === 1 ? 'ha dejado' : 'han dejado' }} de funcionar (eran los más nuevos). Te guardamos {{ count($aliases) === 1 ? 'el nombre' : 'los nombres' }} unos meses: si vuelves a un plan con más alias, puedes recuperarlos desde tu cuenta.
 @break
 @case('reactivated')
 # Tu correo vuelve a funcionar

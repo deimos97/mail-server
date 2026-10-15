@@ -20,6 +20,9 @@
         <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">
             @if ($fitsFree)
                 <p class="font-semibold">Tu plan pasará a gratis el {{ $fmt($subscription->ends_at) }}.</p>
+                @if ($aliasCount)
+                    <p class="mt-1 text-stone-700">Ese día {{ $aliasCount === 1 ? 'tu alias dejará' : "tus {$aliasCount} alias dejarán" }} de funcionar: el plan gratis no tiene alias.</p>
+                @endif
             @else
                 <p class="font-semibold">Has cancelado el plan: perderás este buzón.</p>
                 <p class="mt-1 text-stone-700">
@@ -62,6 +65,14 @@
                             <span class="mt-2 inline-block rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">Tu plan actual</span>
                         @elseif ($option['reason'])
                             <span class="mt-2 block text-sm text-stone-600">{{ $option['reason'] }}</span>
+                        @elseif (($lost = $aliasCount - (int) $plan->max_aliases) > 0)
+                            <span class="mt-2 block text-sm font-medium text-amber-800">
+                                @if ($lost === $aliasCount)
+                                    {{ $lost === 1 ? 'Perderás tu alias' : "Perderás tus {$lost} alias" }}: este plan no tiene.
+                                @else
+                                    Perderás {{ $lost === 1 ? 'tu alias más nuevo' : "tus {$lost} alias más nuevos" }}: este plan tiene {{ $plan->max_aliases }}.
+                                @endif
+                            </span>
                         @endif
                     </span>
                 </label>

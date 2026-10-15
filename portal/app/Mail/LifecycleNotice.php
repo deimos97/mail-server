@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Avisos del ciclo de vida de un buzón (D-009). Tipos: payment_failed, cancelled, ended, downgraded, reactivated,
+ * Avisos del ciclo de vida de un buzón (D-009). Tipos: payment_failed, cancelled, ended, downgraded, aliases_trimmed, reactivated,
  * suspended, deletion_warning, deleted, inactive_warning, inactive_deleted.
  */
 class LifecycleNotice extends Mailable implements ShouldQueue
@@ -22,6 +22,7 @@ class LifecycleNotice extends Mailable implements ShouldQueue
         'cancelled' => 'Has cancelado tu plan: perderás tu correo',
         'ended' => 'Tu plan ha terminado',
         'downgraded' => 'Tu correo ha pasado al plan gratis',
+        'aliases_trimmed' => 'Has bajado de plan: algunos alias ya no funcionan',
         'reactivated' => 'Tu correo vuelve a funcionar',
         'suspended' => 'Hemos suspendido tu correo por falta de pago',
         'deletion_warning' => 'Vamos a borrar tu correo dentro de una semana',
@@ -30,7 +31,8 @@ class LifecycleNotice extends Mailable implements ShouldQueue
         'inactive_deleted' => 'Hemos borrado tu correo por inactividad',
     ];
 
-    public function __construct(public string $type, public string $address, public ?string $date = null, public ?string $deleteDate = null) {}
+    public function __construct(public string $type, public string $address, public ?string $date = null, public ?string $deleteDate = null,
+        public array $aliases = []) {}
 
     public function envelope(): Envelope
     {

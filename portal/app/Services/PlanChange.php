@@ -82,9 +82,9 @@ class PlanChange
 
         if ($target->is_free) {
             if (! $subscription) {
-                $this->billing->applyPlan($mailbox, $target);
+                $gone = $this->billing->applyPlan($mailbox, $target);
 
-                return ['status' => "Listo: tu plan ahora es {$target->name}."];
+                return ['status' => "Listo: tu plan ahora es {$target->name}.".$this->goneText($gone)];
             }
             $subscription->cancel();
 
@@ -120,11 +120,21 @@ class PlanChange
             report($e);   // un fallo de Stripe no debe acabar en un 500: se avisa y no se cambia nada
             throw new RuntimeException('No hemos podido cambiar el plan, así que no hemos cambiado nada. Inténtalo de nuevo en unos minutos.');
         }
-        $this->billing->applyPlan($mailbox, $target);
+        $gone = $this->billing->applyPlan($mailbox, $target);
 
-        return ['status' => $upgrade
+        return ['status' => ($upgrade
             ? "Listo: tu plan ahora es {$target->name}. Hemos cobrado la diferencia hasta tu próxima renovación."
-            : "Listo: tu plan ahora es {$target->name}. La diferencia se descontará de tus próximos pagos."];
+            : "Listo: tu plan ahora es {$target->name}. La diferencia se descontará de tus próximos pagos.").$this->goneText($gone)];
+    }
+
+    /** @param  list<string>  $gone */
+    private function goneText(array $gone): string
+    {
+        return match (count($gone)) {
+            0 => '',
+            1 => " El alias {$gone[0]} ya no cabe en tu plan y ha dejado de funcionar.",
+            default => ' Los alias '.implode(', ', $gone).' ya no caben en tu plan y han dejado de funcionar.',
+        };
     }
 
     /**

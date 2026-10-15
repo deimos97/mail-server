@@ -29,6 +29,7 @@ class PlanController extends Controller
             'subscription' => $subscription,
             'pendingFree' => $subscription?->onGracePeriod(),
             'fitsFree' => $fitsFree,
+            'aliasCount' => $mailbox->aliases()->count(),
             // Si no puede pasar a gratis, cancelar es perderlo: la página enseña las fechas antes y después
             'loss' => $subscription && ! $fitsFree ? $this->plans->lossDates($subscription) : null,
         ]);

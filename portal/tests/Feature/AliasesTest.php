@@ -127,4 +127,59 @@ class AliasesTest extends TestCase
 
         $this->actingAs($this->user)->get('/cuenta')->assertSee('0 de 50');
     }
+
+    private function addAliases(Mailbox $mailbox, array $names): void
+    {
+        foreach ($names as $i => $name) {
+            $this->travel($i)->minutes();
+            $this->actingAs($this->user)->post("/cuenta/buzones/{$mailbox->id}/alias", ['local_part' => $name])->assertSessionHasNoErrors();
+        }
+        $this->travelBack();
+    }
+
+    public function test_downgrading_removes_the_newest_aliases_that_do_not_fit(): void
+    {
+        $mailbox = $this->mailbox('pro');
+        $this->addAliases($mailbox, ['uno.ana', 'dos.ana', 'tres.ana', 'cuatro.ana']);
+
+        $stripe = \Tests\Support\FakeStripe::install();   // sin Stripe, los planes de pago salen como «Muy pronto»
+        app(\App\Services\StripeCatalog::class)->syncAll();
+        $this->actingAs($this->user)->get("/cuenta/plan/{$mailbox->id}")
+            ->assertSee('Perderás tu alias más nuevo: este plan tiene 3.')->assertSee('Perderás tus 4 alias: este plan no tiene.');
+        \Tests\Support\FakeStripe::uninstall();
+
+        $gone = app(\App\Services\MailboxBilling::class)->applyPlan($mailbox, Plan::where('slug', 'basico')->first());
+
+        $this->assertSame(['cuatro.ana@unagrandeylibre.es'], $gone);
+        $this->assertSame(['dos.ana@unagrandeylibre.es', 'tres.ana@unagrandeylibre.es', 'uno.ana@unagrandeylibre.es'],
+            Alias::where('active', true)->orderBy('source')->pluck('source')->all());
+        $this->assertTrue(Alias::where('source', 'cuatro.ana@unagrandeylibre.es')->sole()->release_at->isAfter(now()->addDays(89)));   // cuarentena
+    }
+
+    public function test_ending_on_free_removes_all_aliases_and_says_so(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $mailbox = $this->mailbox('basico');
+        $this->addAliases($mailbox, ['uno.ana', 'dos.ana']);
+
+        app(\App\Services\MailboxBilling::class)->ended(['metadata' => ['type' => "mailbox:{$mailbox->id}"]]);
+
+        $this->assertSame('free', $mailbox->fresh()->tier);
+        $this->assertSame(0, Alias::where('active', true)->count());
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\LifecycleNotice::class, function ($mail) {
+            $html = $mail->render();
+
+            return $mail->type === 'downgraded' && str_contains($html, 'dos.ana@unagrandeylibre.es, uno.ana@unagrandeylibre.es')
+                && str_contains($html, 'han dejado de funcionar');
+        });
+    }
+
+    public function test_upgrading_keeps_every_alias(): void
+    {
+        $mailbox = $this->mailbox('basico');
+        $this->addAliases($mailbox, ['uno.ana', 'dos.ana']);
+
+        $this->assertSame([], app(\App\Services\MailboxBilling::class)->applyPlan($mailbox, Plan::where('slug', 'pro')->first()));
+        $this->assertSame(2, Alias::where('active', true)->count());
+    }
 }

@@ -30,8 +30,8 @@ class MailboxBilling
         $plan = collect($subscription['items']['data'] ?? [])
             ->map(fn ($item) => PlanPrice::planFor($item['price']['id'] ?? null))
             ->filter()->first();
-        if ($plan && (int) $mailbox->plan_id !== $plan->id) {
-            $this->applyPlan($mailbox, $plan);
+        if ($plan && (int) $mailbox->plan_id !== $plan->id && $gone = $this->applyPlan($mailbox, $plan)) {
+            $this->notify($mailbox, 'aliases_trimmed', aliases: $gone);   // bajada hecha fuera de la web (p. ej. desde Stripe)
         }
 
         match ($subscription['status'] ?? null) {
@@ -65,10 +65,10 @@ class MailboxBilling
         $user = $mailbox->user;
 
         if ($this->fitsFree($mailbox)) {
-            $this->applyPlan($mailbox, $free);
+            $gone = $this->applyPlan($mailbox, $free);
             $mailbox->update(['can_send' => $user->hasVerifiedEmail()]);
             $this->paid($mailbox);
-            $this->notify($mailbox, 'downgraded');
+            $this->notify($mailbox, 'downgraded', aliases: $gone);
 
             return;
         }
@@ -85,9 +85,16 @@ class MailboxBilling
         }
     }
 
-    public function applyPlan(Mailbox $mailbox, Plan $plan): void
+    /**
+     * Cambia el plan del buzón; los alias que ya no caben se quitan (los más nuevos, a cuarentena).
+     *
+     * @return list<string> los alias quitados
+     */
+    public function applyPlan(Mailbox $mailbox, Plan $plan): array
     {
         $mailbox->update(['plan_id' => $plan->id, 'quota_bytes' => $plan->quota_bytes, 'tier' => $plan->tier]);
+
+        return app(Aliases::class)->trimToPlan($mailbox->setRelation('plan', $plan));
     }
 
     public function mailboxFromMetadata(array $object): ?Mailbox
@@ -129,10 +136,11 @@ class MailboxBilling
         }
     }
 
-    public function notify(Mailbox $mailbox, string $type, ?string $date = null, ?string $deleteDate = null): void
+    /** @param  list<string>  $aliases  alias quitados al bajar de plan */
+    public function notify(Mailbox $mailbox, string $type, ?string $date = null, ?string $deleteDate = null, array $aliases = []): void
     {
         if ($email = $mailbox->user?->email) {
-            Mail::to($email)->queue(new LifecycleNotice($type, $mailbox->email, $date, $deleteDate));
+            Mail::to($email)->queue(new LifecycleNotice($type, $mailbox->email, $date, $deleteDate, $aliases));
         }
     }
 }

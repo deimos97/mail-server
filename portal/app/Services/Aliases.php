@@ -63,6 +63,23 @@ class Aliases
             'release_at' => $releaseAt ?? now()->addDays(config('lifecycle.voluntary_release_days'))]);
     }
 
+    /**
+     * Al cambiar de plan, fuera los alias que ya no caben (los más nuevos), a cuarentena como al borrarlos.
+     *
+     * @return list<string> las direcciones quitadas
+     */
+    public function trimToPlan(Mailbox $mailbox): array
+    {
+        $extra = $mailbox->aliases()->count() - $this->max($mailbox);
+        if ($extra <= 0) {
+            return [];
+        }
+        $gone = $mailbox->aliases()->reorder()->orderByDesc('created_at')->orderByDesc('id')->limit($extra)->get();
+        $gone->each(fn (Alias $alias) => $this->delete($alias));
+
+        return $gone->pluck('source')->sort()->values()->all();
+    }
+
     /** Al borrar un buzón (por el cliente o por el ciclo de vida), sus alias se van con él. */
     public function retireFor(Mailbox $mailbox, CarbonInterface $releaseAt): void
     {
