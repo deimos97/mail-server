@@ -191,7 +191,7 @@ Probar la web entera (también en un iPhone, Thunderbird y Outlook) y pasar el f
 - [ ] **Dueño:** confirmar en SendGrid que Open/Click Tracking están desactivados
 - [x] (2026-10-15) Cuenta de SendGrid con el dominio verificado y la API key en el servidor (dueño)
 - [x] (2026-10-15) Postfix: `transport_maps` (`/etc/postfix/transport_sendgrid`: hotmail, outlook, live .com/.es, msn, windowslive) → `[smtp.sendgrid.net]:587` con SASL y TLS `secure`. Sin cambio de SPF (SendGrid usa su subdominio `em…` autenticado). Copia de `main.cf` antes
-- [ ] Probar con `gandalfjavier@hotmail.es` (reenviar el código de verificación)
+- [x] (2026-10-15) Probado: el código de verificación a `gandalfjavier@hotmail.es` salió por `smtp.sendgrid.net` (`status=sent`) y llegó a la carpeta de spam de Hotmail; marcado como "No es spam" y cuenta verificada
 - [ ] Política de privacidad: SendGrid (Twilio, EE. UU., DPF) como encargado para el correo a Microsoft; validar con la gestoría
 - [x] (2026-10-14) "Cambiar de plan" marca de entrada el plan actual; el botón dice "Elige otro plan" y se activa al elegir otro
 - [x] (2026-10-14) Subir de plan daba 500: Cashier manda `items[][tax_rates]` vacío y Stripe no lo admite con `pending_if_incomplete`. El IVA ya va en la suscripción (`default_tax_rates`), así que `App\Models\Subscription` lo quita; y un error de Stripe al cambiar de plan ya no da 500, sino un aviso sin cambiar nada
