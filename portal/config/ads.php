@@ -2,7 +2,7 @@
 
 // Conversiones de servidor para las plataformas de anuncios (Fase 5). Apagadas hasta tener las cuentas
 // (Fase 6): con las variables vacías no se envía nada. Solo para usuarios que aceptaron las cookies al
-// darse de alta y que vienen de un anuncio de esa plataforma (fbclid / gclid…). Ver App\Services\AdConversions.
+// darse de alta y que vienen de un anuncio de esa plataforma (fbclid / gclid / twclid…). Ver App\Services\AdConversions.
 return [
     'meta' => [
         'pixel_id' => env('META_PIXEL_ID'),
@@ -21,5 +21,17 @@ return [
         // Acciones de conversión (IDs numéricos de Google Ads → Objetivos → Conversiones)
         'signup_action' => env('GOOGLE_ADS_SIGNUP_ACTION'),
         'purchase_action' => env('GOOGLE_ADS_PURCHASE_ACTION'),
+    ],
+    // X (D-030): Conversions API. Necesita acceso a la Ads API (developer.x.com) y una app con OAuth 1.0a
+    // (claves de la app + token de acceso de una cuenta con acceso a la cuenta de anuncios).
+    'x' => [
+        'pixel_id' => env('X_PIXEL_ID'),                     // Gestor de eventos → el ID del píxel (p. ej. o8z6j)
+        'signup_event' => env('X_SIGNUP_EVENT'),             // ID del evento "Registro" (tw-o8z6j-o8z8k)
+        'purchase_event' => env('X_PURCHASE_EVENT'),         // ID del evento "Compra"
+        'consumer_key' => env('X_ADS_CONSUMER_KEY'),
+        'consumer_secret' => env('X_ADS_CONSUMER_SECRET'),
+        'access_token' => env('X_ADS_ACCESS_TOKEN'),
+        'access_token_secret' => env('X_ADS_ACCESS_TOKEN_SECRET'),
+        'api_version' => env('X_ADS_API_VERSION', '12'),
     ],
 ];

@@ -7,11 +7,11 @@ use App\Models\User;
 use Illuminate\Support\Str;
 
 /**
- * Conversiones de servidor (alta y primer pago) para Meta y Google Ads. Se envían solo si:
+ * Conversiones de servidor (alta y primer pago) para Meta, Google Ads y X. Se envían solo si:
  * - la plataforma está configurada (config/ads.php; en blanco hasta la Fase 6),
  * - el usuario aceptó las cookies al darse de alta (`users.attribution.ads_consent`),
- * - y llegó desde un anuncio de esa plataforma (fbclid para Meta; gclid, gbraid o wbraid para Google).
- * A Meta se le manda el email de recuperación cifrado con SHA-256 (nunca en claro), como pide su API.
+ * - y llegó desde un anuncio de esa plataforma (fbclid para Meta; gclid, gbraid o wbraid para Google; twclid para X).
+ * A Meta y a X se les manda el email de recuperación cifrado con SHA-256 (nunca en claro), como piden sus API.
  */
 class AdConversions
 {
@@ -42,6 +42,26 @@ class AdConversions
         if ($click && filled(config('ads.google.customer_id')) && filled(config('ads.google.developer_token')) && filled($action)) {
             SendAdConversion::dispatch('google', $this->google($a, $click, $action, $valueCents, $eventId));
         }
+
+        $xEvent = config($event === 'signup' ? 'ads.x.signup_event' : 'ads.x.purchase_event');
+        if (filled($a['twclid'] ?? null) && filled(config('ads.x.pixel_id')) && filled(config('ads.x.access_token')) && filled($xEvent)) {
+            SendAdConversion::dispatch('x', $this->x($user, $a, $xEvent, $valueCents, $eventId));
+        }
+    }
+
+    private function x(User $user, array $a, string $xEvent, ?int $valueCents, string $eventId): array
+    {
+        return ['conversions' => [array_filter([
+            'conversion_time' => now()->utc()->format('Y-m-d\TH:i:s.v\Z'),
+            'event_id' => $xEvent,
+            'identifiers' => [
+                ['twclid' => $a['twclid']],
+                ['hashed_email' => hash('sha256', mb_strtolower(trim($user->email)))],
+            ],
+            'value' => $valueCents !== null ? number_format($valueCents / 100, 2, '.', '') : null,
+            'price_currency' => $valueCents !== null ? 'EUR' : null,
+            'conversion_id' => $eventId,
+        ], fn ($v) => $v !== null)]];
     }
 
     private function meta(User $user, array $a, string $event, ?int $valueCents, string $eventId): array
