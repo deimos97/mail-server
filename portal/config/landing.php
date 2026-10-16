@@ -49,8 +49,11 @@ return [
     // Bloques informativos (icon: componente resources/views/components/icon/<icon>.blade.php)
     'blocks' => [
         ['icon' => 'flag', 'title' => 'Producto nacional', 'text' => 'Un servicio español, con los servidores en la Unión Europea y sujeto a la ley europea de protección de datos.'],
-        ['icon' => 'shield', 'title' => 'Privado de verdad', 'text' => 'No leemos tu correo ni lo usamos para anuncios. Antispam y cifrado en todas las conexiones.'],
+        ['icon' => 'shield', 'title' => 'Privado de verdad', 'text' => 'Nadie lee tu correo: ni nosotros ni ningún programa para venderte nada. Antispam y cifrado en todas las conexiones.'],
+        ['icon' => 'eye-off', 'title' => 'Sin anuncios ni rastreo', 'text' => 'Ni anuncios en tu bandeja ni perfiles con lo que lees. El webmail no carga las imágenes que avisan de cuándo abres un correo, salvo que tú lo permitas.'],
         ['icon' => 'phone', 'title' => 'En todos tus dispositivos', 'text' => 'Webmail y compatible con las apps de correo del móvil y del ordenador: iPhone, Android, Outlook, Thunderbird.'],
+        ['icon' => 'help', 'title' => 'Soporte en español, por personas', 'text' => 'Si algo no va, nos escribes y te responde una persona, en español. Sin bots ni centralitas.'],
+        ['icon' => 'unlock', 'title' => 'Sin permanencia', 'text' => 'Cambia de plan o cancela cuando quieras desde tu cuenta, sin llamadas ni letra pequeña.'],
     ],
 
     // "Pasarte es fácil": cómo dejar el correo de siempre sin perder nada
