@@ -153,70 +153,22 @@
                     </ul>
                 </div>
 
-                {{-- Ilustración: alguien da su correo en una ventanilla de la Administración --}}
-                <figure class="relative" role="img" :aria-label="'Ilustración: una persona da su correo, ' + address + ', en una ventanilla'">
-                    <div class="relative z-10 ml-[4%] w-fit max-w-[92%] rounded-3xl bg-white px-5 py-3.5 shadow-lg ring-2 ring-tinta" aria-hidden="true">
-                        <p class="text-sm font-semibold text-stone-500">{{ $preview['bubble'] }}</p>
-                        <p class="mt-1 flex flex-wrap items-center gap-x-1 gap-y-1 text-lg font-bold leading-tight sm:text-xl" data-ph-mask>
-                            <span class="break-all" x-text="local"></span><span class="flag-label whitespace-nowrap rounded-md px-2 py-1.5 font-extrabold text-rojo-oscuro sm:text-2xl">{{ '@'.$mainDomain }}</span>
+                {{-- Ilustración: alguien da su correo en una ventanilla de la Administración. La viñeta es una imagen
+                     (tebeo, como los anuncios de X; public/img/ventanilla.webp) y el bocadillo va encima en HTML, con el
+                     nombre que haya elegido el visitante; la parte de arriba a la izquierda de la imagen está libre para él --}}
+                <figure class="relative overflow-hidden rounded-3xl ring-1 ring-stone-200" role="img" :aria-label="'Ilustración: una persona da su correo, ' + address + ', en una ventanilla'">
+                    <img src="{{ asset('img/ventanilla.webp') }}" width="1040" height="694" alt="" loading="lazy" decoding="async" class="block w-full">
+                    <div class="absolute left-[4%] top-[6%] z-10 w-fit max-w-[72%] rounded-2xl bg-white px-3 py-2 shadow-lg ring-2 ring-tinta sm:rounded-3xl sm:px-4 sm:py-3" aria-hidden="true">
+                        <p class="text-xs font-semibold text-stone-500 sm:text-sm">{{ $preview['bubble'] }}</p>
+                        <p class="mt-1 flex flex-wrap items-center gap-x-1 gap-y-1 text-sm font-bold leading-tight sm:text-lg" data-ph-mask>
+                            <span class="break-all" x-text="local"></span><span class="flag-label whitespace-nowrap rounded-md px-1.5 py-1 font-extrabold text-rojo-oscuro sm:px-2 sm:text-xl">{{ '@'.$mainDomain }}</span>
                         </p>
                         {{-- Rabito del bocadillo, hacia la cabeza de la persona --}}
-                        <svg class="absolute -bottom-[18px] left-[18%] h-5 w-7" viewBox="0 0 28 20" aria-hidden="true">
+                        <svg class="absolute -bottom-[16px] left-[24%] h-[18px] w-6" viewBox="0 0 28 20" aria-hidden="true">
                             <path d="M2 0 L14 18 L22 0" fill="#fff" stroke="var(--color-tinta)" stroke-width="2.5" stroke-linejoin="round"/>
                             <rect x="0" y="-3" width="28" height="4.5" fill="#fff"/>
                         </svg>
                     </div>
-                    {{-- Viñeta de tebeo (como los anuncios de X), con la tinta suave para no chocar con la página:
-                         quien da el correo, de espaldas en primer plano; al fondo, el funcionario se lleva un susto --}}
-                    <svg viewBox="0 0 400 150" class="-mt-1 w-full" aria-hidden="true"
-                         stroke="#3f3a36" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
-                        <defs><clipPath id="ventanilla"><rect width="400" height="150" rx="24"/></clipPath></defs>
-                        <g clip-path="url(#ventanilla)">
-                            <rect width="400" height="150" fill="#f3ede4" stroke="none"/>
-                            {{-- Bandera en la pared --}}
-                            <path d="M158 18 V70" fill="none"/>
-                            <path d="M158 22 q14 -5 28 0 t28 0 v30 q-14 -5 -28 0 t-28 0z" fill="#F1BF00"/>
-                            <path d="M158 22 q14 -5 28 0 t28 0 v7.5 q-14 -5 -28 0 t-28 0z" fill="#AA151B"/>
-                            <path d="M158 44.5 q14 -5 28 0 t28 0 v7.5 q-14 -5 -28 0 t-28 0z" fill="#AA151B"/>
-                            {{-- Cartel --}}
-                            <rect x="230" y="10" width="146" height="22" rx="4" fill="#3f3a36"/>
-                            <text x="303" y="25" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="1" fill="#fff" stroke="none" font-family="inherit">ATENCIÓN AL CIUDADANO</text>
-                            {{-- Funcionario: redondo, pelo rosa y un susto de los gordos --}}
-                            <g transform="translate(0 10)">
-                            <ellipse cx="296" cy="124" rx="50" ry="42" fill="#6b7d8f"/>
-                            <path d="M284 86 l12 16 l12 -16" fill="#fff"/>
-                            <path d="M296 102 l-4 10 l4 8 l4 -8z" fill="#AA151B"/>
-                            <circle cx="296" cy="64" r="22" fill="#e9b796"/>
-                            <path d="M273 70 q-8 -40 23 -41 q31 1 23 41 q-4 -2 -5 -10 q-2 -10 -9 -16 q-12 7 -26 4 q-5 7 -6 22z" fill="#f472b6"/>
-                            <path d="M281 52 q5 -5 10 -1 M301 51 q5 -4 10 1" fill="none"/>
-                            <circle cx="287" cy="61" r="5.2" fill="#fff"/><circle cx="305" cy="61" r="5.2" fill="#fff"/>
-                            <circle cx="287" cy="62" r="1.9" fill="#3f3a36" stroke="none"/><circle cx="305" cy="62" r="1.9" fill="#3f3a36" stroke="none"/>
-                            <ellipse cx="296" cy="76" rx="5" ry="6.5" fill="#7d0f14"/>
-                            <path d="M322 46 q4 6 0 9 q-4 -3 0 -9z" fill="#bfdbfe" stroke-width="1.6"/>
-                            <path d="M327 60 q3.5 5 0 8 q-3.5 -3 0 -8z" fill="#bfdbfe" stroke-width="1.6"/>
-                            <path d="M262 52 l-9 -4 M260 62 l-10 0 M262 72 l-9 4" fill="none" stroke-width="2"/>
-                            {{-- Ordenador y sello --}}
-                            <rect x="196" y="70" width="46" height="34" rx="4" fill="#3d3a36"/>
-                            <path d="M214 104 v8 h10 v-8" fill="#3d3a36"/>
-                            <path d="M340 104 q-6 -10 2 -16 q6 -2 8 4 l-2 12z" fill="#e9b796"/>
-                            <rect x="338" y="74" width="12" height="13" rx="3" fill="#7d0f14"/>
-                            <rect x="335" y="86" width="18" height="6" rx="1.5" fill="#3f3a36"/>
-                            <path d="M332 70 l-4 -4 M356 70 l4 -4 M344 66 v-5" fill="none" stroke-width="1.8"/>
-                            </g>
-                            {{-- Mostrador con papeles --}}
-                            <rect x="150" y="112" width="250" height="9" rx="3" fill="#b8b2ac"/>
-                            <rect x="158" y="121" width="242" height="34" fill="#ddd8d2"/>
-                            <path d="M252 112 l4 -5 h26 l-4 5" fill="#fff" stroke-width="1.8"/>
-                            {{-- Quien da el correo, de espaldas: pelo con mechones, orejas y jersey rojo --}}
-                            <ellipse cx="96" cy="172" rx="90" ry="34" fill="#AA151B"/>
-                            <path d="M62 140 q34 14 68 0" fill="none" stroke="#7d0f14"/>
-                            <ellipse cx="50" cy="110" rx="9" ry="13" fill="#d9a07a"/>
-                            <ellipse cx="142" cy="110" rx="9" ry="13" fill="#d9a07a"/>
-                            <circle cx="96" cy="106" r="46" fill="#2b2523"/>
-                            <path d="M70 80 q26 -18 54 -2 M80 70 q16 -8 30 -4 M64 100 q4 -16 18 -24 M128 100 q-4 -16 -18 -24" fill="none" stroke="#5b4a3e" stroke-width="2"/>
-                        </g>
-                        <rect x="1.2" y="1.2" width="397.6" height="147.6" rx="23" fill="none"/>
-                    </svg>
                 </figure>
             </div>
         </div>
