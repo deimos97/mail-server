@@ -37,8 +37,11 @@
     @if ($structuredData)
         {!! \App\Support\StructuredData::toScript($structuredData) !!}
     @endif
-    @if ($posthogKey = config('services.posthog.key'))
-        <script>window.UGL = { posthog: { key: @js($posthogKey) }, experiments: @json((object) (request()->hasSession() ? app(\App\Services\Experiments::class)->assigned() : [])) };</script>
+    @php
+        $xPixel = app(\App\Services\AdPixel::class)->forPage();
+    @endphp
+    @if (($posthogKey = config('services.posthog.key')) || $xPixel)
+        <script>window.UGL = { posthog: { key: @js($posthogKey) }, x: @json($xPixel), experiments: @json((object) (request()->hasSession() ? app(\App\Services\Experiments::class)->assigned() : [])) };</script>
     @endif
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])

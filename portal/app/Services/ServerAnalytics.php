@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 /**
  * Eventos de producto que se miden en el servidor (no dependen de que cargue el JS ni de los adblockers).
  *
- * - Con consentimiento (`ugl_consent=accepted`): el evento lleva el distinct_id del navegador (cookie de PostHog),
+ * - Con consentimiento (`ugl_consent2=accepted`): el evento lleva el distinct_id del navegador (cookie de PostHog),
  *   así cierra el mismo embudo que los eventos del front, y la atribución completa de la campaña.
  * - Sin consentimiento: se cuenta igual, pero anónimo: id aleatorio, sin perfil de persona, sin click IDs
  *   ni referrer completo. Nada que permita reconocer a la persona.
@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
  */
 class ServerAnalytics
 {
-    public const CONSENT_COOKIE = 'ugl_consent';
+    public const CONSENT_COOKIE = 'ugl_consent2';   // v2 (2026-10-20): análisis + medición de campañas en X; la v1 solo cubría análisis
 
     private const CAMPAIGN = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 

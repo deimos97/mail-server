@@ -25,13 +25,16 @@ return [
     // X (D-030): Conversions API. Necesita acceso a la Ads API (developer.x.com) y una app con OAuth 1.0a
     // (claves de la app + token de acceso de una cuenta con acceso a la cuenta de anuncios).
     'x' => [
-        'pixel_id' => env('X_PIXEL_ID'),                     // Gestor de eventos → el ID del píxel (p. ej. o8z6j)
-        'signup_event' => env('X_SIGNUP_EVENT'),             // ID del evento "Registro" (tw-o8z6j-o8z8k)
-        'purchase_event' => env('X_PURCHASE_EVENT'),         // ID del evento "Compra"
+        // IDs públicos del Gestor de eventos (van en la página, no son secretos)
+        'pixel_id' => env('X_PIXEL_ID', 'rhe58'),
+        'signup_event' => env('X_SIGNUP_EVENT', 'tw-rhe58-rhmtd'),      // "Registro"
+        'purchase_event' => env('X_PURCHASE_EVENT', 'tw-rhe58-rhmte'),  // "Compra"
         'consumer_key' => env('X_ADS_CONSUMER_KEY'),
         'consumer_secret' => env('X_ADS_CONSUMER_SECRET'),
         'access_token' => env('X_ADS_ACCESS_TOKEN'),
         'access_token_secret' => env('X_ADS_ACCESS_TOKEN_SECRET'),
         'api_version' => env('X_ADS_API_VERSION', '12'),
+        // Píxel del navegador (App\Services\AdPixel): solo con consentimiento. Por defecto, solo en producción
+        'browser_pixel' => env('X_BROWSER_PIXEL', env('APP_ENV') === 'production'),
     ],
 ];

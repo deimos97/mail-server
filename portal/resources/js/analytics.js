@@ -1,21 +1,24 @@
-// Consentimiento de cookies y analítica (PostHog).
+// Consentimiento de cookies, analítica (PostHog) y medición de campañas (píxel de X).
 //
 // Reglas (LSSI / guía de cookies de la AEPD):
 // - Nada de analítica hasta que el usuario acepta: PostHog ni siquiera se descarga antes.
 // - "Rechazar" está al mismo nivel que "Aceptar" y la elección se puede cambiar desde el footer.
-// - La elección se guarda 12 meses en la cookie técnica `ugl_consent` (exenta de consentimiento).
+// - La elección se guarda 12 meses en la cookie técnica `ugl_consent2` (exenta de consentimiento). La v1
+//   (`ugl_consent`) solo cubría análisis: desde que hay píxel de X se vuelve a preguntar.
+// - El píxel de X (D-030) tampoco se descarga sin consentimiento; los eventos de alta y compra los deja el
+//   servidor en `window.UGL.x.events` y se envían al cargarlo.
 // - Grabaciones con todos los campos enmascarados; los eventos nunca llevan el nombre que se escribe.
 //
 // PostHog va por /ingest (proxy en nginx hacia eu.i.posthog.com) para que no lo bloqueen los adblockers.
 
-const COOKIE = 'ugl_consent';
+const COOKIE = 'ugl_consent2';
 const MAX_AGE = 60 * 60 * 24 * 365;
 
 let posthog = null;
 const queue = [];
 
 export function getConsent() {
-    const match = document.cookie.match(/(?:^|;\s*)ugl_consent=(accepted|rejected)/);
+    const match = document.cookie.match(/(?:^|;\s*)ugl_consent2=(accepted|rejected)/);
     return match ? match[1] : null;
 }
 
@@ -25,6 +28,7 @@ export function setConsent(value) {
 
     if (value === 'accepted') {
         startAnalytics();
+        startAdPixel();
     } else if (posthog) {
         // Si retira el consentimiento: deja de capturar y borra lo que PostHog guardó en el navegador
         posthog.opt_out_capturing();
@@ -82,4 +86,23 @@ export async function startAnalytics() {
     posthog = client;
 
     while (queue.length) client.capture(...queue.shift());
+}
+
+/** Píxel de X: solo con consentimiento y si el servidor lo ha configurado (window.UGL.x). Envía los eventos pendientes. */
+let adPixelStarted = false;
+export function startAdPixel() {
+    const config = window.UGL?.x;
+    if (adPixelStarted || !config?.pixel || getConsent() !== 'accepted') return;
+    adPixelStarted = true;
+
+    // Código base de X (static.ads-twitter.com/uwt.js), el mismo que da el Gestor de eventos
+    !function (e, t, n, s, u, a) {
+        e.twq || (s = e.twq = function () { s.exe ? s.exe.apply(s, arguments) : s.queue.push(arguments); },
+            s.version = '1.1', s.queue = [], u = t.createElement(n), u.async = !0, u.src = 'https://static.ads-twitter.com/uwt.js',
+            a = t.getElementsByTagName(n)[0], a.parentNode.insertBefore(u, a));
+    }(window, document, 'script');
+    window.twq('config', config.pixel);
+    for (const [eventId, params] of config.events ?? []) {
+        window.twq('event', eventId, params ?? {});
+    }
 }

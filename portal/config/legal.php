@@ -5,7 +5,7 @@
 return [
     // Mientras sea true, cada página avisa de que es un borrador pendiente de revisión (D-Fase 6)
     'draft' => env('LEGAL_DRAFT', true),
-    'updated' => '14 de octubre de 2026',
+    'updated' => '20 de octubre de 2026',
 
     'brand' => 'unagrandeylibre.es',
     'company' => 'Tible Technologies, S.L.',

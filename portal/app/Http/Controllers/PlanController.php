@@ -88,6 +88,10 @@ class PlanController extends Controller
             $ready = false;
         }
 
+        if ($ready) {
+            app(\App\Services\AdPixel::class)->purchase((int) $checkout->plan?->effectivePriceCents(), 'checkout-'.$checkout->id);
+        }
+
         return $ready
             ? redirect()->route('account')->with('status', "Listo: tu plan ahora es {$checkout->plan->name}.")
             : view('signup.payment-pending', ['checkout' => $checkout]);

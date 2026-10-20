@@ -53,7 +53,7 @@ class SignupAnalyticsTest extends TestCase
 
     public function test_with_consent_it_joins_the_browser_funnel(): void
     {
-        $this->withUnencryptedCookie('ugl_consent', 'accepted')
+        $this->withUnencryptedCookie('ugl_consent2', 'accepted')
             ->withUnencryptedCookie('ph_phc_prueba_posthog', json_encode(['distinct_id' => 'navegador-1']));
         $this->signup();
 

@@ -1,5 +1,5 @@
 <x-legal-page :title="$title">
-    <p>Una cookie es un pequeño archivo que una web guarda en tu navegador. En {{ $l['brand'] }} usamos las imprescindibles para que la web funcione y, <strong>solo si las aceptas</strong>, otras para analizar cómo se usa. No usamos cookies de publicidad.</p>
+    <p>Una cookie es un pequeño archivo que una web guarda en tu navegador. En {{ $l['brand'] }} usamos las imprescindibles para que la web funcione y, <strong>solo si las aceptas</strong>, otras para analizar cómo se usa y para medir si nuestros anuncios en X funcionan. No usamos cookies para enseñarte publicidad en esta web.</p>
 
     <h2>Cookies técnicas (siempre activas)</h2>
     <p>Son necesarias para que puedas entrar en tu cuenta y usar la web con seguridad; no necesitan tu consentimiento.</p>
@@ -9,7 +9,7 @@
             <tr><td><code>una-grande-y-libre-session</code></td><td>Mantener tu sesión y el alta en curso</td><td>Hasta cerrar sesión o unas horas sin uso</td></tr>
             <tr><td><code>XSRF-TOKEN</code></td><td>Proteger los formularios frente a ataques (CSRF)</td><td>Igual que la sesión</td></tr>
             <tr><td><code>remember_web_…</code></td><td>Mantener la sesión si marcas «Mantener la sesión en este dispositivo»</td><td>Hasta que cierres sesión</td></tr>
-            <tr><td><code>ugl_consent</code></td><td>Recordar si aceptaste o rechazaste las cookies de análisis</td><td>12 meses</td></tr>
+            <tr><td><code>ugl_consent2</code></td><td>Recordar si aceptaste o rechazaste las cookies de análisis y de medición de campañas</td><td>12 meses</td></tr>
             <tr><td><code>roundcube_sessid</code>, <code>roundcube_sessauth</code></td><td>Tu sesión en el webmail (webmail.{{ $l['brand'] }})</td><td>Hasta cerrar sesión</td></tr>
         </tbody>
     </table>
@@ -24,8 +24,17 @@
         </tbody>
     </table>
 
+    <h2>Cookies de medición de campañas (solo si las aceptas)</h2>
+    <p>Si llegas desde un anuncio nuestro en X (antes Twitter), su etiqueta nos dice si ese anuncio acabó en un alta o en un pago, para saber qué anuncios funcionan. La pone X (Twitter International Unlimited Company, Irlanda), que es responsable de esos datos según su <a href="https://x.com/es/privacy" rel="noopener">política de privacidad</a>. No se carga hasta que pulsas «Aceptar».</p>
+    <table>
+        <thead><tr><th>Cookie</th><th>Para qué</th><th>Duración</th></tr></thead>
+        <tbody>
+            <tr><td><code>muc_ads</code>, <code>personalization_id</code>, <code>guest_id</code> y similares (de X)</td><td>Relacionar tu visita con el anuncio de X en el que pinchaste</td><td>Hasta 2 años</td></tr>
+        </tbody>
+    </table>
+
     <h2>Cómo cambiar de opinión</h2>
-    <p>Puedes aceptar o rechazar las cookies de análisis cuando quieras desde <strong>«Configurar cookies»</strong>, en el pie de página. Si las rechazas después de haberlas aceptado, dejamos de medir y borramos lo que PostHog guardó en tu navegador. También puedes borrar las cookies desde la configuración de tu navegador.</p>
+    <p>Puedes aceptar o rechazar estas cookies cuando quieras desde <strong>«Configurar cookies»</strong>, en el pie de página. Si las rechazas después de haberlas aceptado, dejamos de medir y borramos lo que PostHog guardó en tu navegador; las de X se borran desde la configuración de tu navegador. También puedes borrar las cookies desde la configuración de tu navegador.</p>
 
     <p>Más información sobre cómo tratamos tus datos en la <a href="{{ route('legal', 'privacidad') }}">política de privacidad</a>.</p>
 </x-legal-page>

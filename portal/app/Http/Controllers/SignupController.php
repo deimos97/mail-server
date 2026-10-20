@@ -190,6 +190,7 @@ class SignupController extends Controller
 
         $analytics->signupCompleted($request, $mailbox, $plan);
         app(\App\Services\AdConversions::class)->signup($request->user());
+        app(\App\Services\AdPixel::class)->signup();
 
         $request->session()->forget('signup.plan');
         if ($request->session()->pull('signup.extra')) {
@@ -269,6 +270,10 @@ class SignupController extends Controller
         if (! $ready) {
             return view('signup.payment-pending', ['checkout' => $checkout]);
         }
+
+        $pixel = app(\App\Services\AdPixel::class);
+        $pixel->signup();
+        $pixel->purchase((int) $checkout->plan?->effectivePriceCents(), 'checkout-'.$checkout->id);
 
         if ($request->session()->pull('signup.extra')) {
             return redirect()->route('account')->with('status', "Listo: {$checkout->mailbox->email} ya está creado.");

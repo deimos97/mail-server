@@ -1,6 +1,6 @@
 import Alpine from 'alpinejs';
 import { mountFlag } from './flag';
-import { getConsent, setConsent, startAnalytics, track } from './analytics';
+import { getConsent, setConsent, startAdPixel, startAnalytics, track } from './analytics';
 import { registerWebMcpTools } from './webmcp';
 import registerPasskeyComponents from './passkeys';
 import { confirmDialog, registerConfirmForms } from './confirm';
@@ -182,6 +182,7 @@ registerWebMcpTools();
 window.Alpine = Alpine;
 Alpine.start();
 startAnalytics();
+startAdPixel();
 
 // La bandera arranca después del primer pintado: el texto y el input son lo que cuenta para el LCP.
 const flag = document.querySelector('[data-flag]');

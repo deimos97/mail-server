@@ -16,6 +16,7 @@
             <tr><td>Lo que nos escribes en el formulario de ayuda o por email a soporte: tu email, el asunto, el mensaje, las imágenes que adjuntes y la IP desde la que escribes</td><td>Responder a tu consulta y, si tienes cuenta, resolver la incidencia en ella</td><td>Contrato, si tienes cuenta; si no la tienes, tu consentimiento al escribirnos</td></tr>
             <tr><td>Origen de tu visita (campaña, enlace o web de procedencia)</td><td>Saber qué campañas funcionan</td><td>Interés legítimo; con datos de terceros, solo con tu consentimiento</td></tr>
             <tr><td>Uso de la web (páginas, clics, mapas de calor, grabaciones de sesión con los campos ocultos)</td><td>Mejorar la web</td><td>Consentimiento (solo si aceptas las cookies de análisis)</td></tr>
+            <tr><td>Que te has dado de alta o has contratado un plan, si vienes de un anuncio nuestro en X</td><td>Medir qué anuncios funcionan</td><td>Consentimiento (solo si aceptas las cookies)</td></tr>
             <tr><td>Verificación anti-robots (Cloudflare Turnstile)</td><td>Evitar altas y mensajes automáticos (alta y formulario de ayuda)</td><td>Interés legítimo en la seguridad</td></tr>
         </tbody>
     </table>
@@ -38,6 +39,7 @@
         <li><strong>Hetzner Online GmbH</strong> (Alemania): servidores donde se guardan la web, tu correo y las copias de seguridad, en la Unión Europea.</li>
         <li><strong>Stripe Payments Europe, Ltd.</strong> (Irlanda): cobros de los planes de pago. Stripe trata los datos de tu tarjeta y puede actuar también como responsable para cumplir sus obligaciones financieras.</li>
         <li><strong>PostHog</strong> (servidores en la Unión Europea): análisis de uso de la web, solo si aceptas las cookies de análisis.</li>
+        <li><strong>X</strong> (Twitter International Unlimited Company, Irlanda): si llegas desde un anuncio nuestro en X y aceptas las cookies, su etiqueta le comunica que te has dado de alta o has contratado un plan (y el importe), para medir nuestras campañas. X trata esos datos como responsable, según su política de privacidad.</li>
         <li><strong>Cloudflare, Inc.</strong>: DNS del dominio y verificación anti-robots en el alta y en el formulario de ayuda.</li>
         <li>Nuestra <strong>asesoría fiscal y contable</strong>, para la contabilidad y los impuestos.</li>
     </ul>

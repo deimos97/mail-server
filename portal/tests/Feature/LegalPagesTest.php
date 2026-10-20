@@ -16,7 +16,7 @@ class LegalPagesTest extends TestCase
         $this->get('/legal/aviso-legal')->assertSee('Tible Technologies, S.L.')->assertSee('B87456554')->assertSee('M-615786');
         $this->get('/legal/privacidad')->assertSee('Agencia Española de Protección de Datos')->assertSee('un mes');
         $this->get('/legal/condiciones')->assertSee('14 días naturales')->assertSee('juzgados de tu domicilio');
-        $this->get('/legal/cookies')->assertSee('ugl_consent');
+        $this->get('/legal/cookies')->assertSee('ugl_consent2');
     }
 
     public function test_draft_notice_can_be_turned_off(): void
