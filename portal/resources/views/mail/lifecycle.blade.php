@@ -10,7 +10,7 @@ Si no se resuelve, a los 10 días suspenderemos el buzón (seguirá recibiendo c
 @case('cancelled')
 # Has cancelado tu plan
 
-Has cancelado el plan de **{{ $address }}**. Como este buzón no puede pasar al plan gratis (ya tienes uno, ocupa más de lo que permite o es un nombre corto), **lo perderás**:
+Has cancelado el plan de **{{ $address }}** y, como el buzón no puede pasar a un plan gratis, **lo perderás**:
 
 - Sigue funcionando con normalidad hasta el **{{ $date }}**.
 - Después lo suspenderemos (seguirá recibiendo correo, pero no podrás entrar ni enviar).
@@ -21,7 +21,7 @@ Has cancelado el plan de **{{ $address }}**. Como este buzón no puede pasar al 
 @case('ended')
 # Tu plan ha terminado
 
-El plan de **{{ $address }}** ha terminado y el buzón no puede pasar al plan gratis (ya tienes uno, ocupa más de lo que permite o es un nombre corto).
+El plan de **{{ $address }}** ha terminado y el buzón no puede pasar a un plan gratis.
 
 Si quieres conservarlo, vuelve a contratar un plan. Si no, a los 10 días lo suspenderemos y a los 30 lo borraremos.
 @break

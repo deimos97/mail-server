@@ -145,6 +145,36 @@ class PlanChangeTest extends TestCase
         $this->assertFalse($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);
     }
 
+    public function test_with_free_closed_only_older_mailboxes_can_still_go_free(): void
+    {
+        // D-032: el gratis deja de verse en las altas; los buzones de antes conservan su paso a gratis
+        $this->plan('gratis')->updateQuietly(['is_active' => false]);
+        config(['lifecycle.free_closed_at' => now()->addMinute()->utc()->toDateTimeString()]);
+        $mailbox = $this->paidMailbox('basico');
+
+        $this->assertTrue(app(\App\Services\MailboxBilling::class)->fitsFree($mailbox));
+        $this->actingAs($this->user)->get("/cuenta/plan/{$mailbox->id}")->assertSee('Gratis')->assertDontSee('Cancelar mi plan');
+
+        config(['lifecycle.free_closed_at' => now()->subMinute()->utc()->toDateTimeString()]);
+        $this->assertFalse(app(\App\Services\MailboxBilling::class)->fitsFree($mailbox));
+        $this->get("/cuenta/plan/{$mailbox->id}")->assertSee('Cancelar mi plan')->assertSee('Mini')
+            ->assertDontSee('Este buzón no puede pasar al plan gratis');
+        $this->post("/cuenta/plan/{$mailbox->id}", ['plan' => $this->plan('gratis')->id])->assertSessionHasErrors('plan');
+    }
+
+    public function test_a_new_paid_mailbox_is_lost_when_its_plan_ends_once_free_is_closed(): void
+    {
+        Mail::fake();
+        $this->plan('gratis')->updateQuietly(['is_active' => false]);
+        config(['lifecycle.free_closed_at' => now()->subMinute()->utc()->toDateTimeString()]);
+        $mailbox = $this->paidMailbox('mini-anual');
+
+        app(\App\Services\MailboxBilling::class)->ended(['id' => 'sub_1', 'metadata' => ['mailbox_id' => $mailbox->id], 'items' => ['data' => []]]);
+
+        $this->assertSame('mini-anual', $mailbox->fresh()->plan->slug);          // no pasa a gratis
+        Mail::assertQueued(LifecycleNotice::class, fn ($mail) => $mail->type === 'ended');
+    }
+
     public function test_free_is_not_offered_when_not_allowed(): void
     {
         $this->mailbox('gratis', 'anagratis');                                     // ya tiene su gratis
@@ -175,7 +205,7 @@ class PlanChangeTest extends TestCase
 
         $this->get("/cuenta/plan/{$mailbox->id}")->assertSee('perderás este buzón', false)->assertSee('Deshacer y seguir con mi plan')
             ->assertDontSee('Cancelar mi plan');
-        $this->get('/cuenta')->assertSee('se suspende, porque no cabe en el plan gratis');
+        $this->get('/cuenta')->assertSee('se suspende y, más adelante, se borra');
 
         $this->post("/cuenta/plan/{$mailbox->id}/deshacer")->assertRedirect('/cuenta');
         $this->assertFalse($this->stripe->objects['subscriptions']['sub_1']['cancel_at_period_end']);

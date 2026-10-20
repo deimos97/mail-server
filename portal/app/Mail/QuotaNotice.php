@@ -35,7 +35,7 @@ class QuotaNotice extends Mailable implements ShouldQueue
         $this->quota = Bytes::format($mailbox->quota_bytes);
         $this->free = (bool) $mailbox->plan?->is_free;
         $this->mailboxId = $mailbox->id;
-        if ($this->free && ($upsell = \App\Models\Plan::visible()->ordered()->where('is_free', false)->orderByDesc('is_highlighted')->first())) {
+        if ($this->free && ($upsell = \App\Models\Plan::visible()->where('is_free', false)->orderByDesc('is_highlighted')->ordered()->first())) {
             $this->upsellName = $upsell->name;
             $this->upsellQuota = Bytes::format($upsell->quota_bytes);
         }

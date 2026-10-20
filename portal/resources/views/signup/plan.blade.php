@@ -10,26 +10,27 @@
     // Tras un error (p. ej. sin marcar la casilla), el plan que mandó; si no, el que eligió en la landing o al volver de Stripe
     $selected = old('plan', $selected);
     $default = $plans->first(fn ($p) => $p->slug === $selected && $selectable($p)) ?? $plans->first($selectable);
-    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo
+    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo.
+    // Un plan sin gemelo (el Mini, solo anual) sale siempre.
     $paidPlans = $plans->reject->is_free;
-    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year');
-    $initYearly = $default && ! $default->is_free && $default->interval === 'year';
     $twins = $paidPlans->mapWithKeys(fn ($p) => [$p->slug => $paidPlans->first(fn ($o) => $o->tier === $p->tier && $o->interval !== $p->interval)?->slug]);
+    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year' && $twins[$p->slug]);
+    $initYearly = $default && ! $default->is_free && $default->interval === 'year' && $twins[$default->slug];
 @endphp
 
 <x-signup-layout :step="$extra ? null : 3" title="Elige tu plan">
     <p class="mt-2 text-stone-600">Para <strong data-ph-mask>{{ $reservation->email() }}</strong>. Precios con IVA incluido.</p>
 
-    @if ($hasFree)
+    @if ($hasFree && $plans->contains('is_free', true))
         <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">
             <p class="font-semibold">Tu cuenta ya tiene su buzón gratis.</p>
             <p class="mt-1 text-stone-700">Cada cuenta incluye un buzón gratis; los demás van con un plan de pago.</p>
             <a href="{{ route('account') }}" class="mt-3 inline-block rounded-xl bg-white px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Volver a mi cuenta</a>
         </div>
-    @elseif ($surcharge)
+    @elseif ($surcharge && $plans->contains('is_free', true))
         <div class="mt-5 rounded-2xl bg-amarillo/20 p-4 text-sm">
             <p class="font-semibold">Los nombres cortos necesitan un plan de pago (+{{ Money::format($surcharge->price_cents) }}/mes).</p>
-            <p class="mt-1 text-stone-700">Elige un plan de pago o, si prefieres el gratis, un nombre de 5 caracteres o más.</p>
+            <p class="mt-1 text-stone-700">Elige un plan de pago o, si prefieres el gratis, un nombre de {{ $surcharge->max_length + 1 }} caracteres o más.</p>
             <form method="POST" action="{{ route('signup.change-name') }}" class="mt-3">@csrf
                 <button class="rounded-xl bg-white px-4 py-2 font-semibold ring-1 ring-stone-300 hover:bg-stone-50">Elegir otro nombre</button>
             </form>
@@ -47,7 +48,7 @@
             <legend class="sr-only">Plan</legend>
             @foreach ($plans as $plan)
                 @php $enabled = $selectable($plan); $per = $plan->interval === 'year' ? '/año' : '/mes'; @endphp
-                <label @if ($hasYearly && ! $plan->is_free) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
+                <label @if ($hasYearly && ! $plan->is_free && $twins[$plan->slug]) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
                     'flex items-start gap-4 rounded-2xl p-4 ring-2 transition',
                     'cursor-pointer hover:bg-stone-50' => $enabled,
                     'cursor-not-allowed opacity-50' => ! $enabled,

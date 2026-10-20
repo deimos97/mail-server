@@ -44,7 +44,12 @@ class PlanChange
             ->whereIn('plan_id', Plan::where('is_free', true)->pluck('id'))->exists();
         $stripeReady = app(StripeCatalog::class)->enabled();
 
+        // Con el gratis cerrado a las altas (D-032), los buzones de antes que pueden pasar a gratis lo siguen viendo
+        $free = Plan::where('is_free', true)->orderBy('sort_order')->first();
+        $keepsFree = $free && ! $free->isVisible() && ! $mailbox->plan?->is_free && $this->billing->fitsFree($mailbox);
+
         return Plan::visible()->ordered()->get()
+            ->when($keepsFree, fn ($plans) => $plans->prepend($free))
             ->when(! $mailbox->plan?->isVisible(), fn ($plans) => $mailbox->plan ? $plans->prepend($mailbox->plan) : $plans)
             ->map(function (Plan $plan) use ($mailbox, $short, $otherFree, $stripeReady) {
                 $reason = match (true) {

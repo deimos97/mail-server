@@ -81,7 +81,7 @@
                         <p class="text-stone-500">
                             @if ($subscription?->onGracePeriod())
                                 Sigues con el plan {{ $mailbox->plan?->name }} hasta el {{ $subscription->ends_at->timezone('Europe/Madrid')->format('d/m/Y') }}
-                                y después {{ app(\App\Services\MailboxBilling::class)->fitsFree($mailbox) ? 'pasa a gratis' : 'se suspende, porque no cabe en el plan gratis' }}.
+                                y después {{ app(\App\Services\MailboxBilling::class)->fitsFree($mailbox) ? 'pasa a gratis' : 'se suspende y, más adelante, se borra' }}.
                                 Puedes deshacerlo en «Cambiar de plan».
                             @elseif ($subscription)
                                 Se renueva solo. Puedes cambiarlo o cancelarlo cuando quieras.
@@ -292,7 +292,7 @@
         @if ($mailboxes->isNotEmpty())
             <div class="mt-6 rounded-3xl border-2 border-dashed border-stone-300 p-4 text-center sm:p-5">
                 <a href="{{ route('signup', ['nuevo' => 1]) }}" class="font-bold text-rojo underline">Añadir otro buzón</a>
-                <p class="mt-1 text-sm text-stone-500">Tu cuenta incluye un buzón gratis; los demás van con un plan de pago.</p>
+                <p class="mt-1 text-sm text-stone-500">Cada buzón va con su propio plan.</p>
             </div>
         @endif
 

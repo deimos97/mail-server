@@ -10,12 +10,13 @@
         <li>Debes tener al menos 14 años; para contratar un plan de pago, ser mayor de edad.</li>
         <li>Necesitamos un <strong>email de recuperación</strong> válido: es al que enviamos los avisos importantes y el enlace para recuperar la contraseña. Mantenlo al día.</li>
         <li>Eres responsable de guardar tus contraseñas. Cada aplicación o dispositivo tiene la suya y puedes revocarla desde «Mi cuenta».</li>
-        <li>Cada cuenta incluye <strong>un buzón gratis</strong>; los demás buzones van con un plan de pago.</li>
+        <li>Cada buzón va con su propio plan de pago. Desde el 20 de octubre de 2026 ya no se pueden crear buzones gratis.</li>
     </ul>
 
-    <h2>3. Plan gratis</h2>
+    <h2>3. Buzones gratis creados hasta el 20 de octubre de 2026</h2>
     <ul>
-        <li>No caduca mientras lo uses. Hasta que confirmes tu email de recuperación, el buzón recibe correo pero no puede enviarlo.</li>
+        <li>Los buzones gratis que ya existían siguen siéndolo, con sus mismas condiciones. Cada cuenta podía tener uno.</li>
+        <li>No caducan mientras los uses. Hasta que confirmes tu email de recuperación, el buzón recibe correo pero no puede enviarlo.</li>
         <li>Si pasan {{ $i['after_months'] }} meses sin que nadie entre en el buzón, te avisaremos; si no vuelves en {{ $i['grace_days'] }} días, lo borraremos con todo su contenido.</li>
         <li>Los nombres cortos (con sobrecoste) solo están disponibles con planes de pago.</li>
     </ul>
@@ -32,7 +33,7 @@
     <h2>5. Cambiar de plan y cancelar</h2>
     <ul>
         <li>Desde «Mi cuenta» → «Cambiar de plan». Si subes de plan, el cambio es inmediato y pagas en ese momento la parte proporcional hasta la renovación. Si bajas, también es inmediato y la diferencia se descuenta de tus próximos pagos.</li>
-        <li>Puedes <strong>cancelar cuando quieras</strong>, sin permanencia: el plan sigue activo hasta el final del periodo ya pagado. Después, el buzón pasa al plan gratis si cumple sus condiciones (no tienes ya un buzón gratis, cabe en su espacio y no es un nombre corto). Si no las cumple, se trata como un impago (punto 7), con tiempo para descargar tu correo.</li>
+        <li>Puedes <strong>cancelar cuando quieras</strong>, sin permanencia: el plan sigue activo hasta el final del periodo ya pagado. Después, si el buzón se creó hasta el 20 de octubre de 2026, pasa al plan gratis cuando cumple sus condiciones (no tienes ya un buzón gratis, cabe en su espacio y no es un nombre corto). En los demás casos se trata como un impago (punto 7), con tiempo para descargar tu correo.</li>
     </ul>
 
     <h2>6. Derecho de desistimiento</h2>

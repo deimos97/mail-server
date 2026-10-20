@@ -54,6 +54,19 @@ class LandingTest extends TestCase
             ->assertSee('x-show="yearly"', false)->assertSee('x-show="! yearly"', false);
     }
 
+    public function test_without_free_plan_the_yearly_only_mini_is_always_shown(): void
+    {
+        Plan::where('slug', 'gratis')->update(['is_active' => false]);   // D-032
+
+        $html = $this->get('/')->assertOk()
+            ->assertDontSee('Empezar gratis')
+            ->assertSee('Elegir Mini')->assertSee('4,99 €')->assertSee('Sale a 0,41 €/mes')
+            ->getContent();
+        // Solo los planes con gemelo mensual/anual van detrás del selector; el Mini, no
+        $this->assertSame(2, substr_count($html, 'x-show="yearly"'));
+        $this->assertSame(2, substr_count($html, 'x-show="! yearly"'));
+    }
+
     public function test_preview_steps_and_switching_sections(): void
     {
         $this->get('/')

@@ -8,14 +8,15 @@ use App\Models\MailboxState;
 use App\Models\NamePriceTier;
 use App\Models\Plan;
 use App\Models\PlanPrice;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 /**
  * Mantiene cada buzón de pago en sintonía con su suscripción de Stripe (la manda Stripe por webhook):
  * - Plan: por el Price de la suscripción (actual o antiguo, ver PlanPrice) → plan, cuota y `tier` al momento.
  * - Pagos: impago → `unpaid_since` (el ciclo de vida suspende y borra, ver MailboxLifecycle); pago → todo normal.
- * - Fin de la suscripción (cancelada al acabar el periodo, o sin pagar): pasa a gratis si se puede (D-009);
- *   si no, sigue el camino del impago.
+ * - Fin de la suscripción (cancelada al acabar el periodo, o sin pagar): pasa a gratis si se puede (D-009,
+ *   solo buzones de antes de D-032); si no, sigue el camino del impago.
  */
 class MailboxBilling
 {
@@ -42,13 +43,18 @@ class MailboxBilling
     }
 
     /** La suscripción ha terminado (cancelada al final del periodo, o impagada hasta el final). */
-    /** Si al acabar su suscripción el buzón puede pasar a gratis (D-009); si no, se trata como un impago. */
+    /**
+     * Si al acabar su suscripción el buzón puede pasar a gratis (D-009); si no, se trata como un impago.
+     * Desde que se cerró el gratis (D-032), solo los buzones creados antes: el plan gratis puede estar oculto.
+     */
     public function fitsFree(Mailbox $mailbox): bool
     {
         $free = Plan::where('is_free', true)->orderBy('sort_order')->first();
         $user = $mailbox->user;
+        $closedAt = config('lifecycle.free_closed_at');
 
         return $free
+            && (! $closedAt || ($mailbox->created_at && $mailbox->created_at->lt(Carbon::parse($closedAt, 'UTC'))))
             && $user && ! $user->mailboxes()->whereKeyNot($mailbox->id)->where('status', '!=', 'deleted')->whereIn('plan_id', Plan::where('is_free', true)->pluck('id'))->exists()
             && $mailbox->usedBytes() <= $free->quota_bytes
             && ! NamePriceTier::forLength(mb_strlen($mailbox->local_part));      // los nombres cortos solo van con pago

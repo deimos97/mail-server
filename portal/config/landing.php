@@ -5,6 +5,8 @@
  * y desplegar. Los planes salen de la BD (admin → Planes).
  *
  * Tono neutro (2026-10-15): correo español, privado y sin anuncios; la marca y la bandera hacen el resto.
+ * Sin plan gratis para las altas desde el 2026-10-20 (D-032): el precio del Mini (4,99 €/año) sale aquí escrito
+ * en el paso 2 y en las preguntas; si cambia en el admin, cámbialo también aquí.
  */
 
 return [
@@ -36,7 +38,7 @@ return [
         'steps_title' => 'Listo en un minuto',
         'steps' => [
             ['title' => 'Elige tu nombre', 'text' => 'Escríbelo arriba y te decimos al momento si está libre. Si no, te proponemos parecidos.'],
-            ['title' => 'Elige tu plan', 'text' => 'Empieza gratis o elige uno de pago. Pagas con tarjeta en Stripe: nunca vemos tus datos.'],
+            ['title' => 'Elige tu plan', 'text' => 'Desde 4,99 € al año. Pagas con tarjeta en Stripe: nunca vemos tus datos.'],
             ['title' => 'Úsalo donde quieras', 'text' => 'En el navegador, con el webmail, o en las apps del móvil y del ordenador. Te guiamos paso a paso.'],
         ],
     ],
@@ -87,12 +89,12 @@ return [
         ['q' => '¿Puedo usar mi cuenta en el móvil?', 'a' => 'Sí. Funciona con la app de correo del iPhone, Gmail para Android, Outlook, Thunderbird y cualquier app que use IMAP y SMTP.'],
         ['q' => '¿Puedo leerlo dentro de gmail.com?', 'a' => 'En el móvil sí: añade tu cuenta en la app de Gmail (te explicamos cómo paso a paso). En gmail.com desde el ordenador no, porque Google ya no permite añadir cuentas de otros proveedores; ahí usa nuestro webmail o un programa como Outlook o Thunderbird.'],
         ['q' => '¿Qué pasa si dejo de pagar?', 'a' => 'Te avisamos antes. Si no se renueva el pago, la cuenta se suspende y, pasado un tiempo, se borra. Siempre podrás descargar tu correo antes.'],
-        ['q' => '¿Qué incluye el plan gratis?', 'a' => 'Un buzón con 500 MB, hasta 20 correos enviados al día, webmail y apps de correo. Cada cuenta incluye un buzón gratis; si necesitas más espacio o más envíos, pasa a un plan de pago cuando quieras.'],
-        ['q' => '¿Puedo cambiar de plan?', 'a' => 'Cuando quieras, desde tu cuenta. Si subes, el cambio es inmediato y solo pagas la diferencia. Si pasas a gratis, sigues con tu plan hasta el final del periodo que ya has pagado.'],
-        ['q' => '¿Puedo pagar al año?', 'a' => 'Sí. El pago anual sale a dos meses gratis frente al mensual.'],
-        ['q' => '¿Qué es un alias?', 'a' => 'Otra dirección del dominio que llega a tu mismo buzón, por ejemplo para compras o para tu trabajo. Puedes enviar desde ella y borrarla cuando quieras. Van con los planes de pago: 3 en el Básico y 10 en el Pro.'],
+        ['q' => '¿Por qué no hay plan gratis?', 'a' => 'Porque el correo gratis lo acaba pagando alguien: con anuncios, con tus datos o con el spam de las cuentas que se abren para eso. El Mini cuesta 4,99 € al año (menos de 0,42 € al mes) e incluye 500 MB, hasta 20 correos enviados al día, webmail y apps de correo. Si necesitas más, pasa al Básico o al Pro cuando quieras.'],
+        ['q' => '¿Puedo cambiar de plan?', 'a' => 'Cuando quieras, desde tu cuenta. Si subes, el cambio es inmediato y solo pagas la diferencia. Si bajas, también es inmediato y la diferencia se descuenta de tus próximos pagos.'],
+        ['q' => '¿Puedo pagar al año?', 'a' => 'Sí. En el Básico y el Pro, el pago anual sale a dos meses gratis frente al mensual. El Mini solo se paga al año.'],
+        ['q' => '¿Qué es un alias?', 'a' => 'Otra dirección del dominio que llega a tu mismo buzón, por ejemplo para compras o para tu trabajo. Puedes enviar desde ella y borrarla cuando quieras. Hay 3 en el Básico y 10 en el Pro.'],
         ['q' => '¿Y si no quiero pagar por un alias?', 'a' => 'Usa el truco del «+»: si eres ana@unagrandeylibre.es, lo que se envíe a ana+compras@unagrandeylibre.es te llega igual. Sirve en todos los planes y te ayuda a saber quién ha pasado tu dirección.'],
-        ['q' => '¿Por qué algunos nombres cortos cuestan más?', 'a' => 'Los nombres de pocos caracteres son escasos. Se pueden coger con cualquier plan de pago con un pequeño suplemento mensual.'],
+        ['q' => '¿Por qué algunos nombres cortos cuestan más?', 'a' => 'Los nombres de pocos caracteres son escasos. Se pueden coger con cualquier plan, con un pequeño suplemento.'],
         ['q' => '¿Puedo arrepentirme después de pagar?', 'a' => 'Sí: tienes 14 días para desistir. Si pediste empezar a usarlo al momento, solo pagas la parte que hayas usado.'],
     ],
 

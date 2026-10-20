@@ -3,12 +3,13 @@
     $hasSubscription = (bool) $subscription;
     $choices = $options->reject(fn ($o) => $o['current'] || $o['reason']);
     $current = $options->firstWhere('current', true)['plan']->id ?? null;
-    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo
+    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo.
+    // Un plan sin gemelo (el Mini, solo anual) sale siempre.
     $paidPlans = $options->pluck('plan')->reject->is_free;
-    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year');
     $twins = $paidPlans->mapWithKeys(fn ($p) => [$p->id => $paidPlans->first(fn ($o) => $o->tier === $p->tier && $o->interval !== $p->interval)?->id]);
+    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year' && $twins[$p->id]);
     $currentPlan = $options->firstWhere('current', true)['plan'] ?? null;
-    $initYearly = $currentPlan && ! $currentPlan->is_free && $currentPlan->interval === 'year';
+    $initYearly = $currentPlan && ! $currentPlan->is_free && $currentPlan->interval === 'year' && ($twins[$currentPlan->id] ?? null);
     $meta = $options->mapWithKeys(fn ($o) => [$o['plan']->id => ['free' => $o['plan']->is_free]]);
 @endphp
 
@@ -46,7 +47,7 @@
             <legend class="sr-only">Plan</legend>
             @foreach ($options as $option)
                 @php $plan = $option['plan']; $enabled = ! $option['current'] && ! $option['reason']; $per = $plan->interval === 'year' ? '/año' : '/mes'; @endphp
-                <label @if ($hasYearly && ! $plan->is_free) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
+                <label @if ($hasYearly && ! $plan->is_free && $twins[$plan->id]) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
                     'flex items-start gap-4 rounded-2xl p-4 ring-2 transition',
                     'cursor-pointer hover:bg-stone-50' => $enabled,
                     'cursor-not-allowed' => ! $enabled,
@@ -111,8 +112,10 @@
         <div class="mt-10 border-t border-stone-200 pt-6 text-sm">
             <h2 class="font-semibold">Cancelar mi plan</h2>
             <p class="mt-1 text-stone-600">
-                Este buzón no puede pasar al plan gratis{{ $why ? ': '.lcfirst(rtrim($why, '.')) : '' }}. <strong>Si cancelas, lo perderás</strong> con todo su correo.
-                Si quieres conservarlo, elige otro plan de pago.
+                @if ($why)
+                    Este buzón no puede pasar al plan gratis: {{ lcfirst(rtrim($why, '.')) }}.
+                @endif
+                <strong>Si cancelas, lo perderás</strong> con todo su correo. Si quieres conservarlo, elige otro plan arriba.
             </p>
             <form method="POST" action="{{ route('account.plan.cancel', $mailbox->id) }}" class="mt-3"
                   data-confirm="¿Cancelar el plan y perder {{ $mailbox->email }}?" data-confirm-body="{{ $body }}" data-confirm-button="Cancelar y perder el buzón">

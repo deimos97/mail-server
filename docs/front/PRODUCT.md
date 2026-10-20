@@ -18,7 +18,7 @@ De arriba abajo:
    - El sufijo `@unagrandeylibre.es` es un selector cuando haya más de un dominio; mientras haya uno, se ve como texto fijo.
 2. **Así te verán + Listo en un minuto:** una bandeja de entrada de ejemplo con un correo de la dirección que el visitante haya elegido arriba (si no, `tunombre@…`), y el alta en 3 pasos. En el hero, bajo el buscador, "Ya somos N con dirección @…" (buzones activos de clientes, sin los internos), solo a partir de `landing.counter.min` (100).
 3. **Planes** (al hacer scroll). Tarjetas `x,xx €/mes` con sus características. **Salen de la BD**, nada escrito a mano en la plantilla. Cada plan puede ser:
-   - gratis o de pago;
+   - gratis o de pago (desde el 2026-10-20 no hay gratis para las altas nuevas: el más barato es el Mini, 4,99 €/año, D-032);
    - activo o inactivo, de forma absoluta o programada (desde/hasta);
    - con descuento (oferta), también programable: precio tachado + etiqueta ("-50 % lanzamiento", "hasta el 31/12").
    - Un plan puede marcarse como destacado ("el más elegido").
@@ -40,7 +40,7 @@ Landing: elige nombre ──▶ 1. Email de recuperación ──▶ 2. Plan ─�
 
 1. **Email de recuperación + contraseña.** Sirve para recuperar la cuenta y para confirmarla (enlace o código de 6 dígitos). Captcha invisible aquí. El nombre elegido queda **reservado unos minutos** mientras termina el flujo.
 2. **Plan.** Se preselecciona el que eligió en la landing, si eligió uno.
-   - Gratis → se crea ya.
+   - Gratis → se crea ya (solo si hay un plan gratis visible: desde el 2026-10-20, D-032, no lo hay y todas las altas van por Stripe).
    - Pago → Stripe Checkout (página alojada por Stripe: tarjeta, Apple Pay, Google Pay, SEPA si se quiere). El buzón se crea cuando Stripe confirma el pago (webhook), no al volver del redirect.
 3. **Confirmar email de recuperación.** En las cuentas gratis el buzón ya recibe y se puede leer, pero **no envía** hasta confirmar. Las de pago tienen todo activo desde el pago.
 4. **Pantalla "¡Listo!":** botón **Abrir mi correo** (entra al webmail sin volver a loguearse) + **Configúralo en tu móvil** (iPhone / Android / Outlook / Thunderbird: genera una contraseña para ese dispositivo o, en iPhone, un perfil que la lleva dentro) + **Ir a mi cuenta**. El usuario solo tiene que recordar una contraseña: la de la web.

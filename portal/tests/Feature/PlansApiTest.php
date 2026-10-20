@@ -17,8 +17,9 @@ class PlansApiTest extends TestCase
         $this->getJson('/api/plans')->assertOk()
             ->assertJsonPath('iva_incluido', true)
             ->assertJsonPath('planes.0.id', 'gratis')
-            ->assertJsonPath('planes.1.precio_eur', 1.99)
-            ->assertJsonPath('planes.1.precio_ahora_eur', 1)    // oferta -50 %
-            ->assertJsonPath('planes.1.oferta', '-50 % lanzamiento');
+            ->assertJsonPath('planes.1.id', 'mini-anual')
+            ->assertJsonPath('planes.2.precio_eur', 1.99)
+            ->assertJsonPath('planes.2.precio_ahora_eur', 1)    // oferta -50 %
+            ->assertJsonPath('planes.2.oferta', '-50 % lanzamiento');
     }
 }

@@ -15,4 +15,8 @@ return [
         'release_after_days' => 60,      // tras el borrado → nombre libre
     ],
     'voluntary_release_days' => 90,      // borrar la cuenta → nombre libre
+
+    // Fin del plan gratis para las altas nuevas (D-032, en UTC). Solo los buzones creados antes pueden pasar a
+    // gratis al acabar su plan de pago; los nuevos, como un impago. Vacío (tests): sin fecha, todos pueden.
+    'free_closed_at' => env('FREE_PLAN_CLOSED_AT', '2026-10-20 20:00:00'),
 ];

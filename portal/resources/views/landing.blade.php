@@ -176,7 +176,10 @@
 
     {{-- PLANES (salen de la BD) --}}
     @php
-        $hasYearly = $plans->contains(fn ($p) => ! $p['is_free'] && $p['interval'] === 'year');
+        // Mensual / anual (D-029): un plan de pago con gemelo (mismo tier, otro intervalo) sale en una tanda u
+        // otra; sin gemelo (el Mini, solo anual) sale siempre, como el gratis
+        $twinned = fn ($p) => ! $p['is_free'] && $plans->contains(fn ($o) => ! $o['is_free'] && $o['tier'] === $p['tier'] && $o['interval'] !== $p['interval']);
+        $hasYearly = $plans->contains(fn ($p) => $p['interval'] === 'year' && $twinned($p));
     @endphp
     <section id="planes" class="scroll-mt-4 px-4 py-20 sm:px-6 sm:py-28" x-data="{ yearly: false, setYearly(v) { this.yearly = v } }">
         <div class="mx-auto max-w-6xl">
@@ -192,9 +195,9 @@
             @if ($plans->isEmpty())
                 <p class="mt-12 text-center text-stone-500">Muy pronto publicaremos los planes.</p>
             @else
-                {{-- Con planes anuales, se ve una tanda u otra (el gratis, siempre): cuentan los de una tanda --}}
+                {{-- Con planes anuales, se ve una tanda u otra (los que no tienen gemelo, siempre): cuentan los de una tanda --}}
                 @php
-                    $perRow = $hasYearly ? $plans->filter(fn ($p) => $p['interval'] !== 'year')->count() : $plans->count();
+                    $perRow = $hasYearly ? $plans->filter(fn ($p) => $p['interval'] !== 'year' || ! $twinned($p))->count() : $plans->count();
                 @endphp
                 @if ($hasYearly)
                     <x-billing-toggle class="mt-10" />
@@ -212,7 +215,7 @@
                             $hasOffer = $plan['offer'] !== null;
                             $yearlyCard = ! $plan['is_free'] && $plan['interval'] === 'year';
                         @endphp
-                        <article @if ($hasYearly && ! $plan['is_free']) x-show="{{ $yearlyCard ? 'yearly' : '! yearly' }}" @if ($yearlyCard) x-cloak @endif @endif @class([
+                        <article @if ($hasYearly && $twinned($plan)) x-show="{{ $yearlyCard ? 'yearly' : '! yearly' }}" @if ($yearlyCard) x-cloak @endif @endif @class([
                             'relative flex flex-col rounded-3xl bg-white p-8 shadow-sm ring-1',
                             'ring-2 ring-rojo shadow-xl shadow-rojo/10 md:-translate-y-2' => $plan['is_highlighted'],
                             'ring-stone-200' => ! $plan['is_highlighted'],

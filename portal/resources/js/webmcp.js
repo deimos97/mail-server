@@ -37,7 +37,7 @@ const tools = [
             type: 'object',
             properties: {
                 nombre: { type: 'string', description: 'La parte antes de la @' },
-                plan: { type: 'string', description: 'Identificador del plan (de listar_planes), por ejemplo "gratis"' },
+                plan: { type: 'string', description: 'Identificador del plan (de listar_planes), por ejemplo "basico"' },
             },
             required: ['nombre'],
         },

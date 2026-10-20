@@ -29,6 +29,7 @@ class LandingController extends Controller
             'is_free' => $plan->is_free,
             'is_highlighted' => $plan->is_highlighted,
             'interval' => $plan->interval,
+            'tier' => $plan->tier,
             'price_cents' => $plan->price_cents,
             'effective_price_cents' => $plan->effectivePriceCents(),
             'offer' => $plan->currentOffer(),

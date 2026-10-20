@@ -43,6 +43,16 @@ class DemoPlansSeeder extends Seeder
             'sort_order' => 30,
         ]);
 
+        // El más barato, solo anual (D-032): en producción sustituye al gratis en las altas (el gratis queda inactivo)
+        Plan::updateOrCreate(['slug' => 'mini-anual'], [
+            'name' => 'Mini',
+            'description' => 'Tu dirección por menos de lo que cuestan dos cafés al año.',
+            'features' => ['500 MB de espacio', 'Webmail y apps de correo', '20 envíos al día', 'Antispam'],
+            'price_cents' => 499, 'interval' => 'year',
+            'quota_bytes' => 500 * 1024 ** 2, 'max_aliases' => 0, 'send_limit_per_hour' => 20, 'tier' => 'mini',
+            'sort_order' => 11,
+        ]);
+
         // Pago anual (D-029): mismo tier, dos meses gratis. En la web, un selector Mensual / Anual.
         Plan::updateOrCreate(['slug' => 'basico-anual'], [
             'name' => 'Básico anual',
