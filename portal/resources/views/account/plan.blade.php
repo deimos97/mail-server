@@ -1,15 +1,16 @@
 @php
     use App\Support\Money;
+    use App\Support\PlanGroups;
     $hasSubscription = (bool) $subscription;
     $choices = $options->reject(fn ($o) => $o['current'] || $o['reason']);
     $current = $options->firstWhere('current', true)['plan']->id ?? null;
-    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo.
-    // Un plan sin gemelo (el Mini, solo anual) sale siempre.
-    $paidPlans = $options->pluck('plan')->reject->is_free;
-    $twins = $paidPlans->mapWithKeys(fn ($p) => [$p->id => $paidPlans->first(fn ($o) => $o->tier === $p->tier && $o->interval !== $p->interval)?->id]);
-    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year' && $twins[$p->id]);
+    // Una tarjeta por plan con su selector Anual / Mensual (en el del plan actual, o en el más barato);
+    // el precio, siempre al mes (App\Support\PlanGroups)
+    $byId = $options->keyBy(fn ($o) => $o['plan']->id);
+    $groups = PlanGroups::of($options->pluck('plan'));
     $currentPlan = $options->firstWhere('current', true)['plan'] ?? null;
-    $initYearly = $currentPlan && ! $currentPlan->is_free && $currentPlan->interval === 'year' && ($twins[$currentPlan->id] ?? null);
+    $period = $groups->mapWithKeys(fn ($g) => [$g['key'] => ($currentPlan && $g['plans']->contains($currentPlan) ? $currentPlan : $g['default'])->interval === 'year' ? 'year' : 'month']);
+    $ids = $groups->mapWithKeys(fn ($g) => [$g['key'] => $g['plans']->mapWithKeys(fn ($p) => [$p->interval === 'year' ? 'year' : 'month' => $p->id])]);
     $meta = $options->mapWithKeys(fn ($o) => [$o['plan']->id => ['free' => $o['plan']->is_free]]);
 @endphp
 
@@ -38,16 +39,19 @@
 
     <form method="POST" action="{{ route('account.plan.store', $mailbox->id) }}" class="mt-6"
           x-data="{ plan: @js(old('plan', $current ?? $choices->first()['plan']->id ?? null)), current: @js($current), meta: @js($meta), sub: @js($hasSubscription),
-                    twins: @js($twins), yearly: @js($initYearly), setYearly(v) { if (this.yearly !== v && this.twins[this.plan]) this.plan = this.twins[this.plan]; this.yearly = v } }">
+                    period: @js($period), ids: @js($ids),
+                    setPeriod(group, yearly) { const was = this.plan == this.ids[group][this.period[group]]; this.period[group] = yearly ? 'year' : 'month';
+                                               if (was && this.ids[group][this.period[group]]) this.plan = this.ids[group][this.period[group]] } }">
         @csrf
-        @if ($hasYearly)
-            <x-billing-toggle class="mb-5" />
-        @endif
         <fieldset class="space-y-3">
             <legend class="sr-only">Plan</legend>
-            @foreach ($options as $option)
-                @php $plan = $option['plan']; $enabled = ! $option['current'] && ! $option['reason']; $per = $plan->interval === 'year' ? '/año' : '/mes'; @endphp
-                <label @if ($hasYearly && ! $plan->is_free && $twins[$plan->id]) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
+            @foreach ($groups as $group)
+            @foreach ($group['plans'] as $plan)
+                @php
+                    $option = $byId[$plan->id]; $enabled = ! $option['current'] && ! $option['reason'];
+                    $yearly = $plan->interval === 'year'; $twinned = $group['plans']->count() > 1;
+                @endphp
+                <label @if ($twinned) x-show="period[@js($group['key'])] === @js($yearly ? 'year' : 'month')" @if ($period[$group['key']] !== ($yearly ? 'year' : 'month')) x-cloak @endif @endif @class([
                     'flex items-start gap-4 rounded-2xl p-4 ring-2 transition',
                     'cursor-pointer hover:bg-stone-50' => $enabled,
                     'cursor-not-allowed' => ! $enabled,
@@ -56,9 +60,12 @@
                     <input type="radio" name="plan" value="{{ $plan->id }}" x-model="plan" @disabled(! $enabled) class="mt-1 size-5 accent-rojo">
                     <span class="flex-1">
                         <span class="flex items-baseline justify-between gap-3">
-                            <span class="text-lg font-bold">{{ $plan->name }}</span>
-                            <span class="font-bold">{{ $plan->is_free ? 'Gratis' : Money::format($plan->effectivePriceCents()).$per }}</span>
+                            <span class="text-lg font-bold">{{ $group['name'] }}</span>
+                            <span class="text-right font-bold">{{ $plan->is_free ? 'Gratis' : Money::format(PlanGroups::perMonth($plan, $plan->effectivePriceCents())).'/mes' }}</span>
                         </span>
+                        @if ($yearly && ! $plan->is_free)
+                            <span class="block text-sm text-stone-500">Pago anual de {{ Money::format($plan->effectivePriceCents()) }}.</span>
+                        @endif
                         @if ($plan->features)
                             <span class="mt-1 block text-sm text-stone-600">{{ implode(' · ', $plan->features) }}</span>
                         @endif
@@ -75,8 +82,12 @@
                                 @endif
                             </span>
                         @endif
+                        @if ($twinned)
+                            <x-billing-toggle :group="$group['key']" class="mt-3" />
+                        @endif
                     </span>
                 </label>
+            @endforeach
             @endforeach
         </fieldset>
         <x-form-error name="plan" />

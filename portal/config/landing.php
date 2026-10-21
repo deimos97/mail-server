@@ -5,8 +5,9 @@
  * y desplegar. Los planes salen de la BD (admin → Planes).
  *
  * Tono neutro (2026-10-15): correo español, privado y sin anuncios; la marca y la bandera hacen el resto.
- * Sin plan gratis para las altas desde el 2026-10-20 (D-032): el precio del Mini (4,99 €/año) sale aquí escrito
- * en el paso 2 y en las preguntas; si cambia en el admin, cámbialo también aquí.
+ * Sin plan gratis para las altas desde el 2026-10-20 (D-032): el precio del Mini (4,99 €/año, 0,42 €/mes)
+ * sale aquí escrito en el paso 2 y en las preguntas; si cambia en el admin, cámbialo también aquí. Los precios se
+ * enseñan siempre al mes (el anual, dividido entre 12) y con el pago anual al lado.
  */
 
 return [
@@ -38,7 +39,7 @@ return [
         'steps_title' => 'Listo en un minuto',
         'steps' => [
             ['title' => 'Elige tu nombre', 'text' => 'Escríbelo arriba y te decimos al momento si está libre. Si no, te proponemos parecidos.'],
-            ['title' => 'Elige tu plan', 'text' => 'Desde 4,99 € al año. Pagas con tarjeta en Stripe: nunca vemos tus datos.'],
+            ['title' => 'Elige tu plan', 'text' => 'Desde 0,42 € al mes. Pagas con tarjeta en Stripe: nunca vemos tus datos.'],
             ['title' => 'Úsalo donde quieras', 'text' => 'En el navegador, con el webmail, o en las apps del móvil y del ordenador. Te guiamos paso a paso.'],
         ],
     ],
@@ -89,7 +90,7 @@ return [
         ['q' => '¿Puedo usar mi cuenta en el móvil?', 'a' => 'Sí. Funciona con la app de correo del iPhone, Gmail para Android, Outlook, Thunderbird y cualquier app que use IMAP y SMTP.'],
         ['q' => '¿Puedo leerlo dentro de gmail.com?', 'a' => 'En el móvil sí: añade tu cuenta en la app de Gmail (te explicamos cómo paso a paso). En gmail.com desde el ordenador no, porque Google ya no permite añadir cuentas de otros proveedores; ahí usa nuestro webmail o un programa como Outlook o Thunderbird.'],
         ['q' => '¿Qué pasa si dejo de pagar?', 'a' => 'Te avisamos antes. Si no se renueva el pago, la cuenta se suspende y, pasado un tiempo, se borra. Siempre podrás descargar tu correo antes.'],
-        ['q' => '¿Por qué no hay plan gratis?', 'a' => 'Porque el correo gratis lo acaba pagando alguien: con anuncios, con tus datos o con el spam de las cuentas que se abren para eso. El Mini cuesta 4,99 € al año (menos de 0,42 € al mes) e incluye 500 MB, hasta 20 correos enviados al día, webmail y apps de correo. Si necesitas más, pasa al Básico o al Pro cuando quieras.'],
+        ['q' => '¿Por qué no hay plan gratis?', 'a' => 'Porque el correo gratis lo acaba pagando alguien: con anuncios, con tus datos o con el spam de las cuentas que se abren para eso. El Mini sale a 0,42 € al mes (4,99 € en un solo pago al año) e incluye 500 MB, hasta 20 correos enviados al día, webmail y apps de correo. Si necesitas más, pasa al Básico o al Pro cuando quieras.'],
         ['q' => '¿Puedo cambiar de plan?', 'a' => 'Cuando quieras, desde tu cuenta. Si subes, el cambio es inmediato y solo pagas la diferencia. Si bajas, también es inmediato y la diferencia se descuenta de tus próximos pagos.'],
         ['q' => '¿Puedo pagar al año?', 'a' => 'Sí. En el Básico y el Pro, el pago anual sale a dos meses gratis frente al mensual. El Mini solo se paga al año.'],
         ['q' => '¿Qué es un alias?', 'a' => 'Otra dirección del dominio que llega a tu mismo buzón, por ejemplo para compras o para tu trabajo. Puedes enviar desde ella y borrarla cuando quieras. Hay 3 en el Básico y 10 en el Pro.'],

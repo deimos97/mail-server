@@ -1,5 +1,6 @@
 @php
     use App\Support\Money;
+    use App\Support\PlanGroups;
     // Un nombre corto (con sobrecoste) necesita plan de pago y solo hay un buzón gratis por usuario (D-014).
     // Los de pago, cuando Stripe está configurado y el plan (y el sobrecoste, si toca) están sincronizados.
     $surchargePrice = fn ($plan) => $plan->interval === 'year' ? $surcharge?->stripe_price_year_id : $surcharge?->stripe_price_id;
@@ -10,12 +11,11 @@
     // Tras un error (p. ej. sin marcar la casilla), el plan que mandó; si no, el que eligió en la landing o al volver de Stripe
     $selected = old('plan', $selected);
     $default = $plans->first(fn ($p) => $p->slug === $selected && $selectable($p)) ?? $plans->first($selectable);
-    // Mensual / anual (D-029): el gemelo de cada plan de pago es el del mismo tier con el otro intervalo.
-    // Un plan sin gemelo (el Mini, solo anual) sale siempre.
-    $paidPlans = $plans->reject->is_free;
-    $twins = $paidPlans->mapWithKeys(fn ($p) => [$p->slug => $paidPlans->first(fn ($o) => $o->tier === $p->tier && $o->interval !== $p->interval)?->slug]);
-    $hasYearly = $paidPlans->contains(fn ($p) => $p->interval === 'year' && $twins[$p->slug]);
-    $initYearly = $default && ! $default->is_free && $default->interval === 'year' && $twins[$default->slug];
+    // Una tarjeta por plan con su selector Anual / Mensual, que arranca en el más barato (o en el elegido);
+    // el precio, siempre al mes (App\Support\PlanGroups)
+    $groups = PlanGroups::of($plans);
+    $period = $groups->mapWithKeys(fn ($g) => [$g['key'] => ($g['plans']->contains($default) ? $default : $g['default'])->interval === 'year' ? 'year' : 'month']);
+    $slugs = $groups->mapWithKeys(fn ($g) => [$g['key'] => $g['plans']->mapWithKeys(fn ($p) => [$p->interval === 'year' ? 'year' : 'month' => $p->slug])]);
 @endphp
 
 <x-signup-layout :step="$extra ? null : 3" title="Elige tu plan">
@@ -38,17 +38,16 @@
     @endif
 
     <form method="POST" action="{{ route('signup.plan.store') }}" class="mt-6"
-          x-data="{ plan: @js($default?->slug), paid: @js($paidSlugs), twins: @js($twins), yearly: @js($initYearly),
-                    setYearly(v) { if (this.yearly !== v && this.twins[this.plan]) this.plan = this.twins[this.plan]; this.yearly = v } }">
+          x-data="{ plan: @js($default?->slug), paid: @js($paidSlugs), period: @js($period), slugs: @js($slugs),
+                    setPeriod(group, yearly) { const was = this.plan === this.slugs[group][this.period[group]]; this.period[group] = yearly ? 'year' : 'month';
+                                               if (was && this.slugs[group][this.period[group]]) this.plan = this.slugs[group][this.period[group]] } }">
         @csrf
-        @if ($hasYearly)
-            <x-billing-toggle class="mb-5" />
-        @endif
         <fieldset class="space-y-3">
             <legend class="sr-only">Plan</legend>
-            @foreach ($plans as $plan)
-                @php $enabled = $selectable($plan); $per = $plan->interval === 'year' ? '/año' : '/mes'; @endphp
-                <label @if ($hasYearly && ! $plan->is_free && $twins[$plan->slug]) x-show="{{ $plan->interval === 'year' ? 'yearly' : '! yearly' }}" @if (($plan->interval === 'year') !== $initYearly) x-cloak @endif @endif @class([
+            @foreach ($groups as $group)
+            @foreach ($group['plans'] as $plan)
+                @php $enabled = $selectable($plan); $yearly = $plan->interval === 'year'; $twinned = $group['plans']->count() > 1; @endphp
+                <label @if ($twinned) x-show="period[@js($group['key'])] === @js($yearly ? 'year' : 'month')" @if ($period[$group['key']] !== ($yearly ? 'year' : 'month')) x-cloak @endif @endif @class([
                     'flex items-start gap-4 rounded-2xl p-4 ring-2 transition',
                     'cursor-pointer hover:bg-stone-50' => $enabled,
                     'cursor-not-allowed opacity-50' => ! $enabled,
@@ -56,14 +55,20 @@
                     <input type="radio" name="plan" value="{{ $plan->slug }}" x-model="plan" @disabled(! $enabled) class="mt-1 size-5 accent-rojo">
                     <span class="flex-1">
                         <span class="flex items-baseline justify-between gap-3">
-                            <span class="text-lg font-bold">{{ $plan->name }}</span>
-                            <span class="font-bold">{{ $plan->is_free ? 'Gratis' : Money::format($plan->effectivePriceCents()).$per }}</span>
+                            <span class="text-lg font-bold">{{ $group['name'] }}</span>
+                            <span class="text-right font-bold">{{ $plan->is_free ? 'Gratis' : Money::format(PlanGroups::perMonth($plan, $plan->effectivePriceCents())).'/mes' }}</span>
                         </span>
+                        @if ($yearly && ! $plan->is_free)
+                            <span class="block text-sm text-stone-500">Pago anual de {{ Money::format($plan->effectivePriceCents()) }}.</span>
+                        @endif
                         @if ($plan->features)
                             <span class="mt-1 block text-sm text-stone-600">{{ implode(' · ', $plan->features) }}</span>
                         @endif
                         @if (! $plan->is_free && $surcharge)
-                            <span class="mt-1 block text-sm font-semibold text-stone-700">+{{ Money::format($plan->interval === 'year' ? $surcharge->price_cents * 12 : $surcharge->price_cents) }}{{ $per }} por nombre corto</span>
+                            <span class="mt-1 block text-sm font-semibold text-stone-700">+{{ Money::format($surcharge->price_cents) }}/mes por nombre corto{{ $yearly ? ' ('.Money::format($surcharge->price_cents * 12).' al año)' : '' }}</span>
+                        @endif
+                        @if ($twinned)
+                            <x-billing-toggle :group="$group['key']" class="mt-3" />
                         @endif
                         @if (! $plan->is_free && ! $enabled)
                             <span class="mt-2 inline-block rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-600">Muy pronto</span>
@@ -73,6 +78,7 @@
                         @endif
                     </span>
                 </label>
+            @endforeach
             @endforeach
         </fieldset>
         <x-form-error name="plan" />

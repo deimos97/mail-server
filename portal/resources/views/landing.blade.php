@@ -1,5 +1,6 @@
 @php
     use App\Support\Money;
+    use App\Support\PlanGroups;
     $hero = config('landing.hero');
     $mainDomain = $domains[0] ?? 'unagrandeylibre.es';
 @endphp
@@ -174,14 +175,14 @@
         </div>
     </section>
 
-    {{-- PLANES (salen de la BD) --}}
+    {{-- PLANES (salen de la BD). Una tarjeta por plan, con su mensual y su anual juntos y un selector propio que
+         arranca en el más barato (App\Support\PlanGroups). El precio, siempre al mes; el anual, con su pago al lado. --}}
     @php
-        // Mensual / anual (D-029): un plan de pago con gemelo (mismo tier, otro intervalo) sale en una tanda u
-        // otra; sin gemelo (el Mini, solo anual) sale siempre, como el gratis
-        $twinned = fn ($p) => ! $p['is_free'] && $plans->contains(fn ($o) => ! $o['is_free'] && $o['tier'] === $p['tier'] && $o['interval'] !== $p['interval']);
-        $hasYearly = $plans->contains(fn ($p) => $p['interval'] === 'year' && $twinned($p));
+        $groups = PlanGroups::of($plans);
+        $period = $groups->mapWithKeys(fn ($g) => [$g['key'] => $g['default']['interval'] === 'year' ? 'year' : 'month']);
     @endphp
-    <section id="planes" class="scroll-mt-4 px-4 py-20 sm:px-6 sm:py-28" x-data="{ yearly: false, setYearly(v) { this.yearly = v } }">
+    <section id="planes" class="scroll-mt-4 px-4 py-20 sm:px-6 sm:py-28"
+             x-data="{ period: @js($period), setPeriod(group, yearly) { this.period[group] = yearly ? 'year' : 'month' } }">
         <div class="mx-auto max-w-6xl">
             <div class="mx-auto max-w-2xl text-center">
                 <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ config('landing.plans.title') }}</h2>
@@ -192,93 +193,101 @@
                 </p>
             </div>
 
-            @if ($plans->isEmpty())
+            @if ($groups->isEmpty())
                 <p class="mt-12 text-center text-stone-500">Muy pronto publicaremos los planes.</p>
             @else
-                {{-- Con planes anuales, se ve una tanda u otra (los que no tienen gemelo, siempre): cuentan los de una tanda --}}
-                @php
-                    $perRow = $hasYearly ? $plans->filter(fn ($p) => $p['interval'] !== 'year' || ! $twinned($p))->count() : $plans->count();
-                @endphp
-                @if ($hasYearly)
-                    <x-billing-toggle class="mt-10" />
-                @endif
                 <div @class([
-                    'mx-auto grid gap-6',
-                    'mt-14' => ! $hasYearly, 'mt-12' => $hasYearly,
-                    'max-w-md' => $perRow === 1,
-                    'max-w-4xl md:grid-cols-2' => $perRow === 2,
-                    'md:grid-cols-3' => $perRow >= 3,
+                    'mx-auto mt-14 grid gap-6',
+                    'max-w-md' => $groups->count() === 1,
+                    'max-w-4xl md:grid-cols-2' => $groups->count() === 2,
+                    'md:grid-cols-3' => $groups->count() >= 3,
                 ])>
-                    @foreach ($plans as $plan)
+                    @foreach ($groups as $group)
                         @php
-                            $per = $plan['interval'] === 'year' ? '/año' : '/mes';
-                            $hasOffer = $plan['offer'] !== null;
-                            $yearlyCard = ! $plan['is_free'] && $plan['interval'] === 'year';
+                            $highlighted = $group['plans']->contains('is_highlighted', true);
+                            $twinned = $group['plans']->count() > 1;
                         @endphp
-                        <article @if ($hasYearly && $twinned($plan)) x-show="{{ $yearlyCard ? 'yearly' : '! yearly' }}" @if ($yearlyCard) x-cloak @endif @endif @class([
+                        <article @class([
                             'relative flex flex-col rounded-3xl bg-white p-8 shadow-sm ring-1',
-                            'ring-2 ring-rojo shadow-xl shadow-rojo/10 md:-translate-y-2' => $plan['is_highlighted'],
-                            'ring-stone-200' => ! $plan['is_highlighted'],
+                            'ring-2 ring-rojo shadow-xl shadow-rojo/10 md:-translate-y-2' => $highlighted,
+                            'ring-stone-200' => ! $highlighted,
                         ])>
-                            @if ($plan['is_highlighted'])
+                            @if ($highlighted)
                                 <p class="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-rojo px-4 py-1 text-xs font-bold uppercase tracking-wider text-white">
                                     El más elegido
                                 </p>
                             @endif
 
-                            <h3 class="text-xl font-bold">{{ $plan['name'] }}</h3>
-                            @if ($plan['description'])
-                                <p class="mt-1 text-stone-600">{{ $plan['description'] }}</p>
+                            <h3 class="text-xl font-bold">{{ $group['name'] }}</h3>
+                            @if ($twinned)
+                                <x-billing-toggle :group="$group['key']" class="mt-3" />
+                            @elseif ($group['default']['interval'] === 'year')
+                                {{-- Mismo alto que el selector, para que las tarjetas cuadren --}}
+                                <p class="mt-3"><span class="inline-flex rounded-full bg-stone-100 p-1 text-xs font-semibold ring-1 ring-stone-200"><span class="rounded-full bg-white px-3 py-1.5 shadow-sm">Solo pago anual</span></span></p>
                             @endif
 
-                            <div class="mt-6">
-                                @if ($plan['is_free'])
-                                    <p class="text-4xl font-extrabold tracking-tight">Gratis</p>
-                                @else
-                                    @if ($hasOffer)
-                                        <p class="text-sm text-stone-500">
-                                            <del aria-label="Antes">{{ Money::format($plan['price_cents']) }}</del>
-                                            <span class="ml-1 rounded-full bg-amarillo/30 px-2 py-0.5 text-xs font-bold text-tinta">{{ $plan['offer']->label }}</span>
-                                        </p>
+                            @foreach ($group['plans'] as $plan)
+                                @php
+                                    $yearly = $plan['interval'] === 'year';
+                                    $per = $yearly ? ' al año' : '/mes';
+                                    $hasOffer = $plan['offer'] !== null;
+                                @endphp
+                                <div @if ($twinned) x-show="period[@js($group['key'])] === @js($yearly ? 'year' : 'month')" @if ($plan['slug'] !== $group['default']['slug']) x-cloak @endif @endif
+                                     class="flex flex-1 flex-col">
+                                    @if ($plan['description'])
+                                        <p class="mt-2 text-stone-600">{{ $plan['description'] }}</p>
                                     @endif
-                                    <p class="text-4xl font-extrabold tracking-tight">
-                                        {{ Money::format($plan['effective_price_cents']) }}<span class="text-base font-medium text-stone-500">{{ $per }}</span>
-                                    </p>
-                                    @if ($yearlyCard)
-                                        <p class="mt-1 text-sm text-stone-500">Sale a {{ Money::format(intdiv($plan['effective_price_cents'], 12)) }}/mes.</p>
-                                    @endif
-                                    @if ($hasOffer && $plan['offer']->duration === 'repeating' && $plan['offer']->duration_months)
-                                        <p class="mt-1 text-sm text-stone-500">Los primeros {{ $plan['offer']->duration_months }} meses; después, {{ Money::format($plan['price_cents']) }}{{ $per }}.</p>
-                                    @elseif ($hasOffer && $plan['offer']->duration === 'once')
-                                        <p class="mt-1 text-sm text-stone-500">El primer pago; después, {{ Money::format($plan['price_cents']) }}{{ $per }}.</p>
-                                    @endif
-                                @endif
-                            </div>
 
-                            @if ($plan['features'])
-                                <ul class="mt-6 space-y-3 text-stone-700">
-                                    @foreach ($plan['features'] as $feature)
-                                        <li class="flex gap-3"><x-icon.check class="mt-0.5 size-5 shrink-0 text-rojo" /><span>{{ $feature }}</span></li>
-                                    @endforeach
-                                </ul>
-                            @endif
+                                    <div class="mt-6">
+                                        @if ($plan['is_free'])
+                                            <p class="text-4xl font-extrabold tracking-tight">Gratis</p>
+                                        @else
+                                            @if ($hasOffer)
+                                                <p class="text-sm text-stone-500">
+                                                    <del aria-label="Antes">{{ Money::format(PlanGroups::perMonth($plan, $plan['price_cents'])) }}/mes</del>
+                                                    <span class="ml-1 rounded-full bg-amarillo/30 px-2 py-0.5 text-xs font-bold text-tinta">{{ $plan['offer']->label }}</span>
+                                                </p>
+                                            @endif
+                                            <p class="text-4xl font-extrabold tracking-tight">
+                                                {{ Money::format(PlanGroups::perMonth($plan, $plan['effective_price_cents'])) }}<span class="text-base font-medium text-stone-500">/mes</span>
+                                            </p>
+                                            @if ($yearly)
+                                                <p class="mt-1 text-sm text-stone-500">Pago anual de {{ Money::format($plan['effective_price_cents']) }}.</p>
+                                            @endif
+                                            @if ($hasOffer && $plan['offer']->duration === 'repeating' && $plan['offer']->duration_months)
+                                                <p class="mt-1 text-sm text-stone-500">Los primeros {{ $plan['offer']->duration_months }} meses; después, {{ Money::format($plan['price_cents']) }}{{ $per }}.</p>
+                                            @elseif ($hasOffer && $plan['offer']->duration === 'once')
+                                                <p class="mt-1 text-sm text-stone-500">El primer pago; después, {{ Money::format($plan['price_cents']) }}{{ $per }}.</p>
+                                            @endif
+                                        @endif
+                                    </div>
 
-                            <div class="mt-auto pt-8">
-                                @if ($plan['is_free'])
-                                    <p x-cloak x-show="$store.signup.needsPaidPlan" class="mb-3 text-sm text-stone-500">Los nombres cortos necesitan un plan de pago.</p>
-                                @endif
-                                <a href="{{ route('signup', ['plan' => $plan['slug']]) }}"
-                                   data-plan="{{ $plan['slug'] }}" data-free="{{ $plan['is_free'] ? 1 : 0 }}" data-offer="{{ $hasOffer ? 1 : 0 }}"
-                                   :href="'{{ route('signup') }}?' + new URLSearchParams({ plan: @js($plan['slug']), ...($store.signup.email ? { nombre: $store.signup.check.local_part, dominio: $store.signup.check.domain } : {}) })"
-                                   @if ($plan['is_free']) :class="$store.signup.needsPaidPlan && 'pointer-events-none opacity-40'" :aria-disabled="$store.signup.needsPaidPlan" @endif
-                                   @class([
-                                       'block rounded-2xl px-6 py-3.5 text-center font-bold transition focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amarillo',
-                                       'bg-rojo text-white hover:bg-rojo-oscuro' => $plan['is_highlighted'],
-                                       'bg-stone-100 text-tinta hover:bg-stone-200' => ! $plan['is_highlighted'],
-                                   ])>
-                                    {{ $plan['is_free'] ? 'Empezar gratis' : 'Elegir '.$plan['name'] }}
-                                </a>
-                            </div>
+                                    @if ($plan['features'])
+                                        <ul class="mt-6 space-y-3 text-stone-700">
+                                            @foreach ($plan['features'] as $feature)
+                                                <li class="flex gap-3"><x-icon.check class="mt-0.5 size-5 shrink-0 text-rojo" /><span>{{ $feature }}</span></li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+
+                                    <div class="mt-auto pt-8">
+                                        @if ($plan['is_free'])
+                                            <p x-cloak x-show="$store.signup.needsPaidPlan" class="mb-3 text-sm text-stone-500">Los nombres cortos necesitan un plan de pago.</p>
+                                        @endif
+                                        <a href="{{ route('signup', ['plan' => $plan['slug']]) }}"
+                                           data-plan="{{ $plan['slug'] }}" data-free="{{ $plan['is_free'] ? 1 : 0 }}" data-offer="{{ $hasOffer ? 1 : 0 }}"
+                                           :href="'{{ route('signup') }}?' + new URLSearchParams({ plan: @js($plan['slug']), ...($store.signup.email ? { nombre: $store.signup.check.local_part, dominio: $store.signup.check.domain } : {}) })"
+                                           @if ($plan['is_free']) :class="$store.signup.needsPaidPlan && 'pointer-events-none opacity-40'" :aria-disabled="$store.signup.needsPaidPlan" @endif
+                                           @class([
+                                               'block rounded-2xl px-6 py-3.5 text-center font-bold transition focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amarillo',
+                                               'bg-rojo text-white hover:bg-rojo-oscuro' => $highlighted,
+                                               'bg-stone-100 text-tinta hover:bg-stone-200' => ! $highlighted,
+                                           ])>
+                                            {{ $plan['is_free'] ? 'Empezar gratis' : 'Elegir '.$group['name'] }}
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
                         </article>
                     @endforeach
                 </div>

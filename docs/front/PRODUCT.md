@@ -19,6 +19,7 @@ De arriba abajo:
 2. **Así te verán + Listo en un minuto:** una bandeja de entrada de ejemplo con un correo de la dirección que el visitante haya elegido arriba (si no, `tunombre@…`), y el alta en 3 pasos. En el hero, bajo el buscador, "Ya somos N con dirección @…" (buzones activos de clientes, sin los internos), solo a partir de `landing.counter.min` (100).
 3. **Planes** (al hacer scroll). Tarjetas `x,xx €/mes` con sus características. **Salen de la BD**, nada escrito a mano en la plantilla. Cada plan puede ser:
    - gratis o de pago (desde el 2026-10-20 no hay gratis para las altas nuevas: el más barato es el Mini, 4,99 €/año, D-032);
+   - **precio siempre al mes** (el anual, dividido entre 12, con «Pago anual de X €» al lado). El mensual y el anual del mismo plan van en una sola tarjeta con su propio selector Anual / Mensual, que arranca en el más barato (`App\Support\PlanGroups`; igual en el alta y en «Cambiar de plan»);
    - activo o inactivo, de forma absoluta o programada (desde/hasta);
    - con descuento (oferta), también programable: precio tachado + etiqueta ("-50 % lanzamiento", "hasta el 31/12").
    - Un plan puede marcarse como destacado ("el más elegido").

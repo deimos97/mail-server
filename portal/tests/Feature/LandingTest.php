@@ -46,12 +46,16 @@ class LandingTest extends TestCase
             ->assertDontSee('Espacio de sobra');   // Pro, desactivado
     }
 
-    public function test_yearly_plans_behind_a_toggle(): void
+    public function test_each_plan_has_its_own_toggle_starting_at_the_cheapest_and_prices_per_month(): void
     {
-        $this->get('/')
+        $html = $this->get('/')
             ->assertSee('Mensual')->assertSee('2 meses gratis')
-            ->assertSee('19,90 €')->assertSee('Sale a 1,65 €/mes')           // Básico anual
-            ->assertSee('x-show="yearly"', false)->assertSee('x-show="! yearly"', false);
+            ->assertSee('1,66 €')->assertSee('Pago anual de 19,90 €')        // Básico anual, al mes
+            ->assertSee('1,00 €')                                             // Básico mensual con la oferta
+            ->getContent();
+        $this->assertStringContainsString('\u0022basic\u0022:\u0022year\u0022', $html);   // arranca en el anual (el más barato)
+        $this->assertStringContainsString('\u0022pro\u0022:\u0022year\u0022', $html);
+        $this->assertSame(4, substr_count($html, 'x-show="period['));                     // Básico y Pro, dos variantes cada uno
     }
 
     public function test_without_free_plan_the_yearly_only_mini_is_always_shown(): void
@@ -60,11 +64,11 @@ class LandingTest extends TestCase
 
         $html = $this->get('/')->assertOk()
             ->assertDontSee('Empezar gratis')
-            ->assertSee('Elegir Mini')->assertSee('4,99 €')->assertSee('Sale a 0,41 €/mes')
+            ->assertSee('Elegir Mini')->assertSee('0,42 €')->assertSee('Pago anual de 4,99 €')
             ->getContent();
-        // Solo los planes con gemelo mensual/anual van detrás del selector; el Mini, no
-        $this->assertSame(2, substr_count($html, 'x-show="yearly"'));
-        $this->assertSame(2, substr_count($html, 'x-show="! yearly"'));
+        // Solo los planes con mensual y anual llevan selector; el Mini, no
+        $this->assertSame(4, substr_count($html, 'x-show="period['));
+        $this->assertSame(2, substr_count($html, 'aria-label="Forma de pago"'));
     }
 
     public function test_preview_steps_and_switching_sections(): void
