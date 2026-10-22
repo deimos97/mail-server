@@ -292,7 +292,7 @@ Pedido el 2026-10-14. Decisiones D-018 a D-021. Cada parte se puede subir por se
 ## Después del lanzamiento
 
 - [ ] Dashboard de embudo en PostHog; revisar mapas de calor y grabaciones de las primeras campañas
-- [ ] Primeros A/B: texto del hero, orden/precio de planes, CTA. (2026-10-16) En marcha `hero-elige` (50/50): A «Consigue tu cuenta de correo» / B «Elige tu dirección de correo» con subtítulo «Escribe el nombre que quieras y te decimos al momento si está libre:». Se mira en PostHog por `$feature/hero-elige` cuando haya tráfico de campañas (unos cientos de visitas por variante)
+- [ ] Primeros A/B: texto del hero, orden/precio de planes, CTA. (2026-10-16) En marcha `hero-elige` (50/50): A «Consigue tu cuenta de correo» / B «Elige tu dirección de correo» con subtítulo «Escribe el nombre que quieras y te decimos al momento si está libre:». Se mira en PostHog por `$feature/hero-elige` cuando haya tráfico de campañas (unos cientos de visitas por variante). (2026-10-22) `hero-elige` se para y entra `home-c` (50/50): A la home de siempre / B la home C, rediseño oscuro con aspecto de producto (`resources/views/landing-c.blade.php`: maqueta del webmail con la dirección elegida, sección «Infraestructura», ayuda con IA; mismo comprobador de nombres, planes y enlaces al alta). Es una prueba de rediseño completo: dice cuál convierte mejor, no qué parte. En local se ve en `/home-c`; en producción, con `?variante=home-c:b`
 
 ## Futuro (sin fecha)
 

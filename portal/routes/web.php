@@ -22,6 +22,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('home');
 
+// Home C: rediseño experimental, solo en local mientras se prueba (vista landing-c)
+if (app()->isLocal()) {
+    Route::get('/home-c', LandingController::class)->defaults('view', 'landing-c')->name('home.c');
+}
+
 // Ayuda y contacto (Fase 7): abre un ticket. Sin sesión, solo si está activado en el admin (D-021)
 Route::get('/soporte', [SupportController::class, 'create'])->name('support');
 Route::post('/soporte', [SupportController::class, 'store'])->middleware('throttle:support')->name('support.store');

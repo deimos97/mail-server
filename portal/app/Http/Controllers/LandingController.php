@@ -39,7 +39,10 @@ class LandingController extends Controller
         $count = Cache::remember('landing.mailbox_count', 600,
             fn () => Mailbox::where('status', 'active')->where('tier', '!=', 'system')->count());
 
-        return view('landing', [
+        // Home C (rediseño oscuro) como variante del experimento `home-c`; en local, también en /home-c
+        $view = $request->route('view') ?? ($experiments->variant('home-c') === 'b' ? 'landing-c' : 'landing');
+
+        return view($view, [
             'domains' => Domain::signup()->pluck('name')->all(),
             'mailboxCount' => $count >= config('landing.counter.min') ? $count : null,
             'plans' => $plans,

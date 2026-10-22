@@ -90,4 +90,15 @@ class ExperimentsTest extends TestCase
         $this->post('/alta/plan', ['plan' => 'gratis']);
         Http::assertSent(fn ($request) => str_contains($request->url(), 'posthog') && ($request['properties']['$feature/hero'] ?? null) === 'b');
     }
+
+    public function test_home_c_variant_renders_the_redesign(): void
+    {
+        Experiment::create(['key' => 'home-c', 'name' => 'Home C', 'is_active' => true, 'variants' => [
+            ['key' => 'control', 'weight' => 0, 'overrides' => []],
+            ['key' => 'b', 'weight' => 100, 'overrides' => []],
+        ]]);
+
+        $this->get('/')->assertOk()->assertSee('O pídele ayuda a tu IA para configurarlo.')->assertSee('data-plan=', false);
+        $this->get('/?variante=home-c:control')->assertOk()->assertDontSee('O pídele ayuda a tu IA para configurarlo.');
+    }
 }
