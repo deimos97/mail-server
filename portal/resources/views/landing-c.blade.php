@@ -106,8 +106,6 @@
     }
     @keyframes hc-marquee { to { transform: translateX(-50%); } }
 
-    .hc-pulse { box-shadow: 0 0 0 0 rgb(74 222 128 / .6); animation: hc-pulse 2s infinite; }
-    @keyframes hc-pulse { 70% { box-shadow: 0 0 0 8px rgb(74 222 128 / 0); } 100% { box-shadow: 0 0 0 0 rgb(74 222 128 / 0); } }
 
     .hc-caret::after { content: '▍'; color: var(--color-amarillo); animation: hc-blink 1s steps(1) infinite; }
     @keyframes hc-blink { 50% { opacity: 0; } }
@@ -154,7 +152,7 @@
     </header>
 
     {{-- HERO --}}
-    <section id="top" class="relative isolate px-4 pb-10 pt-36 sm:px-6 sm:pt-44">
+    <section id="top" class="relative isolate px-4 pb-10 pt-40 sm:px-6 sm:pt-52">
         <div class="hc-grid absolute inset-0 -z-10" aria-hidden="true"></div>
         <div class="hc-waves absolute inset-0 -z-10" aria-hidden="true">
             <div class="hc-wave r left-[8%] top-[-6rem] h-[28rem] w-[28rem]"></div>
@@ -163,13 +161,7 @@
         </div>
 
         <div class="mx-auto max-w-4xl text-center">
-            <a href="{{ route('status') }}" class="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.04] py-1.5 pl-3 pr-4 text-[13px] text-white/70 backdrop-blur transition hover:border-white/20 hover:text-white">
-                <span class="hc-pulse size-2 rounded-full bg-green-400"></span>
-                Servidores en la Unión Europea · vigilados cada 10 minutos
-                <span class="text-white/40" aria-hidden="true">→</span>
-            </a>
-
-            <h1 class="mt-8 text-[2.75rem] font-extrabold leading-[1.02] tracking-[-0.04em] text-balance sm:text-7xl lg:text-[5.5rem]">
+            <h1 class="text-[2.75rem] font-extrabold leading-[1.02] tracking-[-0.04em] text-balance sm:text-7xl lg:text-[5.5rem]">
                 Tu correo,<br class="hidden sm:block"> <span class="hc-gradient-text">hecho en España.</span>
             </h1>
             <p class="mx-auto mt-6 max-w-2xl text-lg text-white/60 text-pretty sm:text-xl">
