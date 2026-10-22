@@ -8,7 +8,11 @@ use App\Services\AdminStats;
 /** Lo común de los widgets de la página de estadísticas: solo salen allí y leen el periodo elegido. */
 trait StatsWidget
 {
-    protected static bool $isDiscovered = false;
+    /** Con un método y no con `$isDiscovered`: PHP 8.3 no deja redefinir en un trait una propiedad del padre. */
+    public static function isDiscovered(): bool
+    {
+        return false;
+    }
 
     /** Sin refresco automático: los datos de los logs cambian cada hora. */
     protected function getPollingInterval(): ?string
