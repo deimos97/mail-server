@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""Estadísticas por día (hora de Madrid) para el panel del admin (mail-stats.timer, cada hora).
+
+Lee lo que la web no puede leer (los logs son de root) y lo guarda en la BD `portal`:
+- stats_days: visitas (log de nginx, sin bots ni estáticos: los mismos filtros que mail-daily-report),
+  correo enviado fuera, entregado en buzones, rechazado y rebotado (mail.log), y el disco (foto de la última pasada).
+- stats_mailbox_days: enviados y recibidos de cada buzón de nuestros dominios.
+
+Cada pasada recalcula los días enteros y los sobrescribe, así que repetirla no duplica nada.
+
+    mail-stats              hoy y ayer (con el log actual y su rotación anterior)
+    mail-stats --days 31    rellena hacia atrás hasta donde lleguen los logs rotados
+    mail-stats --dry-run    imprime el SQL sin escribirlo
+"""
+import collections
+import datetime as dt
+import glob
+import gzip
+import json
+import re
+import shutil
+import subprocess
+import sys
+import urllib.parse
+
+SERVER_IP = '128.140.5.221'
+DRY = '--dry-run' in sys.argv
+DAYS = 2
+if '--days' in sys.argv:
+    DAYS = max(1, int(sys.argv[sys.argv.index('--days') + 1]))
+
+today = dt.datetime.now().astimezone().date()
+first_day = today - dt.timedelta(days=DAYS - 1)
+start = dt.datetime.combine(first_day, dt.time()).astimezone()
+
+
+def lines(path):
+    """Las líneas del log en orden: de la rotación más antigua que haga falta a la actual."""
+    rotated = sorted(glob.glob(path + '.[0-9]*'), key=lambda p: int(re.search(r'\.(\d+)(\.gz)?$', p).group(1)), reverse=True)
+    if DAYS <= 2:
+        rotated = [p for p in rotated if re.search(r'\.1(\.gz)?$', p)]
+    for p in rotated + [path]:
+        opener = gzip.open if p.endswith('.gz') else open
+        with opener(p, 'rt', errors='replace') as f:
+            yield from f
+
+
+def sh(*cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=300).stdout
+    except Exception:
+        return ''
+
+
+def q(value):
+    """Literal SQL: los valores salen de los logs, así que se escapan siempre."""
+    if value is None:
+        return 'NULL'
+    if isinstance(value, int):
+        return str(value)
+    return "'" + str(value).replace('\\', '\\\\').replace("'", "\\'") + "'"
+
+
+domains = sh('mysql', '-N', 'mailserver', '-e', 'SELECT name FROM domains').split()
+own = lambda addr: any(addr.endswith('@' + d) for d in domains)
+
+# ---------- Visitas (nginx, formato combined) ----------
+NGINX = re.compile(r'^(\S+) \S+ \S+ \[([^\]]+)\] "(\S+) (\S+) [^"]*" (\d{3}) \S+ "([^"]*)" "([^"]*)"')
+BOT = re.compile(r'bot|crawl|spider|slurp|curl|wget|python|httpx|go-http|java/|okhttp|monitor|uptime|headless|preview|'
+                 r'facebookexternalhit|whatsapp|telegram|lighthouse|rspamd|scan|axios|node-fetch|php|research|\+https?://', re.I)
+STATIC = re.compile(r'^/(build|img|fonts|api|up|internal|stripe|livewire|admin|filament|storage|vendor|\.well-known)(/|$)|'
+                    r'\.(js|css|png|jpe?g|gif|svg|ico|webp|avif|woff2?|ttf|map|xml|txt|json|webmanifest|mobileconfig)(\?|$)', re.I)
+own_hosts = tuple(domains)
+pageviews = collections.Counter()
+visitors = collections.defaultdict(set)
+sources = collections.defaultdict(collections.Counter)
+seen_source = collections.defaultdict(set)
+for line in lines('/var/log/nginx/access.log'):
+    m = NGINX.match(line)
+    if not m:
+        continue
+    ip, when, method, path, status, ref, ua = m.groups()
+    try:
+        t = dt.datetime.strptime(when, '%d/%b/%Y:%H:%M:%S %z')
+    except ValueError:
+        continue
+    if t < start or method != 'GET' or status != '200' or ip == SERVER_IP or not ua.startswith('Mozilla/') or BOT.search(ua) or STATIC.search(path):
+        continue
+    day = t.astimezone().date()
+    pageviews[day] += 1
+    visitor = (ip, ua)
+    visitors[day].add(visitor)
+    if visitor in seen_source[day]:
+        continue
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(path).query)
+    host = (urllib.parse.urlparse(ref).hostname or '').lower().removeprefix('www.')
+    # Sin IPs (escáneres), sin la vuelta del pago de Stripe y sin «orígenes» que no son un nombre (inyecciones)
+    external = host and not host.endswith(own_hosts + ('stripe.com', 'localhost')) and not re.fullmatch(r'[\d.:]+', host)
+    source = (query.get('utm_source') or [None])[0] or (host if external else None)
+    if source and re.fullmatch(r'[\w.-]{1,40}', source):
+        sources[day][source.lower()] += 1
+        seen_source[day].add(visitor)
+
+# ---------- Correo (Postfix) ----------
+TS = re.compile(r'^(\S+) ')
+QID_FROM = re.compile(r'postfix/qmgr\[\d+\]: (\w+): from=<([^>]*)>')
+DELIVERY = re.compile(r'postfix/(smtp|lmtp)\[\d+\]: (\w+): to=<([^>]*)>.*? status=(\w+)')
+sender_of = {}
+mail = collections.defaultdict(collections.Counter)            # día → sent, received, rejected, bounced
+per_mailbox = collections.defaultdict(collections.Counter)     # (día, buzón) → sent, received
+for line in lines('/var/log/mail.log'):
+    m = TS.match(line)
+    try:
+        t = dt.datetime.fromisoformat(m.group(1)) if m else None
+    except ValueError:
+        t = None
+    if t is None:
+        continue
+    if (m := QID_FROM.search(line)):
+        sender_of[m.group(1)] = m.group(2).lower()
+    if t < start:
+        continue
+    day = t.astimezone().date()
+    if 'NOQUEUE: reject' in line or 'milter-reject' in line:
+        mail[day]['rejected'] += 1
+        continue
+    if not (m := DELIVERY.search(line)):
+        continue
+    kind, qid, rcpt, status = m.group(1), m.group(2), m.group(3).lower(), m.group(4)
+    if status == 'bounced':
+        mail[day]['bounced'] += 1
+    elif status == 'sent' and kind == 'smtp':
+        mail[day]['sent'] += 1
+        sender = sender_of.get(qid, '')
+        if own(sender):
+            per_mailbox[(day, sender)]['sent'] += 1
+    elif status == 'sent' and kind == 'lmtp':
+        mail[day]['received'] += 1
+        if own(rcpt):
+            per_mailbox[(day, rcpt)]['received'] += 1
+
+# ---------- Disco (solo en la fila de hoy) ----------
+disk = shutil.disk_usage('/')
+vmail = sh('du', '-sb', '/var/vmail').split()
+
+# ---------- SQL ----------
+now = dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+sql = ['SET NAMES utf8mb4;', 'START TRANSACTION;']
+for i in range(DAYS):
+    day = first_day + dt.timedelta(days=i)
+    c = mail[day]
+    top = json.dumps(dict(sources[day].most_common(10)), ensure_ascii=False) if sources[day] else None
+    is_today = day == today
+    values = [q(day.isoformat()), q(len(visitors[day])), q(pageviews[day]), q(top), q(c['sent']), q(c['received']), q(c['rejected']), q(c['bounced']),
+              q(disk.used if is_today else None), q(disk.total if is_today else None), q(int(vmail[0]) if is_today and vmail else None), q(now)]
+    sql.append('INSERT INTO stats_days (day, visitors, pageviews, sources, sent, received, rejected, bounced, disk_used_bytes, disk_total_bytes, vmail_bytes, updated_at) '
+               f'VALUES ({", ".join(values)}) ON DUPLICATE KEY UPDATE visitors=VALUES(visitors), pageviews=VALUES(pageviews), sources=VALUES(sources), '
+               'sent=VALUES(sent), received=VALUES(received), rejected=VALUES(rejected), bounced=VALUES(bounced), '
+               'disk_used_bytes=COALESCE(VALUES(disk_used_bytes), disk_used_bytes), disk_total_bytes=COALESCE(VALUES(disk_total_bytes), disk_total_bytes), '
+               'vmail_bytes=COALESCE(VALUES(vmail_bytes), vmail_bytes), updated_at=VALUES(updated_at);')
+sql.append(f'DELETE FROM stats_mailbox_days WHERE day >= {q(first_day.isoformat())};')
+rows = [f'({q(day.isoformat())}, {q(email[:320])}, {q(c["sent"])}, {q(c["received"])})' for (day, email), c in sorted(per_mailbox.items())]
+for i in range(0, len(rows), 500):
+    sql.append('INSERT INTO stats_mailbox_days (day, email, sent, received) VALUES ' + ', '.join(rows[i:i + 500]) + ';')
+sql.append('COMMIT;')
+
+if DRY:
+    print('\n'.join(sql))
+    sys.exit(0)
+result = subprocess.run(['mysql', 'portal'], input='\n'.join(sql), text=True, capture_output=True)
+if result.returncode:
+    sys.exit('mail-stats: no se ha podido escribir en la BD: ' + result.stderr.strip())

@@ -64,7 +64,7 @@ class DailyStats
     }
 
     /** @return Collection<string, int> suscripciones activas: "mailbox:ID" → céntimos al mes */
-    private function activeSubscriptions(): Collection
+    public function activeSubscriptions(): Collection
     {
         $planPrices = PlanPrice::all()->keyBy('stripe_price_id');
         $tiers = NamePriceTier::all();

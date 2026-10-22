@@ -1,0 +1,8 @@
+[Unit]
+Description=Estadísticas por día para el panel del admin (visitas, correo, disco)
+After=network-online.target mariadb.service
+
+[Service]
+Type=oneshot
+Nice=10
+ExecStart=/usr/local/sbin/mail-stats
